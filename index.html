@@ -9,7 +9,6 @@
 
 <body class="bg-gray-100 min-h-screen p-4">
 
-<!-- TOP BAR (dinâmico: login ou usuário) -->
 <header class="max-w-4xl mx-auto mb-4">
   <div class="bg-white rounded-xl shadow p-4 flex items-center justify-between gap-3">
     <div class="min-w-0">
@@ -17,7 +16,6 @@
       <div id="topSubtitle" class="text-sm text-gray-600 truncate">Login por PIN</div>
     </div>
 
-    <!-- bloco pontos (só quando logado como funcionário) -->
     <div id="topPointsBox" class="hidden items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 17.27l5.18 3.04-1.39-5.99 4.64-4.02-6.12-.53L12 4l-2.31 5.77-6.12.53 4.64 4.02-1.39 5.99L12 17.27z"/>
@@ -76,7 +74,7 @@
 <!-- FUNCIONÁRIO -->
 <section id="funcionario" class="hidden max-w-3xl mx-auto">
 
-  <!-- Escala (visível para todos; editor só Claudia e Gerente) -->
+  <!-- Escala (viewer + editor pra Claudia/Gerente) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -94,12 +92,9 @@
       </div>
     </div>
 
-    <!-- Conteúdo colapsável -->
     <div id="escalaEmpContent" class="mt-3">
-      <!-- Viewer -->
       <div id="escalaViewer" class="text-sm space-y-2"></div>
 
-      <!-- Editor (só Claudia e Gerente) -->
       <div id="escalaEditorWrap" class="hidden mt-4 border-t pt-4">
         <div class="flex items-center justify-between">
           <div class="font-semibold text-sm">Editar escala</div>
@@ -115,7 +110,6 @@
     </div>
   </div>
 
-  <!-- topo usuário -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
@@ -144,7 +138,6 @@
     </div>
   </div>
 
-  <!-- Tarefas (inclui GLOBAL + pessoais) -->
   <div id="tasks" class="space-y-4"></div>
 </section>
 
@@ -170,7 +163,6 @@
     </div>
   </div>
 
-  <!-- Ranking mensal (colapsável) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -187,66 +179,50 @@
     </div>
   </div>
 
-  <!-- GLOBAL -->
+  <!-- TEMPLATES GLOBAIS + PUBLICAR -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <h3 class="font-semibold mb-2">Criar categoria GLOBAL (para todos)</h3>
+    <h3 class="font-semibold mb-2">Tarefas GLOBAIS salvas (Templates)</h3>
     <p class="text-xs text-gray-500 mb-3">
-      Ela aparece para todos os usuários ativos. Quem concluir primeiro, “trava” e some dos demais.
+      Crie templates e depois publique a GLOBAL da semana escolhendo no dropdown.
+      Quem concluir primeiro “trava” e some dos demais.
     </p>
 
     <div class="grid md:grid-cols-4 gap-2">
-      <input id="globalCatName" class="border p-2 rounded md:col-span-2" placeholder="Nome (ex: Conferir geladeira)" />
-      <input id="globalCatItems" class="border p-2 rounded md:col-span-2" placeholder="Itens separados por vírgula (ex: Coca, Guaraná...)" />
+      <select id="globalTplSelect" class="border p-2 rounded md:col-span-2">
+        <option value="">Carregando templates...</option>
+      </select>
+      <button id="btnPublishGlobalFromTpl" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
+        Publicar GLOBAL (semana)
+      </button>
+      <button id="btnDeleteTpl" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded">
+        Excluir template
+      </button>
     </div>
-    <button id="btnCreateGlobal" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded w-full">
-      Criar GLOBAL
-    </button>
 
     <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold mb-2">GLOBAL nesta semana</div>
+      <div class="text-sm font-semibold mb-2">Status GLOBAL desta semana</div>
       <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
     </div>
-  </div>
 
-  <!-- Escala (gerente edita) -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between">
-      <div>
-        <h3 class="font-semibold">Escala da Semana</h3>
-        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscalaGer">-</span></p>
-      </div>
-      <div class="flex items-center gap-2">
-        <button id="btnToggleEscalaGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-          Minimizar
-        </button>
-        <button id="btnSaveEscalaGer" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
-          Salvar escala
+    <div class="mt-4 border-t pt-4">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold text-sm">Criar novo template GLOBAL</div>
+        <button id="btnSaveTpl" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
+          Salvar template
         </button>
       </div>
-    </div>
-    <p class="text-xs text-gray-500 mt-2">
-      Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
-    </p>
 
-    <div id="escalaGerContent" class="mt-3">
-      <div id="escalaEditorGer" class="space-y-3"></div>
-    </div>
-  </div>
-
-  <!-- tarefas e faltas -->
-  <div class="grid md:grid-cols-2 gap-4">
-    <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
-      <div id="gerTasks" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
-    </div>
-
-    <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Itens em falta</h3>
-      <div id="gerMissing" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
+      <div class="grid md:grid-cols-4 gap-2 mt-2">
+        <input id="tplName" class="border p-2 rounded md:col-span-2" placeholder="Nome do template (ex: Conferir geladeira)" />
+        <input id="tplItems" class="border p-2 rounded md:col-span-2" placeholder="Itens separados por vírgula (ex: Coca, Guaraná...)" />
+      </div>
+      <p class="text-xs text-gray-500 mt-2">
+        Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).
+      </p>
     </div>
   </div>
 
-  <!-- apagar tarefas por funcionário -->
+  <!-- APAGAR TAREFAS POR FUNCIONÁRIO (SEMANA) -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Apagar tarefas por funcionário (semana)</h3>
     <div class="grid md:grid-cols-3 gap-2">
@@ -263,93 +239,10 @@
     </p>
     <div id="userTasksList" class="mt-3 space-y-2"></div>
   </div>
-
-  <!-- FUNCIONÁRIOS -->
-  <div class="bg-white p-4 rounded-xl shadow mt-4">
-    <h3 class="font-semibold mb-2">Funcionários (Ativar / Bloquear)</h3>
-    <p class="text-xs text-gray-500 mb-3">
-      Bloqueado não aparece no login.
-    </p>
-
-    <div class="grid md:grid-cols-3 gap-2">
-      <input id="newEmployeeName" class="border p-2 rounded" placeholder="Nome do funcionário (ex: Ingrid)" />
-      <button id="btnAddEmployee" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
-        Adicionar (Ativo)
-      </button>
-      <button id="btnRefreshEmployees" class="bg-gray-900 hover:bg-black text-white p-2 rounded">
-        Recarregar lista
-      </button>
-    </div>
-
-    <div id="employeeTable" class="mt-3 space-y-2"></div>
-  </div>
-
-  <!-- CATEGORIAS: ADD/UPDATE -->
-  <div class="bg-white p-4 rounded-xl shadow mt-4">
-    <h3 class="font-semibold mb-2">Adicionar / Atualizar categoria (individual)</h3>
-    <div class="grid md:grid-cols-4 gap-2">
-      <select id="addUser" class="border p-2 rounded"></select>
-      <input id="categoriaNome" placeholder="Nome da categoria" class="border p-2 rounded" />
-      <input id="itensCategoria" placeholder="Itens separados por vírgula" class="border p-2 rounded md:col-span-2" />
-    </div>
-    <button id="btnAddCategory" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded w-full">
-      Adicionar / Atualizar categoria
-    </button>
-    <p class="text-xs text-gray-500 mt-2">
-      Para categoria ARMÁRIOS, deixe itens vazio para liberar upload de fotos.
-    </p>
-  </div>
-
-  <!-- CATEGORIAS: EDITAR / EXCLUIR -->
-  <div class="bg-white p-4 rounded-xl shadow mt-4">
-    <h3 class="font-semibold mb-2">Editar / Renomear / Excluir categoria (individual)</h3>
-
-    <div class="grid md:grid-cols-4 gap-2">
-      <select id="editUser" class="border p-2 rounded"></select>
-      <select id="editCatSelect" class="border p-2 rounded md:col-span-2">
-        <option value="">Selecione uma categoria...</option>
-      </select>
-      <button id="btnLoadCategory" class="bg-gray-900 hover:bg-black text-white p-2 rounded">
-        Carregar
-      </button>
-    </div>
-
-    <div class="grid md:grid-cols-4 gap-2 mt-2">
-      <input id="editCatName" placeholder="Nome da categoria (para renomear opcional)" class="border p-2 rounded md:col-span-2" />
-      <button id="btnRenameCategory" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded">
-        Renomear
-      </button>
-      <button id="btnDeleteCategory" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded">
-        Excluir
-      </button>
-    </div>
-
-    <textarea id="editItemsArea" rows="4" class="w-full border p-2 rounded mt-2"
-      placeholder="Edite os itens separados por vírgula. Para ARMÁRIOS deixe vazio."></textarea>
-
-    <button id="btnSaveCategory" class="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded w-full">
-      Salvar alterações nos itens
-    </button>
-  </div>
-
-  <!-- PINS -->
-  <div class="bg-white p-4 rounded-xl shadow mt-4">
-    <h3 class="font-semibold mb-2">PINs</h3>
-    <div class="grid md:grid-cols-3 gap-2 mt-2">
-      <select id="pinUser" class="border p-2 rounded"></select>
-      <input id="pinNew" class="border p-2 rounded" inputmode="numeric" maxlength="4" placeholder="Novo PIN (4 dígitos)" />
-      <button id="btnSetPin" class="bg-gray-900 hover:bg-black text-white p-2 rounded">
-        Definir / Resetar PIN
-      </button>
-    </div>
-
-    <p class="text-xs text-gray-500 mt-2">
-      PIN mestre inicial do gerente: <b>1234</b> só se o gerente ainda não tiver PIN criado.
-    </p>
-  </div>
 </section>
 
 <script type="module">
+  // ======= SEU FIREBASE CONFIG =======
   const firebaseConfig = {
     apiKey: "AIzaSyDsWJ9VVMSIsQNtifkLVnRNnbzU7favF7s",
     authDomain: "missoes-drive.firebaseapp.com",
@@ -369,19 +262,15 @@
     onSnapshot, query, orderBy, limit, serverTimestamp, increment,
     deleteDoc, getDocs, writeBatch, where, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-  import {
-    getStorage, ref as sref, uploadBytes, getDownloadURL
-  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const storage = getStorage(app);
 
   const $ = (id) => document.getElementById(id);
   function toast(msg){ alert(msg); }
   function show(section){
-    ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
-    $(section).classList.remove("hidden");
+    ["login","funcionario","gerente"].forEach(s => $(s)?.classList.add("hidden"));
+    $(section)?.classList.remove("hidden");
     updateTopBar();
   }
   function isValidPin(p){ return /^[0-9]{4}$/.test(String(p || "")); }
@@ -390,31 +279,26 @@
   function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
   function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
 
-  // ====== Data/State ======
-  let data = {};
-  let scoresDoc = {};     // {monthScores: { 'YYYY-MM': {user: n}} }
+  // ====== State ======
+  let scoresDoc = {};
   let tasksDone = [];
-  let missingReports = [];
   let currentUser = "";
   let currentWeekKey = "";
-  let employees = [];     // [{name, active}]
-  let globalTask = null;  // doc state/global_week
-  let escala = null;      // doc state/escala_week
+  let employees = [];
+  let globalTask = null;
 
-  // Editor locals
-  let escalaLocalEmployee = null;
-  let escalaLocalGer = null;
+  // Templates globais
+  let globalTemplates = [];
 
   // ===== Refs =====
-  const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
   const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
+  const cfgGlobalTplRef = () => doc(db,"stores",STORE_ID,"config","global_templates");
   const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
   const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
-  const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
   const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
 
-  // ===== Top bar (novo) =====
+  // ===== Top bar =====
   function monthKey(date){
     const y = date.getFullYear();
     const m = String(date.getMonth()+1).padStart(2,"0");
@@ -461,7 +345,7 @@
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
   }
 
-  // ===== Semana ISO (reset segunda) =====
+  // ===== Semana ISO =====
   function weekKey(date){
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -503,7 +387,7 @@
     } catch(e){ return null; }
   }
 
-  // ===== Funcionários =====
+  // ===== Funcionários (config/app.employees) =====
   const defaultEmployeesLegacy = ["Sandra","Thauane","Ingrid","Claudia","DADA"];
   const defaultEmployees = defaultEmployeesLegacy.map(n => ({ name: n, active: true }));
 
@@ -551,48 +435,6 @@
     employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
   }
 
-  async function setEmployees(next){
-    const cleaned = next
-      .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name && x.name.toUpperCase() !== "GERENTE");
-
-    const seen = new Set();
-    const unique = cleaned.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
-    unique.sort((a,b)=>a.name.localeCompare(b.name));
-    await setDoc(cfgAppRef(), { employees: unique, updatedAt: serverTimestamp() }, { merge:true });
-  }
-
-  async function addEmployee(name){
-    name = normalizeName(name);
-    if (!name) return toast("Digite um nome.");
-    if (name.toUpperCase() === "GERENTE") return toast("Nome inválido.");
-    if (employees.some(e => e.name === name)) return toast("Esse funcionário já existe.");
-
-    const next = employees.concat([{ name, active: true }]);
-    await setEmployees(next);
-
-    const newCats = clone(data || {});
-    if (!newCats[name]) newCats[name] = {};
-    await setDoc(cfgCatsRef(), { data: newCats, updatedAt: serverTimestamp() }, { merge:false });
-    toast("Funcionário adicionado (ativo).");
-  }
-
-  async function toggleEmployee(name, active){
-    name = normalizeName(name);
-    const next = employees.map(e => e.name === name ? ({ ...e, active: !!active }) : e);
-    await setEmployees(next);
-  }
-
-  function fillSelect(selectEl, values, includeManager=false, placeholder=null){
-    if (!selectEl) return;
-    const prev = selectEl.value;
-    selectEl.innerHTML = "";
-    if (placeholder !== null) selectEl.appendChild(new Option(placeholder, ""));
-    if (includeManager) selectEl.appendChild(new Option("GERENTE", "GERENTE"));
-    values.forEach(v => selectEl.appendChild(new Option(v, v)));
-    if (prev && Array.from(selectEl.options).some(o=>o.value===prev)) selectEl.value = prev;
-  }
-
   function renderEmployeesUI(){
     const loginSel = $("userSelect");
     loginSel.innerHTML = "";
@@ -601,76 +443,11 @@
     activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
 
     const namesAll = allNames();
-    fillSelect($("addUser"), namesAll, false, null);
-    fillSelect($("editUser"), namesAll, false, null);
-    fillSelect($("pinUser"), namesAll, true, null);
-    fillSelect($("delTasksUser"), namesAll.filter(n=>n.toUpperCase()!=="GERENTE"), false, "Selecione um funcionário...");
-
-    const wrap = $("employeeTable");
-    if (!wrap) return;
-    wrap.innerHTML = "";
-    employees.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach((e)=>{
-      const row = document.createElement("div");
-      row.className = "flex items-center justify-between gap-2 border rounded p-2 bg-gray-50";
-      const badge = e.active
-        ? "<span class='text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-800'>ATIVO</span>"
-        : "<span class='text-xs px-2 py-1 rounded bg-red-100 text-red-800'>BLOQUEADO</span>";
-      row.innerHTML = `
-        <div class="flex items-center gap-2">
-          <div class="font-semibold text-sm">${e.name}</div>
-          ${badge}
-        </div>
-        <div class="flex gap-2">
-          <button class="btnToggle px-3 py-1 rounded text-xs ${e.active ? "bg-red-600 hover:bg-red-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}"
-            data-name="${encodeURIComponent(e.name)}" data-active="${e.active ? "1" : "0"}">
-            ${e.active ? "Bloquear" : "Ativar"}
-          </button>
-        </div>
-      `;
-      wrap.appendChild(row);
-    });
-
-    wrap.querySelectorAll(".btnToggle").forEach(btn=>{
-      btn.addEventListener("click", async ()=>{
-        const name = decodeURIComponent(btn.getAttribute("data-name") || "");
-        const isActive = btn.getAttribute("data-active") === "1";
-        const action = isActive ? "bloquear" : "ativar";
-        if (!confirm(`Deseja ${action} "${name}"?`)) return;
-        await toggleEmployee(name, !isActive);
-        toast(`Funcionário ${action}do.`);
-      });
-    });
+    const delSel = $("delTasksUser");
+    delSel.innerHTML = "";
+    delSel.appendChild(new Option("Selecione um funcionário...", ""));
+    namesAll.forEach(n => delSel.appendChild(new Option(n, n)));
   }
-
-  // ===== Categorias base =====
-  const defaultData = {
-    Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
-    Thauane: {
-      "Ambev (Segunda)": [
-        "Cracudinha (cascos vazios completos)","Guarana Antarctica fora da geladeira","Sukita fora da geladeira",
-        "Guaraviton","Gatorade","Suco Tang - Laranja","Suco Tang - Morango","Suco Tang - Guarana","Suco Tang - Uva",
-        "Suco Tang - Limao","Suco Tang - Maracuja","Guaravita","Agua com gas 500ml","Agua com gas 1,5L",
-        "Agua sem gas 500ml","Agua sem gas 1,5L","Corona long","Stella long"
-      ],
-      "Coca-Cola (Retornaveis e Packs)": [
-        "Retornavel vazia completa","KS vazia completa","Packs completos de Coca-Cola 2L","Pack completo de Fanta Uva",
-        "Pack completo de Fanta Laranja","Guarana latinha (Coca)","Garrafinha de Coca 200ml","Garrafinha de Fanta 200ml"
-      ]
-    },
-    Ingrid: {
-      "Jardim America": ["Antarctica latao","Brahma latao","Imperio latao","Heineken latao","Heineken long"],
-      "Fotos (Check)": [
-        "Foto de todas as estantes arrumadas e abastecidas","Foto dos biscoitos","Foto das reservas",
-        "Foto dos doces","Foto do freezer com barras de chocolate"
-      ],
-      "Armarios (Fotos obrigatorias)": []
-    },
-    Claudia: {
-      "Sadia (Segunda)": ["Mortadela comum","Mortadela defumada","Presunto","Calabresa","Salsicha","Hamburguer"],
-      "Queijos": ["Queijo prato","Queijo mussarela","Queijo minas","Minas padrao"]
-    },
-    DADA: { "Mineirinho (Terca)": ["Mineirinho 2L","Mineirinho 350ml"] }
-  };
 
   // ===== PIN =====
   async function ensureUserPin(user, pin){
@@ -698,26 +475,6 @@
     return { ok: (await sha256(pin)) === pinHash, noUser:false };
   }
 
-  // ===== Storage (Armários) =====
-  async function uploadArmariosPhotos(files, user, cat){
-    const urls = [];
-    const ts = Date.now();
-    let idx = 0;
-    for (const f of files){
-      idx++;
-      const safeName = String(f.name || ("foto_"+idx)).replace(/[^\w.\-]+/g, "_");
-      const path = `stores/${STORE_ID}/weeks/${currentWeekKey}/${user}/${cat.replace(/[^\w.\-]+/g,"_")}/${ts}_${idx}_${safeName}`;
-      const r = sref(storage, path);
-      await uploadBytes(r, f);
-      urls.push(await getDownloadURL(r));
-    }
-    return urls;
-  }
-
-  function isCategoryDoneThisWeek(user, cat){
-    return tasksDone.some(t => t.user === user && t.categoria === cat && t.weekKey === currentWeekKey);
-  }
-
   // ===== Scores (MENSAL) =====
   async function ensureScoresDoc(){
     const sSnap = await getDoc(scoresRef());
@@ -738,28 +495,35 @@
     });
   }
 
-  // ===== GLOBAL =====
+  // ===== GLOBAL (semana) =====
   function getGlobalStatusText(){
-    if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL criada nesta semana.";
+    if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL publicada nesta semana.";
     if (globalTask.status === "completed") return `GLOBAL concluída por ${globalTask.completedBy} em ${globalTask.completedAtHuman || ""}`;
     if (globalTask.status === "open") return `GLOBAL pendente: ${globalTask.name || "(sem nome)"} (aguardando conclusão)`;
     return "GLOBAL: estado desconhecido.";
   }
 
-  async function createGlobalTask(name, itemsArr){
+  async function publishGlobalTaskFromTemplate(tpl){
     const ref = globalRef(currentWeekKey);
+    const snap = await getDoc(ref);
+    if (snap.exists()){
+      const g = snap.data();
+      if (g?.exists) throw new Error("Já existe GLOBAL nesta semana.");
+    }
+
     await setDoc(ref, {
       exists: true,
       weekKey: currentWeekKey,
       status: "open",
-      name,
-      items: itemsArr,
+      name: tpl.name,
+      items: tpl.items || [],
+      templateId: tpl.id || "",
       createdAt: serverTimestamp(),
       createdAtHuman: nowHuman()
     }, { merge:false });
   }
 
-  async function completeGlobalTaskAsFirst(user, itensQtd, photos){
+  async function completeGlobalTaskAsFirst(user, itensQtd){
     const ref = globalRef(currentWeekKey);
     await runTransaction(db, async (tx)=>{
       const snap = await tx.get(ref);
@@ -778,7 +542,6 @@
       user,
       categoria: "[GLOBAL] " + (globalTask?.name || "GLOBAL"),
       itens: itensQtd || {},
-      photos: photos || [],
       when: nowHuman(),
       weekKey: currentWeekKey,
       createdAt: serverTimestamp()
@@ -787,245 +550,57 @@
     await bumpMonthlyScore(user, 10);
   }
 
-  // ===== ESCALA =====
-  const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
-
-  function emptyEscala(){
-    const days = {};
-    for (const d of DAYS) days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
-    return { weekKey: currentWeekKey, days };
+  // ===== GLOBAL TEMPLATES =====
+  function sanitizeItemsFromInput(raw){
+    return raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : [];
   }
 
-  function canEditEscala(){
-    return currentUser === "GERENTE" || currentUser === "Claudia";
+  function renderGlobalTplDropdown(){
+    const sel = $("globalTplSelect");
+    const prev = sel.value;
+
+    sel.innerHTML = "";
+    sel.appendChild(new Option("Selecione um template...", ""));
+    const ordered = (globalTemplates || []).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    ordered.forEach(t => sel.appendChild(new Option(t.name, t.id)));
+
+    if (prev && ordered.some(t=>t.id===prev)) sel.value = prev;
   }
 
-  function validateEscala(obj){
-    for (const d of DAYS){
-      const day = obj?.days?.[d];
-      if (!day) return `Dia inválido: ${d}`;
-
-      const m1 = normalizeName(day.manha?.[0] || "");
-      const m2 = normalizeName(day.manha?.[1] || "");
-      const t1 = normalizeName(day.tarde?.[0] || "");
-      const t2 = normalizeName(day.tarde?.[1] || "");
-      const f  = normalizeName(day.folga?.[0] || "");
-
-      if (!m1 || !m2) return `${d}: Manhã precisa ter 2 funcionários.`;
-      if (m1 === m2) return `${d}: Manhã não pode repetir o mesmo funcionário.`;
-
-      if (!t1 || !t2) return `${d}: Tarde precisa ter 2 funcionários.`;
-      if (t1 === t2) return `${d}: Tarde não pode repetir o mesmo funcionário.`;
-
-      if (!f) return `${d}: Folga precisa ter 1 funcionário.`;
-
-      const setWork = new Set([m1,m2,t1,t2].filter(Boolean));
-      if (setWork.has(f)) return `${d}: Folga não pode ser alguém que trabalha no mesmo dia.`;
-
-      const setManha = new Set([m1,m2]);
-      if (setManha.has(t1) || setManha.has(t2)) return `${d}: Não é permitido dobrar (mesma pessoa manhã+tarde).`;
-    }
-    return null;
-  }
-
-  async function saveEscala(obj){
-    const err = validateEscala(obj);
-    if (err) return toast(err);
-
-    await setDoc(escalaRef(currentWeekKey), {
-      exists: true,
-      weekKey: currentWeekKey,
-      days: obj.days,
-      updatedAt: serverTimestamp(),
-      updatedAtHuman: nowHuman(),
-      updatedBy: currentUser
-    }, { merge:false });
-
-    toast("Escala salva.");
-  }
-
-  function renderEscalaViewer(){
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
-    const view = $("escalaViewer");
-    view.innerHTML = "";
-
-    const s = escala && escala.exists ? escala : null;
-    if (!s){
-      view.innerHTML = `<div class="text-gray-500">Sem escala cadastrada ainda.</div>`;
+  async function ensureGlobalTemplatesDoc(){
+    const snap = await getDoc(cfgGlobalTplRef());
+    if (!snap.exists()){
+      await setDoc(cfgGlobalTplRef(), { templates: [], updatedAt: serverTimestamp() }, { merge:true });
+      globalTemplates = [];
       return;
     }
-
-    const box = document.createElement("div");
-    box.className = "border rounded p-2 bg-gray-50";
-
-    let html = `<div class="text-xs text-gray-600">Atualizada por <b>${s.updatedBy || "-"}</b> em ${s.updatedAtHuman || "-"}</div>`;
-    html += `<div class="mt-2 space-y-2">`;
-
-    for (const d of DAYS){
-      const day = s.days?.[d] || {};
-      const manha = (day.manha||[]).filter(Boolean).join(" + ") || "-";
-      const tarde = (day.tarde||[]).filter(Boolean).join(" + ") || "-";
-      const folga = (day.folga||[]).filter(Boolean).join(" + ") || "-";
-      html += `
-        <div class="border rounded bg-white p-2">
-          <div class="font-semibold">${d}</div>
-          <div class="text-sm mt-1"><b>Manhã:</b> ${manha}</div>
-          <div class="text-sm"><b>Tarde:</b> ${tarde}</div>
-          <div class="text-sm"><b>Folga:</b> ${folga}</div>
-        </div>
-      `;
-    }
-
-    html += `</div>`;
-    box.innerHTML = html;
-    view.appendChild(box);
+    const raw = snap.data().templates;
+    globalTemplates = Array.isArray(raw) ? raw : [];
   }
 
-  // ====== ESCALA: dropdown inteligente + pulo de cursor ======
-  function buildSelect(options, value){
-    const sel = document.createElement("select");
-    sel.className = "border p-2 rounded w-full";
-    sel.appendChild(new Option("Selecione...", ""));
-    options.forEach(n => sel.appendChild(new Option(n, n)));
-    sel.value = value || "";
-    return sel;
+  async function saveGlobalTemplate(name, items){
+    name = normalizeCat(name);
+    if (!name) throw new Error("Nome do template vazio.");
+    if (!Array.isArray(items) || items.length === 0) throw new Error("Template precisa ter itens.");
+
+    const id = "tpl_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8);
+    const next = (globalTemplates || []).concat([{
+      id,
+      name,
+      items,
+      createdAtHuman: nowHuman()
+    }]);
+
+    await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
   }
 
-  function setSelectOptions(selectEl, options, keepValue){
-    const current = keepValue || "";
-    selectEl.innerHTML = "";
-    selectEl.appendChild(new Option("Selecione...", ""));
-    options.forEach(n => selectEl.appendChild(new Option(n, n)));
-    if (current && options.includes(current)) selectEl.value = current;
-    else selectEl.value = "";
+  async function deleteGlobalTemplateById(id){
+    const next = (globalTemplates || []).filter(t=>t.id !== id);
+    await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
   }
 
-  function renderEscalaEditor(containerId){
-    const container = $(containerId);
-    if (!container) return null;
-
-    container.innerHTML = "";
-    const names = activeNames();
-    const base = (escala && escala.exists) ? escala : emptyEscala();
-    const local = clone(base);
-
-    for (const d of DAYS){
-      const day = local.days[d];
-
-      const row = document.createElement("div");
-      row.className = "border rounded p-3 bg-gray-50";
-
-      const title = document.createElement("div");
-      title.className = "font-semibold mb-2";
-      title.innerText = d;
-
-      const grid = document.createElement("div");
-      grid.className = "grid md:grid-cols-3 gap-2";
-
-      // manhã (2)
-      const mWrap = document.createElement("div");
-      mWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Manhã (2)</div>`;
-      const m1 = buildSelect(names, day.manha[0]);
-      const m2 = buildSelect(names, day.manha[1]);
-      mWrap.appendChild(m1);
-      mWrap.appendChild(document.createElement("div")).className = "h-2";
-      mWrap.appendChild(m2);
-
-      // tarde (2)
-      const tWrap = document.createElement("div");
-      tWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Tarde (2)</div>`;
-      const t1 = buildSelect(names, day.tarde[0]);
-      const t2 = buildSelect(names, day.tarde[1]);
-      tWrap.appendChild(t1);
-      tWrap.appendChild(document.createElement("div")).className = "h-2";
-      tWrap.appendChild(t2);
-
-      // folga (1)
-      const fWrap = document.createElement("div");
-      fWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Folga (1)</div>`;
-      const f1 = buildSelect(names, day.folga[0]);
-      fWrap.appendChild(f1);
-
-      grid.appendChild(mWrap);
-      grid.appendChild(tWrap);
-      grid.appendChild(fWrap);
-
-      row.appendChild(title);
-      row.appendChild(grid);
-      container.appendChild(row);
-
-      const getPicked = () => {
-        const picked = new Set();
-        [m1.value, m2.value, t1.value, t2.value, f1.value].forEach(v=>{
-          const vv = normalizeName(v || "");
-          if (vv) picked.add(vv);
-        });
-        return picked;
-      };
-
-      const availableFor = (selfValue) => {
-        const picked = getPicked();
-        const me = normalizeName(selfValue || "");
-        if (me) picked.delete(me);
-        return names.filter(n => !picked.has(n));
-      };
-
-      const sync = () => {
-        // salva no modelo
-        day.manha[0] = normalizeName(m1.value);
-        day.manha[1] = normalizeName(m2.value);
-        day.tarde[0] = normalizeName(t1.value);
-        day.tarde[1] = normalizeName(t2.value);
-        day.folga[0] = normalizeName(f1.value);
-
-        // filtra
-        setSelectOptions(m1, availableFor(m1.value), m1.value);
-        setSelectOptions(m2, availableFor(m2.value), m2.value);
-        setSelectOptions(t1, availableFor(t1.value), t1.value);
-        setSelectOptions(t2, availableFor(t2.value), t2.value);
-        setSelectOptions(f1, availableFor(f1.value), f1.value);
-
-        // re-salva
-        day.manha[0] = normalizeName(m1.value);
-        day.manha[1] = normalizeName(m2.value);
-        day.tarde[0] = normalizeName(t1.value);
-        day.tarde[1] = normalizeName(t2.value);
-        day.folga[0] = normalizeName(f1.value);
-      };
-
-      // pulo de cursor
-      const jumpTo = (nextSel) => setTimeout(() => nextSel?.focus?.(), 0);
-
-      m1.addEventListener("change", ()=>{ sync(); jumpTo(m2); });
-      m2.addEventListener("change", ()=>{ sync(); jumpTo(t1); });
-      t1.addEventListener("change", ()=>{ sync(); jumpTo(t2); });
-      t2.addEventListener("change", ()=>{ sync(); jumpTo(f1); });
-      f1.addEventListener("change", ()=>{ sync(); });
-
-      sync();
-    }
-
-    return local;
-  }
-
-  function maybeSetupEscalaUI(){
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
-
-    const can = canEditEscala();
-    $("escalaPermLabel").innerText = can ? "Você pode editar" : "Somente leitura";
-
-    const editorWrap = $("escalaEditorWrap");
-    if (can){
-      editorWrap.classList.remove("hidden");
-      escalaLocalEmployee = renderEscalaEditor("escalaEditor");
-      $("btnSaveEscala").onclick = async ()=>{
-        if (!escalaLocalEmployee) escalaLocalEmployee = renderEscalaEditor("escalaEditor");
-        await saveEscala(escalaLocalEmployee);
-      };
-    } else {
-      editorWrap.classList.add("hidden");
-      escalaLocalEmployee = null;
-    }
+  function findTemplateById(id){
+    return (globalTemplates || []).find(t=>t.id === id);
   }
 
   // ===== Ranking mensal (gerente) =====
@@ -1036,7 +611,7 @@
     const list = $("rankingList");
     list.innerHTML = "";
 
-    const active = activeNames(); // só ativos no ranking
+    const active = activeNames();
     const ms = scoresDoc?.monthScores?.[mk] || {};
 
     const rows = active.map(name => ({
@@ -1071,7 +646,7 @@
     });
   }
 
-  // ===== Render funcionário =====
+  // ===== Render funcionário (GLOBAL) =====
   function renderEmployee(){
     if (!isEmployeeActive(currentUser)){
       clearSession();
@@ -1091,7 +666,6 @@
     const container = $("tasks");
     container.innerHTML = "";
 
-    // GLOBAL open
     if (globalTask && globalTask.exists && globalTask.status === "open"){
       const card = document.createElement("div");
       card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
@@ -1142,7 +716,7 @@
         btn.innerText = "Tentando concluir...";
 
         try{
-          await completeGlobalTaskAsFirst(currentUser, itensQtd, []);
+          await completeGlobalTaskAsFirst(currentUser, itensQtd);
           toast("Você concluiu a GLOBAL primeiro!");
         } catch(e){
           console.error(e);
@@ -1156,216 +730,19 @@
       card.appendChild(body);
       card.appendChild(btn);
       container.appendChild(card);
+    } else {
+      container.innerHTML = `<div class="bg-white p-4 rounded-xl shadow text-gray-600">Sem GLOBAL pendente no momento.</div>`;
     }
-
-    // categorias pessoais
-    const cats = data[currentUser] || {};
-    const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
-    if (!catNames.length){
-      const box = document.createElement("div");
-      box.className = "bg-white p-4 rounded-xl shadow text-gray-600";
-      box.innerText = "Sem categorias para este usuário.";
-      container.appendChild(box);
-      return;
-    }
-
-    catNames.forEach((cat, catIndex)=>{
-      const card = document.createElement("div");
-      card.className = "bg-white p-4 rounded-xl shadow";
-
-      const isArmarios = cat.toLowerCase().includes("armarios");
-      const done = isCategoryDoneThisWeek(currentUser, cat);
-
-      const title = document.createElement("div");
-      title.className = "flex items-center justify-between gap-2";
-      title.innerHTML = "<h3 class='font-semibold'>" + cat + "</h3><span class='text-xs text-gray-500'>+10</span>";
-      card.appendChild(title);
-
-      const body = document.createElement("div");
-      body.className = "mt-3 space-y-2";
-
-      const itens = cats[cat] || [];
-      let fileInput = null;
-
-      if (isArmarios){
-        const inputId = `arm_files_${catIndex}`;
-        body.innerHTML =
-          "<p class='text-sm text-gray-700'>Envie fotos dos armários (armário inteiro, em cima e em baixo).</p>" +
-          `<input id="${inputId}" type="file" accept="image/*" capture="environment" multiple class="w-full border rounded p-2 bg-white">` +
-          "<p class='text-xs text-gray-500'>As fotos serão salvas no Firebase Storage.</p>";
-        fileInput = () => document.getElementById(inputId);
-      } else {
-        itens.forEach((item)=>{
-          const row = document.createElement("div");
-          row.className = "flex items-center justify-between gap-2";
-          row.innerHTML =
-            "<span class='text-sm text-gray-800'>" + item + "</span>" +
-            "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
-          body.appendChild(row);
-        });
-        const warn = document.createElement("p");
-        warn.className = "text-xs text-gray-500 mt-2";
-        warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
-        body.appendChild(warn);
-      }
-
-      const btn = document.createElement("button");
-      btn.className = "mt-4 w-full bg-green-600 hover:bg-green-700 text-white p-2 rounded";
-      btn.innerText = done ? "Concluído (semana)" : "Concluir";
-      btn.disabled = done;
-      if (done) btn.classList.add("opacity-50");
-
-      btn.addEventListener("click", async ()=>{
-        if (btn.disabled) return;
-
-        const itensQtd = {};
-        if (!isArmarios){
-          const inputs = Array.from(body.querySelectorAll("input[type=number]"));
-          for (const inp of inputs){
-            const name = decodeURIComponent(inp.getAttribute("data-item"));
-            if (inp.value === ""){
-              toast("Preencha todos os itens. Se for zero, digite 0.");
-              inp.focus();
-              return;
-            }
-            const val = Number(inp.value);
-            itensQtd[name] = Number.isFinite(val) ? val : 0;
-          }
-        } else {
-          const fi = fileInput ? fileInput() : null;
-          if (!fi || !fi.files || fi.files.length === 0){
-            toast("Envie pelo menos 1 foto para concluir Armários.");
-            return;
-          }
-        }
-
-        if (isCategoryDoneThisWeek(currentUser, cat)){
-          toast("Essa categoria já foi concluída nesta semana.");
-          renderEmployee();
-          return;
-        }
-
-        btn.disabled = true;
-        btn.classList.add("opacity-50");
-        btn.innerText = "Salvando...";
-
-        try{
-          let photos = [];
-          if (isArmarios){
-            const files = Array.from(fileInput().files || []);
-            photos = await uploadArmariosPhotos(files, currentUser, cat);
-          }
-
-          await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
-            user: currentUser,
-            categoria: cat,
-            itens: itensQtd,
-            photos,
-            when: nowHuman(),
-            weekKey: currentWeekKey,
-            createdAt: serverTimestamp()
-          });
-
-          await bumpMonthlyScore(currentUser, 10);
-
-          btn.innerText = "Concluído";
-          toast("Concluído!");
-        } catch(e){
-          console.error(e);
-          toast("Erro ao salvar. Verifique a internet e tente novamente.");
-          btn.disabled = false;
-          btn.classList.remove("opacity-50");
-          btn.innerText = "Concluir";
-        }
-      });
-
-      card.appendChild(body);
-      card.appendChild(btn);
-      container.appendChild(card);
-    });
   }
 
   // ===== Render gerente =====
   function renderManager(){
     $("weekKeyLabelGer").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
-
-    if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
-
-    // ranking
+    $("globalStatus").innerText = getGlobalStatusText();
     renderRanking();
-
-    // tarefas
-    const t = $("gerTasks");
-    t.innerHTML = "";
-    const ordered = tasksDone.slice(0, 300);
-
-    if (!ordered.length){
-      t.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa nesta semana.</p>";
-    } else {
-      ordered.forEach((r)=>{
-        const itensObj = r.itens || {};
-        const itensKeys = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
-        const hasItens = itensKeys.length > 0;
-
-        const div = document.createElement("div");
-        div.className = "border rounded p-2 bg-gray-50";
-
-        let html = `
-          <div class="font-semibold">${r.user} - ${r.categoria}</div>
-          <div class="text-xs text-gray-600">${(r.when || "")}</div>
-        `;
-
-        if (hasItens){
-          html += `<div class="mt-2 bg-white rounded p-2 border">`;
-          itensKeys.forEach((k)=>{
-            const q = itensObj[k];
-            html += `
-              <div class="flex items-center justify-between gap-2 border-b last:border-b-0 py-1">
-                <div class="text-sm text-gray-800">${k}</div>
-                <div class="text-sm font-semibold">Qtd ${q}</div>
-              </div>
-            `;
-          });
-          html += `</div>`;
-        }
-
-        if (Array.isArray(r.photos) && r.photos.length){
-          html += `
-            <div class="mt-2 text-xs text-gray-700">
-              Fotos: <span class="font-semibold">${r.photos.length}</span>
-              <div class="mt-1 flex flex-wrap gap-2">
-                ${r.photos.map((url, i)=>`<a class="text-blue-700 underline" target="_blank" href="${url}">Foto ${i+1}</a>`).join("")}
-              </div>
-            </div>
-          `;
-        }
-
-        div.innerHTML = html;
-        t.appendChild(div);
-      });
-    }
-
-    // faltas
-    const m = $("gerMissing");
-    m.innerHTML = "";
-    const mo = missingReports.slice(0, 250);
-    if (!mo.length){
-      m.innerHTML = "<p class='text-gray-500'>Nenhuma falta nesta semana.</p>";
-    } else {
-      mo.forEach((r)=>{
-        const div = document.createElement("div");
-        div.className = "border rounded p-2 bg-gray-50";
-        div.innerHTML =
-          "<div class='font-semibold'>" + r.user + "</div>" +
-          "<div class='text-xs text-gray-600'>" + (r.when || "") + "</div>" +
-          "<div class='text-sm mt-1'>" + r.item + "</div>";
-        m.appendChild(div);
-      });
-    }
   }
 
-  // ===== Colapsar (Escala/Ranking) =====
+  // ===== Collapses =====
   function setupCollapse(btnId, contentId){
     const btn = $(btnId);
     const content = $(contentId);
@@ -1376,28 +753,13 @@
       btn.innerText = hidden ? "Expandir" : "Minimizar";
     });
   }
-
-  // ===== Categories CRUD (individual) =====
-  function refreshCategoryEditorLists(){
-    const u = $("editUser")?.value || allNames()[0] || "";
-    const sel = $("editCatSelect");
-    if (!sel) return;
-
-    sel.innerHTML = `<option value="">Selecione uma categoria...</option>`;
-    const cats = (data[u] && typeof data[u] === "object") ? Object.keys(data[u]) : [];
-    cats.sort((a,b)=>a.localeCompare(b));
-    for (const c of cats) sel.appendChild(new Option(c, c));
-    $("editCatName").value = "";
-    $("editItemsArea").value = "";
-  }
-  $("editUser").addEventListener("change", refreshCategoryEditorLists);
+  setupCollapse("btnToggleRanking", "rankingContent");
 
   // ===== Missing =====
   $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
   $("missingSave").addEventListener("click", async ()=>{
     const raw = $("missingInput").value.trim();
     if (!raw) return toast("Digite o item em falta.");
-
     await addDoc(collection(db,"stores",STORE_ID,"missing"), {
       user: currentUser,
       item: raw,
@@ -1405,27 +767,63 @@
       weekKey: currentWeekKey,
       createdAt: serverTimestamp()
     });
-
     $("missingInput").value = "";
     $("missingBox").classList.add("hidden");
     toast("Registrado!");
   });
 
-  // ===== Global create =====
-  $("btnCreateGlobal").addEventListener("click", async ()=>{
+  // ===== GLOBAL TEMPLATES UI =====
+  $("btnSaveTpl").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const name = normalizeCat($("globalCatName").value);
-    const items = $("globalCatItems").value.trim();
-    if (!name) return toast("Digite o nome da GLOBAL.");
-    const arr = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
-    if (!arr.length) return toast("Informe pelo menos 1 item.");
-    await createGlobalTask(name, arr);
-    $("globalCatName").value = "";
-    $("globalCatItems").value = "";
-    toast("GLOBAL criada.");
+    const name = normalizeCat($("tplName").value);
+    const items = sanitizeItemsFromInput($("tplItems").value.trim());
+    if (!name) return toast("Digite o nome do template.");
+    if (!items.length) return toast("Digite pelo menos 1 item.");
+    try{
+      await saveGlobalTemplate(name, items);
+      $("tplName").value = "";
+      $("tplItems").value = "";
+      toast("Template salvo.");
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao salvar template."));
+    }
   });
 
-  // ===== Apagar tarefas por funcionário =====
+  $("btnDeleteTpl").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const id = $("globalTplSelect").value;
+    if (!id) return toast("Selecione um template.");
+    const tpl = findTemplateById(id);
+    if (!tpl) return toast("Template não encontrado.");
+    if (!confirm(`Excluir template "${tpl.name}"?`)) return;
+    try{
+      await deleteGlobalTemplateById(id);
+      toast("Template excluído.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir template.");
+    }
+  });
+
+  $("btnPublishGlobalFromTpl").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const id = $("globalTplSelect").value;
+    if (!id) return toast("Selecione um template.");
+    const tpl = findTemplateById(id);
+    if (!tpl) return toast("Template não encontrado.");
+    if (!confirm(`Publicar GLOBAL desta semana usando "${tpl.name}"?`)) return;
+
+    try{
+      await publishGlobalTaskFromTemplate(tpl);
+      toast("GLOBAL publicada para esta semana.");
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao publicar GLOBAL."));
+    }
+  });
+
+  // ===== Apagar tarefas por funcionário (semana) =====
   $("btnLoadUserTasks").addEventListener("click", ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
     const u = $("delTasksUser").value;
@@ -1501,148 +899,15 @@
     }
   });
 
-  // ===== Funcionários add =====
-  $("btnAddEmployee").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const name = $("newEmployeeName").value;
-    $("newEmployeeName").value = "";
-    try{ await addEmployee(name); }catch(e){ console.error(e); toast("Erro ao adicionar funcionário."); }
-  });
-
-  $("btnRefreshEmployees").addEventListener("click", ()=>{
-    renderEmployeesUI();
-    refreshCategoryEditorLists();
-    toast("Lista recarregada.");
-  });
-
-  // ===== Categories individual buttons =====
-  $("btnAddCategory").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("addUser").value;
-    const cat = normalizeCat($("categoriaNome").value);
-    const items = $("itensCategoria").value.trim();
-    if (!u) return toast("Selecione o funcionário.");
-    if (!cat) return toast("Informe o nome da categoria");
-
-    const newData = clone(data || {});
-    if (!newData[u]) newData[u] = {};
-    newData[u][cat] = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
-
-    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
-    $("categoriaNome").value = "";
-    $("itensCategoria").value = "";
-    toast("Categoria atualizada.");
-  });
-
-  $("btnLoadCategory").addEventListener("click", ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("editUser").value;
-    const c = $("editCatSelect").value;
-    if (!u) return toast("Selecione o funcionário.");
-    if (!c) return toast("Selecione uma categoria.");
-
-    const items = (data[u] && data[u][c]) ? data[u][c] : [];
-    $("editCatName").value = c;
-    $("editItemsArea").value = (items || []).join(", ");
-    toast("Categoria carregada.");
-  });
-
-  $("btnSaveCategory").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("editUser").value;
-    const c = $("editCatSelect").value;
-    if (!u) return toast("Selecione o funcionário.");
-    if (!c) return toast("Selecione uma categoria.");
-
-    const raw = $("editItemsArea").value.trim();
-    const newItems = raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : [];
-
-    const newData = clone(data || {});
-    if (!newData[u]) newData[u] = {};
-    if (!newData[u][c]) return toast("Categoria não existe mais.");
-
-    newData[u][c] = newItems;
-    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
-    toast("Itens atualizados.");
-  });
-
-  $("btnRenameCategory").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("editUser").value;
-    const oldName = $("editCatSelect").value;
-    const newName = normalizeCat($("editCatName").value);
-    if (!u) return toast("Selecione o funcionário.");
-    if (!oldName) return toast("Selecione uma categoria.");
-    if (!newName) return toast("Digite o novo nome.");
-    if (newName === oldName) return toast("O novo nome é igual.");
-
-    if (!confirm(`Renomear "${oldName}" para "${newName}"?`)) return;
-
-    const newData = clone(data || {});
-    if (!newData[u] || !newData[u][oldName]) return toast("Categoria não existe.");
-    if (newData[u][newName]) return toast("Já existe categoria com esse nome.");
-
-    newData[u][newName] = newData[u][oldName];
-    delete newData[u][oldName];
-
-    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
-
-    toast("Categoria renomeada.");
-    refreshCategoryEditorLists();
-    $("editCatSelect").value = newName;
-    $("editCatName").value = newName;
-    $("editItemsArea").value = (newData[u][newName] || []).join(", ");
-  });
-
-  $("btnDeleteCategory").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("editUser").value;
-    const c = $("editCatSelect").value;
-    if (!u) return toast("Selecione o funcionário.");
-    if (!c) return toast("Selecione uma categoria.");
-    if (!confirm(`Excluir a categoria "${c}" do usuário ${u}?`)) return;
-
-    const newData = clone(data || {});
-    if (!newData[u] || !newData[u][c]) return toast("Categoria não existe.");
-    delete newData[u][c];
-
-    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
-
-    toast("Categoria excluída.");
-    refreshCategoryEditorLists();
-  });
-
-  // ===== PIN reset =====
-  $("btnSetPin").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("pinUser").value;
-    const p = $("pinNew").value.trim();
-    if (!u) return toast("Selecione o usuário.");
-    if (!isValidPin(p)) return toast("Novo PIN precisa ter 4 dígitos.");
-
-    await setDoc(userRef(u), {
-      user: u,
-      role: (u === "GERENTE") ? "manager" : "employee",
-      pinHash: await sha256(p),
-      updatedAt: serverTimestamp()
-    }, { merge:true });
-
-    $("pinNew").value = "";
-    toast("PIN definido.");
-  });
-
   // ===== Export CSV =====
   $("btnExport").addEventListener("click", ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente exporta.");
 
-    const header = ["tipo","usuario","categoria","quando","detalhes","fotos"];
+    const header = ["tipo","usuario","categoria","quando","detalhes"];
     let csv = header.join(",") + "\n";
 
     tasksDone.forEach((r)=>{
-      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {}), JSON.stringify(r.photos || [])].map(csvCell).join(",") + "\n";
-    });
-    missingReports.forEach((r)=>{
-      csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item }), ""].map(csvCell).join(",") + "\n";
+      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {})].map(csvCell).join(",") + "\n";
     });
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -1658,45 +923,6 @@
     const s = String(v == null ? "" : v);
     if (/[\n\r,"]/g.test(s)) return '"' + s.replaceAll('"', '""') + '"';
     return s;
-  }
-
-  // ===== Reset semana =====
-  $("btnResetWeek").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
-
-    try{
-      await deleteByWeek("tasks", currentWeekKey);
-      await deleteByWeek("missing", currentWeekKey);
-
-      try{ await deleteDoc(globalRef(currentWeekKey)); }catch(e){}
-      try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
-
-      toast("Semana zerada.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao zerar semana.");
-    }
-  });
-
-  async function deleteByWeek(colName, wk){
-    const colRef = collection(db, "stores", STORE_ID, colName);
-    const q = query(colRef, where("weekKey","==",wk), limit(450));
-    const snap = await getDocs(q);
-    if (snap.empty) return;
-
-    let batch = writeBatch(db);
-    let count = 0;
-    for (const d of snap.docs){
-      batch.delete(d.ref);
-      count++;
-      if (count % 450 === 0){
-        await batch.commit();
-        batch = writeBatch(db);
-      }
-    }
-    await batch.commit();
-    if (snap.docs.length === 450) await deleteByWeek(colName, wk);
   }
 
   // ===== Login / Logout =====
@@ -1731,17 +957,9 @@
 
     if (u === "GERENTE"){
       renderManager();
-      refreshCategoryEditorLists();
-      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-      $("btnSaveEscalaGer").onclick = async ()=>{
-        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        await saveEscala(escalaLocalGer);
-      };
       show("gerente");
     } else {
       renderEmployee();
-      maybeSetupEscalaUI();
-      renderEscalaViewer();
       show("funcionario");
     }
 
@@ -1757,44 +975,28 @@
   // ===== Cloud init =====
   async function cloudInit(){
     await ensureWeekKey();
-
-    $("weekKeyLabel").innerText = currentWeekKey;
-    $("weekKeyLabelGer").innerText = currentWeekKey;
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
-
     await ensureEmployeesConfig();
     renderEmployeesUI();
 
     await ensureScoresDoc();
-    updateTopBar();
 
-    // collapse handlers
-    setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
-    setupCollapse("btnToggleEscalaGer", "escalaGerContent");
-    setupCollapse("btnToggleRanking", "rankingContent");
+    await ensureGlobalTemplatesDoc();
+    renderGlobalTplDropdown();
 
-    // employees realtime
-    onSnapshot(cfgAppRef(), async (snap)=>{
+    onSnapshot(cfgGlobalTplRef(), (snap)=>{
+      const raw = snap.exists() ? snap.data().templates : [];
+      globalTemplates = Array.isArray(raw) ? raw : [];
+      renderGlobalTplDropdown();
+    });
+
+    onSnapshot(cfgAppRef(), (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
-
       employees = (Array.isArray(raw) ? raw : [])
         .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
         .filter(x => x.name);
 
-      const seen = new Set();
-      employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
-
       renderEmployeesUI();
-
-      if (currentUser === "GERENTE"){
-        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-      } else if (currentUser){
-        maybeSetupEscalaUI();
-      }
-
-      renderRanking();
 
       if (currentUser && currentUser !== "GERENTE" && !isEmployeeActive(currentUser)){
         clearSession();
@@ -1802,32 +1004,14 @@
         toast("Usuário bloqueado. Faça login novamente.");
         show("login");
       }
+
+      renderRanking();
+      updateTopBar();
     });
 
-    // categories
-    const catsSnap = await getDoc(cfgCatsRef());
-    if (!catsSnap.exists()){
-      await setDoc(cfgCatsRef(), { data: defaultData, updatedAt: serverTimestamp() }, { merge:false });
-      data = clone(defaultData);
-    } else {
-      const remote = catsSnap.data().data;
-      data = (remote && typeof remote === "object") ? remote : clone(defaultData);
-    }
-
-    onSnapshot(cfgCatsRef(), (snap)=>{
-      const remote = snap.data().data;
-      if (remote && typeof remote === "object"){
-        data = remote;
-        if (currentUser && currentUser !== "GERENTE") renderEmployee();
-        if (currentUser === "GERENTE") { renderManager(); refreshCategoryEditorLists(); }
-      }
-    });
-
-    // scores realtime
     onSnapshot(scoresRef(), (snap)=>{
       scoresDoc = snap.data() || {};
       if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
-
       if (currentUser && currentUser !== "GERENTE"){
         const pts = getMonthPoints(currentUser);
         $("monthPointsInline").innerText = pts;
@@ -1837,67 +1021,30 @@
       updateTopBar();
     });
 
-    // tasks
-    const tasksQ = query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(700));
+    const tasksQ = query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(900));
     onSnapshot(tasksQ, (qs)=>{
       const all = qs.docs.map(d => ({ id:d.id, ...d.data() }));
       tasksDone = all.filter(x=>x.weekKey === currentWeekKey);
-      if (currentUser === "GERENTE") renderManager();
-      if (currentUser && currentUser !== "GERENTE") renderEmployee();
     });
 
-    // missing
-    const missQ = query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(700));
-    onSnapshot(missQ, (qs)=>{
-      const all = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-      missingReports = all.filter(x=>x.weekKey === currentWeekKey);
-      if (currentUser === "GERENTE") renderManager();
-    });
-
-    // global doc
     onSnapshot(globalRef(currentWeekKey), (snap)=>{
-      if (!snap.exists()) globalTask = null;
-      else globalTask = { id: snap.id, ...snap.data() };
-
+      globalTask = snap.exists() ? { id: snap.id, ...snap.data() } : null;
       if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
       if (currentUser && currentUser !== "GERENTE") renderEmployee();
+      if (currentUser === "GERENTE") renderManager();
     });
 
-    // escala doc
-    onSnapshot(escalaRef(currentWeekKey), (snap)=>{
-      if (!snap.exists()) escala = null;
-      else escala = { id: snap.id, ...snap.data() };
-
-      renderEscalaViewer();
-
-      if (currentUser === "GERENTE"){
-        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-      }
-      if (currentUser && currentUser !== "GERENTE"){
-        maybeSetupEscalaUI();
-      }
-    });
-
-    renderEscalaViewer();
     renderRanking();
     updateTopBar();
   }
 
-  // ===== Start =====
   await cloudInit();
 
   const ses = getSession();
   if (ses && ses.user){
     currentUser = ses.user;
-
     if (currentUser === "GERENTE"){
       renderManager();
-      refreshCategoryEditorLists();
-      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-      $("btnSaveEscalaGer").onclick = async ()=>{
-        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        await saveEscala(escalaLocalGer);
-      };
       show("gerente");
     } else {
       if (!isEmployeeActive(currentUser)){
@@ -1906,8 +1053,6 @@
         show("login");
       } else {
         renderEmployee();
-        maybeSetupEscalaUI();
-        renderEscalaViewer();
         show("funcionario");
       }
     }
