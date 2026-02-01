@@ -3,17 +3,31 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Missoes da Loja</title>
+  <title>Missoes</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100 min-h-screen p-4">
 
-<header class="max-w-3xl mx-auto mb-4">
-  <h1 class="text-2xl font-bold text-center">Missoes da Loja</h1>
-  <p class="text-center text-sm text-gray-600 mt-1">
-    PIN (criado pelo usuário) • Checklist • Falta • Gerente em tempo real • Global • Escala
-  </p>
+<!-- TOP BAR (dinâmico: login ou usuário) -->
+<header class="max-w-4xl mx-auto mb-4">
+  <div class="bg-white rounded-xl shadow p-4 flex items-center justify-between gap-3">
+    <div class="min-w-0">
+      <div id="topTitle" class="text-xl font-bold truncate">Entrar</div>
+      <div id="topSubtitle" class="text-sm text-gray-600 truncate">Login por PIN</div>
+    </div>
+
+    <!-- bloco pontos (só quando logado como funcionário) -->
+    <div id="topPointsBox" class="hidden items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 17.27l5.18 3.04-1.39-5.99 4.64-4.02-6.12-.53L12 4l-2.31 5.77-6.12.53 4.64 4.02-1.39 5.99L12 17.27z"/>
+      </svg>
+      <div class="text-sm">
+        <div class="font-semibold leading-4">Pontos do mês</div>
+        <div class="text-lg font-bold leading-5"><span id="monthPointsTop">0</span></div>
+      </div>
+    </div>
+  </div>
 </header>
 
 <!-- LOGIN -->
@@ -69,26 +83,35 @@
         <h2 class="text-lg font-semibold">Escala da Semana</h2>
         <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscala">-</span></p>
       </div>
-      <div class="text-xs text-gray-500">
-        <span id="escalaPermLabel">Somente leitura</span>
+
+      <div class="flex items-center gap-2">
+        <div class="text-xs text-gray-500">
+          <span id="escalaPermLabel">Somente leitura</span>
+        </div>
+        <button id="btnToggleEscalaEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+          Minimizar
+        </button>
       </div>
     </div>
 
-    <!-- Viewer -->
-    <div id="escalaViewer" class="mt-3 text-sm space-y-2"></div>
+    <!-- Conteúdo colapsável -->
+    <div id="escalaEmpContent" class="mt-3">
+      <!-- Viewer -->
+      <div id="escalaViewer" class="text-sm space-y-2"></div>
 
-    <!-- Editor (só Claudia e Gerente) -->
-    <div id="escalaEditorWrap" class="hidden mt-4 border-t pt-4">
-      <div class="flex items-center justify-between">
-        <div class="font-semibold text-sm">Editar escala</div>
-        <button id="btnSaveEscala" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
-          Salvar escala
-        </button>
+      <!-- Editor (só Claudia e Gerente) -->
+      <div id="escalaEditorWrap" class="hidden mt-4 border-t pt-4">
+        <div class="flex items-center justify-between">
+          <div class="font-semibold text-sm">Editar escala</div>
+          <button id="btnSaveEscala" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
+            Salvar escala
+          </button>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">
+          Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
+        </p>
+        <div id="escalaEditor" class="mt-3 space-y-3"></div>
       </div>
-      <p class="text-xs text-gray-500 mt-2">
-        Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
-      </p>
-      <div id="escalaEditor" class="mt-3 space-y-3"></div>
     </div>
   </div>
 
@@ -97,7 +120,7 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
         <h2 class="text-xl font-semibold">Usuário: <span id="userName"></span></h2>
-        <p class="text-sm text-gray-700">Pontuação: <span id="score">0</span></p>
+        <p class="text-sm text-gray-700">Pontos do mês: <span id="monthPointsInline">0</span></p>
         <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabel">-</span></p>
       </div>
       <div class="flex gap-2">
@@ -145,9 +168,23 @@
         </button>
       </div>
     </div>
-    <p class="text-xs text-gray-500 mt-2">
-      Você também pode apagar tarefas por funcionário (abaixo).
-    </p>
+  </div>
+
+  <!-- Ranking mensal (colapsável) -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h3 class="font-semibold">Ranking do mês</h3>
+        <p class="text-xs text-gray-500">Mês: <span id="monthKeyLabelGer">-</span></p>
+      </div>
+      <button id="btnToggleRanking" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+        Minimizar
+      </button>
+    </div>
+
+    <div id="rankingContent" class="mt-3">
+      <div id="rankingList" class="space-y-2 text-sm"></div>
+    </div>
   </div>
 
   <!-- GLOBAL -->
@@ -178,14 +215,22 @@
         <h3 class="font-semibold">Escala da Semana</h3>
         <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscalaGer">-</span></p>
       </div>
-      <button id="btnSaveEscalaGer" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
-        Salvar escala
-      </button>
+      <div class="flex items-center gap-2">
+        <button id="btnToggleEscalaGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+          Minimizar
+        </button>
+        <button id="btnSaveEscalaGer" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
+          Salvar escala
+        </button>
+      </div>
     </div>
     <p class="text-xs text-gray-500 mt-2">
       Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
     </p>
-    <div id="escalaEditorGer" class="mt-3 space-y-3"></div>
+
+    <div id="escalaGerContent" class="mt-3">
+      <div id="escalaEditorGer" class="space-y-3"></div>
+    </div>
   </div>
 
   <!-- tarefas e faltas -->
@@ -214,7 +259,7 @@
       </button>
     </div>
     <p class="text-xs text-gray-500 mt-2">
-      Marque as tarefas e apague. (Pontuação não é ajustada automaticamente.)
+      Marque as tarefas e apague. (Pontos do mês não são ajustados automaticamente.)
     </p>
     <div id="userTasksList" class="mt-3 space-y-2"></div>
   </div>
@@ -337,6 +382,7 @@
   function show(section){
     ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
     $(section).classList.remove("hidden");
+    updateTopBar();
   }
   function isValidPin(p){ return /^[0-9]{4}$/.test(String(p || "")); }
   function nowHuman(){ return new Date().toLocaleString(); }
@@ -344,22 +390,22 @@
   function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
   function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
 
-  // Estado
+  // ====== Data/State ======
   let data = {};
-  let scores = {};
+  let scoresDoc = {};     // {monthScores: { 'YYYY-MM': {user: n}} }
   let tasksDone = [];
   let missingReports = [];
   let currentUser = "";
   let currentWeekKey = "";
-  let employees = []; // [{name, active}]
-  let globalTask = null; // doc state/global_week
-  let escala = null;     // doc state/escala_week
+  let employees = [];     // [{name, active}]
+  let globalTask = null;  // doc state/global_week
+  let escala = null;      // doc state/escala_week
 
-  // editor locals
+  // Editor locals
   let escalaLocalEmployee = null;
   let escalaLocalGer = null;
 
-  // Refs
+  // ===== Refs =====
   const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
   const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
   const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
@@ -368,14 +414,54 @@
   const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
   const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
 
-  // SHA-256
+  // ===== Top bar (novo) =====
+  function monthKey(date){
+    const y = date.getFullYear();
+    const m = String(date.getMonth()+1).padStart(2,"0");
+    return `${y}-${m}`;
+  }
+  function getMonthPoints(user){
+    const mk = monthKey(new Date());
+    const ms = scoresDoc?.monthScores?.[mk] || {};
+    return Number(ms?.[user] || 0);
+  }
+  function updateTopBar(){
+    const topTitle = $("topTitle");
+    const topSubtitle = $("topSubtitle");
+    const pointsBox = $("topPointsBox");
+
+    if (!currentUser){
+      topTitle.innerText = "Entrar";
+      topSubtitle.innerText = "Login por PIN";
+      pointsBox.classList.add("hidden");
+      pointsBox.classList.remove("flex");
+      return;
+    }
+
+    if (currentUser === "GERENTE"){
+      topTitle.innerText = "Gerente";
+      topSubtitle.innerText = "Painel administrativo";
+      pointsBox.classList.add("hidden");
+      pointsBox.classList.remove("flex");
+      return;
+    }
+
+    topTitle.innerText = currentUser;
+    topSubtitle.innerText = "Acompanhe suas tarefas";
+    const pts = getMonthPoints(currentUser);
+    $("monthPointsTop").innerText = pts;
+    pointsBox.classList.remove("hidden");
+    pointsBox.classList.add("flex");
+  }
+
+  // ===== SHA-256 =====
   async function sha256(str){
     const enc = new TextEncoder().encode(str);
     const buf = await crypto.subtle.digest("SHA-256", enc);
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
   }
 
-  // Semana ISO (reset segunda)
+  // ===== Semana ISO (reset segunda) =====
   function weekKey(date){
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -402,11 +488,10 @@
       currentWeekKey = wk;
       return;
     }
-
     currentWeekKey = saved;
   }
 
-  // Sessão
+  // ===== Sessão =====
   function saveSession(user){ localStorage.setItem(SESSION_KEY, JSON.stringify({ user, at: Date.now() })); }
   function clearSession(){ localStorage.removeItem(SESSION_KEY); }
   function getSession(){
@@ -502,12 +587,8 @@
     if (!selectEl) return;
     const prev = selectEl.value;
     selectEl.innerHTML = "";
-    if (placeholder !== null){
-      selectEl.appendChild(new Option(placeholder, ""));
-    }
-    if (includeManager){
-      selectEl.appendChild(new Option("GERENTE", "GERENTE"));
-    }
+    if (placeholder !== null) selectEl.appendChild(new Option(placeholder, ""));
+    if (includeManager) selectEl.appendChild(new Option("GERENTE", "GERENTE"));
     values.forEach(v => selectEl.appendChild(new Option(v, v)));
     if (prev && Array.from(selectEl.options).some(o=>o.value===prev)) selectEl.value = prev;
   }
@@ -523,7 +604,6 @@
     fillSelect($("addUser"), namesAll, false, null);
     fillSelect($("editUser"), namesAll, false, null);
     fillSelect($("pinUser"), namesAll, true, null);
-
     fillSelect($("delTasksUser"), namesAll.filter(n=>n.toUpperCase()!=="GERENTE"), false, "Selecione um funcionário...");
 
     const wrap = $("employeeTable");
@@ -638,6 +718,26 @@
     return tasksDone.some(t => t.user === user && t.categoria === cat && t.weekKey === currentWeekKey);
   }
 
+  // ===== Scores (MENSAL) =====
+  async function ensureScoresDoc(){
+    const sSnap = await getDoc(scoresRef());
+    if (!sSnap.exists()){
+      await setDoc(scoresRef(), { monthScores: {}, updatedAt: serverTimestamp() }, { merge:true });
+      scoresDoc = { monthScores: {} };
+      return;
+    }
+    scoresDoc = sSnap.data() || {};
+    if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
+  }
+
+  async function bumpMonthlyScore(user, delta){
+    const mk = monthKey(new Date());
+    await updateDoc(scoresRef(), {
+      ["monthScores."+mk+"."+user]: increment(delta),
+      updatedAt: serverTimestamp()
+    });
+  }
+
   // ===== GLOBAL =====
   function getGlobalStatusText(){
     if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL criada nesta semana.";
@@ -657,10 +757,6 @@
       createdAt: serverTimestamp(),
       createdAtHuman: nowHuman()
     }, { merge:false });
-  }
-
-  async function bumpScore(user, delta){
-    await updateDoc(scoresRef(), { ["scores."+user]: increment(delta), updatedAt: serverTimestamp() });
   }
 
   async function completeGlobalTaskAsFirst(user, itensQtd, photos){
@@ -688,7 +784,7 @@
       createdAt: serverTimestamp()
     });
 
-    await bumpScore(user, 10);
+    await bumpMonthlyScore(user, 10);
   }
 
   // ===== ESCALA =====
@@ -696,9 +792,7 @@
 
   function emptyEscala(){
     const days = {};
-    for (const d of DAYS){
-      days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
-    }
+    for (const d of DAYS) days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
     return { weekKey: currentWeekKey, days };
   }
 
@@ -806,7 +900,7 @@
     else selectEl.value = "";
   }
 
-  function renderEscalaEditor(containerId, onSaveBtnId=null){
+  function renderEscalaEditor(containerId){
     const container = $(containerId);
     if (!container) return null;
 
@@ -884,14 +978,14 @@
         day.tarde[1] = normalizeName(t2.value);
         day.folga[0] = normalizeName(f1.value);
 
-        // filtra para impedir repetir/dobrar/folgar no mesmo dia
+        // filtra
         setSelectOptions(m1, availableFor(m1.value), m1.value);
         setSelectOptions(m2, availableFor(m2.value), m2.value);
         setSelectOptions(t1, availableFor(t1.value), t1.value);
         setSelectOptions(t2, availableFor(t2.value), t2.value);
         setSelectOptions(f1, availableFor(f1.value), f1.value);
 
-        // re-salva (caso algum tenha sido limpado)
+        // re-salva
         day.manha[0] = normalizeName(m1.value);
         day.manha[1] = normalizeName(m2.value);
         day.tarde[0] = normalizeName(t1.value);
@@ -899,13 +993,8 @@
         day.folga[0] = normalizeName(f1.value);
       };
 
-      // Handlers com “pulo de cursor”
-      const jumpTo = (nextSel) => {
-        // pequena espera pra garantir que o DOM atualizou
-        setTimeout(() => {
-          if (nextSel && typeof nextSel.focus === "function") nextSel.focus();
-        }, 0);
-      };
+      // pulo de cursor
+      const jumpTo = (nextSel) => setTimeout(() => nextSel?.focus?.(), 0);
 
       m1.addEventListener("change", ()=>{ sync(); jumpTo(m2); });
       m2.addEventListener("change", ()=>{ sync(); jumpTo(t1); });
@@ -913,17 +1002,7 @@
       t2.addEventListener("change", ()=>{ sync(); jumpTo(f1); });
       f1.addEventListener("change", ()=>{ sync(); });
 
-      // sync inicial
       sync();
-    }
-
-    if (onSaveBtnId){
-      const btn = $(onSaveBtnId);
-      if (btn){
-        btn.onclick = async ()=> {
-          await saveEscala(local);
-        };
-      }
     }
 
     return local;
@@ -938,15 +1017,58 @@
     const editorWrap = $("escalaEditorWrap");
     if (can){
       editorWrap.classList.remove("hidden");
-      escalaLocalEmployee = renderEscalaEditor("escalaEditor", null);
+      escalaLocalEmployee = renderEscalaEditor("escalaEditor");
       $("btnSaveEscala").onclick = async ()=>{
-        if (!escalaLocalEmployee) escalaLocalEmployee = renderEscalaEditor("escalaEditor", null);
+        if (!escalaLocalEmployee) escalaLocalEmployee = renderEscalaEditor("escalaEditor");
         await saveEscala(escalaLocalEmployee);
       };
     } else {
       editorWrap.classList.add("hidden");
       escalaLocalEmployee = null;
     }
+  }
+
+  // ===== Ranking mensal (gerente) =====
+  function renderRanking(){
+    const mk = monthKey(new Date());
+    $("monthKeyLabelGer").innerText = mk;
+
+    const list = $("rankingList");
+    list.innerHTML = "";
+
+    const active = activeNames(); // só ativos no ranking
+    const ms = scoresDoc?.monthScores?.[mk] || {};
+
+    const rows = active.map(name => ({
+      name,
+      pts: Number(ms?.[name] || 0)
+    })).sort((a,b)=>{
+      if (b.pts !== a.pts) return b.pts - a.pts;
+      return a.name.localeCompare(b.name);
+    });
+
+    if (!rows.length){
+      list.innerHTML = `<div class="text-gray-500">Sem funcionários ativos.</div>`;
+      return;
+    }
+
+    rows.forEach((r, idx)=>{
+      const div = document.createElement("div");
+      div.className = "border rounded p-2 bg-gray-50 flex items-center justify-between";
+      div.innerHTML = `
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-full bg-white border flex items-center justify-center text-xs font-bold">${idx+1}</div>
+          <div class="font-semibold">${r.name}</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 17.27l5.18 3.04-1.39-5.99 4.64-4.02-6.12-.53L12 4l-2.31 5.77-6.12.53 4.64 4.02-1.39 5.99L12 17.27z"/>
+          </svg>
+          <div class="font-bold text-lg">${r.pts}</div>
+        </div>
+      `;
+      list.appendChild(div);
+    });
   }
 
   // ===== Render funcionário =====
@@ -959,8 +1081,12 @@
     }
 
     $("userName").innerText = currentUser;
-    $("score").innerText = scores[currentUser] || 0;
     $("weekKeyLabel").innerText = currentWeekKey;
+
+    const mp = getMonthPoints(currentUser);
+    $("monthPointsInline").innerText = mp;
+    $("monthPointsTop").innerText = mp;
+    updateTopBar();
 
     const container = $("tasks");
     container.innerHTML = "";
@@ -1140,7 +1266,8 @@
             createdAt: serverTimestamp()
           });
 
-          await bumpScore(currentUser, 10);
+          await bumpMonthlyScore(currentUser, 10);
+
           btn.innerText = "Concluído";
           toast("Concluído!");
         } catch(e){
@@ -1165,6 +1292,10 @@
 
     if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
 
+    // ranking
+    renderRanking();
+
+    // tarefas
     const t = $("gerTasks");
     t.innerHTML = "";
     const ordered = tasksDone.slice(0, 300);
@@ -1215,6 +1346,7 @@
       });
     }
 
+    // faltas
     const m = $("gerMissing");
     m.innerHTML = "";
     const mo = missingReports.slice(0, 250);
@@ -1233,6 +1365,18 @@
     }
   }
 
+  // ===== Colapsar (Escala/Ranking) =====
+  function setupCollapse(btnId, contentId){
+    const btn = $(btnId);
+    const content = $(contentId);
+    if (!btn || !content) return;
+
+    btn.addEventListener("click", ()=>{
+      const hidden = content.classList.toggle("hidden");
+      btn.innerText = hidden ? "Expandir" : "Minimizar";
+    });
+  }
+
   // ===== Categories CRUD (individual) =====
   function refreshCategoryEditorLists(){
     const u = $("editUser")?.value || allNames()[0] || "";
@@ -1242,9 +1386,7 @@
     sel.innerHTML = `<option value="">Selecione uma categoria...</option>`;
     const cats = (data[u] && typeof data[u] === "object") ? Object.keys(data[u]) : [];
     cats.sort((a,b)=>a.localeCompare(b));
-    for (const c of cats){
-      sel.appendChild(new Option(c, c));
-    }
+    for (const c of cats) sel.appendChild(new Option(c, c));
     $("editCatName").value = "";
     $("editItemsArea").value = "";
   }
@@ -1521,12 +1663,11 @@
   // ===== Reset semana =====
   $("btnResetWeek").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual e zera pontuações. Confirmar?")) return;
+    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
 
     try{
       await deleteByWeek("tasks", currentWeekKey);
       await deleteByWeek("missing", currentWeekKey);
-      await setDoc(scoresRef(), { scores: {}, updatedAt: serverTimestamp() }, { merge:true });
 
       try{ await deleteDoc(globalRef(currentWeekKey)); }catch(e){}
       try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
@@ -1591,7 +1732,11 @@
     if (u === "GERENTE"){
       renderManager();
       refreshCategoryEditorLists();
-      escalaLocalGer = renderEscalaEditor("escalaEditorGer", "btnSaveEscalaGer");
+      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      $("btnSaveEscalaGer").onclick = async ()=>{
+        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+        await saveEscala(escalaLocalGer);
+      };
       show("gerente");
     } else {
       renderEmployee();
@@ -1599,6 +1744,8 @@
       renderEscalaViewer();
       show("funcionario");
     }
+
+    updateTopBar();
   }
 
   function doLogout(){
@@ -1610,6 +1757,7 @@
   // ===== Cloud init =====
   async function cloudInit(){
     await ensureWeekKey();
+
     $("weekKeyLabel").innerText = currentWeekKey;
     $("weekKeyLabelGer").innerText = currentWeekKey;
     $("weekKeyLabelEscala").innerText = currentWeekKey;
@@ -1618,29 +1766,35 @@
     await ensureEmployeesConfig();
     renderEmployeesUI();
 
+    await ensureScoresDoc();
+    updateTopBar();
+
+    // collapse handlers
+    setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
+    setupCollapse("btnToggleEscalaGer", "escalaGerContent");
+    setupCollapse("btnToggleRanking", "rankingContent");
+
+    // employees realtime
     onSnapshot(cfgAppRef(), async (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
 
-      if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "string"){
-        const migrated = raw.map(n => ({ name: normalizeName(n), active: true })).filter(x=>x.name);
-        await setDoc(cfgAppRef(), { employees: migrated, updatedAt: serverTimestamp() }, { merge:true });
-        employees = migrated;
-      } else {
-        employees = (Array.isArray(raw) ? raw : [])
-          .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-          .filter(x => x.name);
-        const seen = new Set();
-        employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
-      }
+      employees = (Array.isArray(raw) ? raw : [])
+        .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
+        .filter(x => x.name);
+
+      const seen = new Set();
+      employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
 
       renderEmployeesUI();
 
       if (currentUser === "GERENTE"){
-        escalaLocalGer = renderEscalaEditor("escalaEditorGer", "btnSaveEscalaGer");
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       } else if (currentUser){
         maybeSetupEscalaUI();
       }
+
+      renderRanking();
 
       if (currentUser && currentUser !== "GERENTE" && !isEmployeeActive(currentUser)){
         clearSession();
@@ -1669,15 +1823,18 @@
       }
     });
 
-    // scores
-    const sSnap = await getDoc(scoresRef());
-    if (!sSnap.exists()) await setDoc(scoresRef(), { scores: {}, updatedAt: serverTimestamp() }, { merge:true });
-
+    // scores realtime
     onSnapshot(scoresRef(), (snap)=>{
-      scores = snap.data().scores || {};
+      scoresDoc = snap.data() || {};
+      if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
+
       if (currentUser && currentUser !== "GERENTE"){
-        $("score").innerText = scores[currentUser] || 0;
+        const pts = getMonthPoints(currentUser);
+        $("monthPointsInline").innerText = pts;
+        $("monthPointsTop").innerText = pts;
       }
+      renderRanking();
+      updateTopBar();
     });
 
     // tasks
@@ -1714,7 +1871,7 @@
       renderEscalaViewer();
 
       if (currentUser === "GERENTE"){
-        escalaLocalGer = renderEscalaEditor("escalaEditorGer", "btnSaveEscalaGer");
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       }
       if (currentUser && currentUser !== "GERENTE"){
         maybeSetupEscalaUI();
@@ -1722,6 +1879,8 @@
     });
 
     renderEscalaViewer();
+    renderRanking();
+    updateTopBar();
   }
 
   // ===== Start =====
@@ -1734,7 +1893,11 @@
     if (currentUser === "GERENTE"){
       renderManager();
       refreshCategoryEditorLists();
-      escalaLocalGer = renderEscalaEditor("escalaEditorGer", "btnSaveEscalaGer");
+      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      $("btnSaveEscalaGer").onclick = async ()=>{
+        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+        await saveEscala(escalaLocalGer);
+      };
       show("gerente");
     } else {
       if (!isEmployeeActive(currentUser)){
@@ -1751,6 +1914,8 @@
   } else {
     show("login");
   }
+
+  updateTopBar();
 
   console.log("BUILD OK");
   window.__BUILD_OK__ = true;
