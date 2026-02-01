@@ -1,166 +1,770 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Missões da Loja</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Identity Services (OAuth no navegador, sem Client Secret) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
+<body class="bg-gray-100 min-h-screen p-4">
 
-<body class="bg-gray-100 p-4">
+  <header class="max-w-3xl mx-auto mb-4">
+    <h1 class="text-2xl font-bold text-center">🎯 Missões da Loja</h1>
+    <p class="text-center text-sm text-gray-600 mt-1">
+      Login por PIN • Checklist com quantidades • Fotos (somente Armários) no Google Drive • Relatório do gerente
+    </p>
+  </header>
 
-<h1 class="text-2xl font-bold text-center mb-4">🎯 Missões da Loja</h1>
+  <!-- LOGIN -->
+  <section id="login" class="max-w-3xl mx-auto bg-white p-4 rounded-xl shadow">
+    <h2 class="text-lg font-semibold mb-3">Entrar</h2>
+    <div class="grid md:grid-cols-3 gap-3">
+      <div class="md:col-span-1">
+        <label class="text-sm text-gray-700">Usuário</label>
+        <select id="userSelect" class="w-full border p-2 rounded">
+          <option value="">Selecione</option>
+          <option value="GERENTE">Gerente</option>
+          <option value="Sandra">Sandra</option>
+          <option value="Thauane">Thauane</option>
+          <option value="Ingrid">Ingrid</option>
+          <option value="Claudia">Claudia</option>
+          <option value="DADA">DADA</option>
+        </select>
+      </div>
+      <div class="md:col-span-1">
+        <label class="text-sm text-gray-700">PIN (4 dígitos)</label>
+        <input id="pin" inputmode="numeric" maxlength="4" placeholder="••••" class="w-full border p-2 rounded" />
+      </div>
+      <div class="md:col-span-1 flex items-end">
+        <button id="btnLogin" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">Entrar</button>
+      </div>
+    </div>
 
-<!-- LOGIN -->
-<div id="login" class="max-w-md mx-auto bg-white p-4 rounded shadow">
-  <label class="block mb-2">Usuário</label>
-  <select id="user" class="w-full border p-2 mb-3">
-    <option value="">Selecione</option>
-    <option>GERENTE</option>
-    <option>Sandra</option>
-    <option>Thauane</option>
-    <option>Ingrid</option>
-    <option>Claudia</option>
-    <option>DADA</option>
-  </select>
+    <div class="mt-4 border-t pt-4">
+      <h3 class="font-semibold mb-2">☁️ Google Drive (para fotos e histórico)</h3>
+      <p class="text-sm text-gray-700 mb-3">
+        Para enviar fotos e registrar histórico na nuvem, o app precisa de permissão no seu Google Drive.
+        Você autoriza 1 vez por dispositivo.
+      </p>
+      <div class="flex flex-col md:flex-row gap-2">
+        <button id="btnDriveConnect" class="bg-gray-900 hover:bg-black text-white p-2 rounded">Conectar Google Drive</button>
+        <button id="btnDriveStatus" class="bg-gray-200 text-gray-900 p-2 rounded" disabled>Drive: desconectado</button>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">
+        ⚠️ Importante: por segurança, este app <b>não usa</b> Client Secret no navegador.
+      </p>
+    </div>
+  </section>
 
-  <label class="block mb-2">PIN</label>
-  <input id="pin" type="password" maxlength="4" class="w-full border p-2 mb-3">
+  <!-- FUNCIONÁRIA -->
+  <section id="funcionario" class="hidden max-w-3xl mx-auto">
+    <div class="bg-white p-4 rounded-xl shadow mb-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <div>
+          <h2 class="text-xl font-semibold">👤 <span id="userName"></span></h2>
+          <p class="text-sm text-gray-700">Pontuação: <span id="score">0</span> ⭐</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnMissing" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">❌ Cliente pediu e não tem</button>
+          <button id="btnLogout1" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">Sair</button>
+        </div>
+      </div>
 
-  <button id="btnLogin" class="w-full bg-blue-600 text-white p-2 rounded">
-    Entrar
-  </button>
-</div>
+      <!-- Campo para registrar item em falta -->
+      <div id="missingBox" class="hidden mt-4 border-t pt-4">
+        <label class="text-sm text-gray-700">O que o cliente pediu e não temos?</label>
+        <div class="flex gap-2 mt-2">
+          <input id="missingInput" class="flex-1 border rounded p-2" placeholder="Ex: Halls preta / Cigarro X / Energético Y" />
+          <button id="missingSave" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">Salvar</button>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">Isso aparece no painel do gerente.</p>
+      </div>
+    </div>
 
-<!-- FUNCIONÁRIO -->
-<div id="funcionario" class="hidden max-w-md mx-auto bg-white p-4 rounded shadow mt-4">
-  <h2 class="font-bold mb-2">👤 <span id="nome"></span></h2>
+    <div id="tasks" class="space-y-4"></div>
+  </section>
 
-  <button id="btnFalta" class="bg-red-600 text-white p-2 rounded w-full mb-2">
-    Cliente pediu e não tem
-  </button>
+  <!-- GERENTE -->
+  <section id="gerente" class="hidden max-w-4xl mx-auto">
+    <div class="bg-white p-4 rounded-xl shadow mb-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <div>
+          <h2 class="text-xl font-semibold">📊 Painel do Gerente</h2>
+          <p class="text-sm text-gray-700">Visualize tarefas, faltas e exporte relatórios.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnExport" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded">Exportar CSV</button>
+          <button id="btnSync" class="bg-gray-900 hover:bg-black text-white px-3 py-2 rounded">Sincronizar do Drive</button>
+          <button id="btnLogout2" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">Sair</button>
+        </div>
+      </div>
+    </div>
 
-  <input id="inputFalta" class="hidden w-full border p-2 mb-2"
-         placeholder="Digite o item em falta">
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white p-4 rounded-xl shadow">
+        <h3 class="font-semibold mb-2">✅ Tarefas concluídas</h3>
+        <div id="gerTasks" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow">
+        <h3 class="font-semibold mb-2">❌ Faltas (cliente pediu e não tem)</h3>
+        <div id="gerMissing" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
+      </div>
+    </div>
 
-  <button id="salvarFalta"
-          class="hidden bg-green-600 text-white p-2 rounded w-full">
-    Salvar
-  </button>
-
-  <button onclick="logout()" class="mt-3 text-sm text-gray-600 w-full">
-    Sair
-  </button>
-</div>
-
-<!-- GERENTE -->
-<div id="gerente" class="hidden max-w-md mx-auto bg-white p-4 rounded shadow mt-4">
-  <h2 class="font-bold mb-2">📊 Painel do Gerente</h2>
-  <div id="faltas" class="text-sm"></div>
-
-  <button onclick="logout()" class="mt-3 text-sm text-gray-600 w-full">
-    Sair
-  </button>
-</div>
+    <div class="bg-white p-4 rounded-xl shadow mt-4">
+      <h3 class="font-semibold mb-2">➕ Gerenciar categorias</h3>
+      <div class="grid md:grid-cols-4 gap-2">
+        <select id="addUser" class="border p-2 rounded">
+          <option>Sandra</option>
+          <option>Thauane</option>
+          <option>Ingrid</option>
+          <option>Claudia</option>
+          <option>DADA</option>
+        </select>
+        <input id="categoriaNome" placeholder="Nome da categoria" class="border p-2 rounded" />
+        <input id="itensCategoria" placeholder="Itens (separe por vírgula)" class="border p-2 rounded md:col-span-2" />
+      </div>
+      <button id="btnAddCategory" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded w-full">Adicionar / Atualizar categoria</button>
+      <p class="text-xs text-gray-500 mt-2">
+        Dica: para a categoria <b>Armários</b>, deixe itens vazio — ela terá upload de fotos.
+      </p>
+    </div>
+  </section>
 
 <script>
-/* =====================
-   CONFIGURAÇÕES
-===================== */
+/**********************
+ * CONFIGURAÇÕES
+ **********************/
+// ✅ Use somente o Client ID (não use Client Secret no navegador)
+const GOOGLE_CLIENT_ID = "198254465545-c7r3noc9vtiiabqltbfrco08f44ci0ls.apps.googleusercontent.com";
+
+// Pasta raiz no Drive
+const DRIVE_ROOT_FOLDER_NAME = "Missoes da Loja";
+
+/**********************
+ * PINs fixos (globais)
+ **********************/
 window.pins = {
-  GERENTE: "1234",
-  Sandra: "1111",
-  Thauane: "2222",
-  Ingrid: "3333",
-  Claudia: "4444",
-  DADA: "5555"
+  GERENTE: '1234',
+  Sandra: '1111',
+  Thauane: '2222',
+  Ingrid: '3333',
+  Claudia: '4444',
+  DADA: '5555'
 };
 const pins = window.pins;
 
-window.__BUILD_OK__ = true;
-console.log("BUILD OK - JS carregou");
-
-let faltas = JSON.parse(localStorage.getItem("faltas")) || [];
-let usuarioAtual = "";
-
-/* =====================
-   LOGIN
-===================== */
-document.getElementById("btnLogin").onclick = () => {
-  const u = document.getElementById("user").value;
-  const p = document.getElementById("pin").value;
-
-  if (!u || !pins[u] || p !== pins[u]) {
-    alert("Usuário ou PIN incorreto");
-    return;
+/**********************
+ * LISTAS COMPLETAS
+ **********************/
+const defaultData = {
+  Sandra: {
+    'Pedido Itaipava (Segunda)': [
+      'IT Guaraná',
+      'Ita Laranja',
+      'IT Limão',
+      'IT Lemon Ice',
+      'IT Cola',
+      'Latão Lokal'
+    ]
+  },
+  Thauane: {
+    'Ambev (Segunda)': [
+      'Cracudinha (cascos vazios completos)',
+      'Guaraná Antarctica fora da geladeira',
+      'Sukita fora da geladeira',
+      'Guaraviton',
+      'Gatorade',
+      'Suco Tang - Laranja',
+      'Suco Tang - Morango',
+      'Suco Tang - Guaraná',
+      'Suco Tang - Uva',
+      'Suco Tang - Limão',
+      'Suco Tang - Maracujá',
+      'Guaravita',
+      'Água com gás 500ml',
+      'Água com gás 1,5L',
+      'Água sem gás 500ml',
+      'Água sem gás 1,5L',
+      'Corona long',
+      'Stella long'
+    ],
+    'Coca-Cola (Retornáveis e Packs)': [
+      'Retornável vazia completa',
+      'KS vazia completa',
+      'Packs completos de Coca-Cola 2L',
+      'Pack completo de Fanta Uva',
+      'Pack completo de Fanta Laranja',
+      'Guaraná latinha (Coca)',
+      'Garrafinha de Coca 200ml',
+      'Garrafinha de Fanta 200ml'
+    ]
+  },
+  Ingrid: {
+    'Jardim América': [
+      'Antarctica latão',
+      'Brahma latão',
+      'Império latão',
+      'Heineken latão',
+      'Heineken long'
+    ],
+    'Fotos (Check)': [
+      'Foto de todas as estantes arrumadas e abastecidas',
+      'Foto dos biscoitos',
+      'Foto das reservas',
+      'Foto dos doces',
+      'Foto do freezer com barras de chocolate'
+    ],
+    'Armários (Fotos obrigatórias)': []
+  },
+  Claudia: {
+    'Sadia (Segunda)': [
+      'Mortadela comum',
+      'Mortadela defumada',
+      'Presunto',
+      'Calabresa',
+      'Salsicha',
+      'Hambúrguer'
+    ],
+    'Queijos': [
+      'Queijo prato',
+      'Queijo mussarela',
+      'Queijo minas',
+      'Minas padrão'
+    ]
+  },
+  DADA: {
+    'Mineirinho (Terça)': [
+      'Mineirinho 2L',
+      'Mineirinho 350ml'
+    ]
   }
+};
 
-  usuarioAtual = u;
-  document.getElementById("login").classList.add("hidden");
+/**********************
+ * ESTADO LOCAL
+ **********************/
+let data = JSON.parse(localStorage.getItem('data')) || {};
+// garante que as missões padrão existam mesmo após atualizações
+Object.keys(defaultData).forEach(u => {
+  if (!data[u]) data[u] = defaultData[u];
+});
+let scores = JSON.parse(localStorage.getItem('scores')) || {};
+let tasksDone = JSON.parse(localStorage.getItem('tasksDone')) || []; // {user, categoria, itens:{}, when}
+let missingReports = JSON.parse(localStorage.getItem('missingReports')) || []; // {user, item, when}
+let currentUser = '';
 
-  if (u === "GERENTE") {
-    mostrarGerente();
+function persist() {
+  localStorage.setItem('data', JSON.stringify(data));
+  localStorage.setItem('scores', JSON.stringify(scores));
+  localStorage.setItem('tasksDone', JSON.stringify(tasksDone));
+  localStorage.setItem('missingReports', JSON.stringify(missingReports));
+}
+
+/**********************
+ * RESET AUTOMÁTICO (toda segunda)
+ **********************/
+function resetSemanal() {
+  const hoje = new Date();
+  const ultima = localStorage.getItem('ultimoReset');
+  // 1 = segunda-feira
+  if (hoje.getDay() === 1 && ultima !== hoje.toDateString()) {
+    scores = {};
+    tasksDone = [];
+    missingReports = [];
+    persist();
+    localStorage.setItem('ultimoReset', hoje.toDateString());
+  }
+}
+resetSemanal();
+// se data estiver vazia por alguma versão antiga, rehidrata
+if (!Object.keys(data).length) {
+  data = JSON.parse(JSON.stringify(defaultData));
+  persist();
+}
+
+/**********************
+ * UI HELPERS
+ **********************/
+const $ = (id) => document.getElementById(id);
+function toast(msg) { alert(msg); }
+
+function show(section) {
+  ['login','funcionario','gerente'].forEach(s => $(s).classList.add('hidden'));
+  $(section).classList.remove('hidden');
+}
+
+function nowStamp() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mi = String(d.getMinutes()).padStart(2,'0');
+  const ss = String(d.getSeconds()).padStart(2,'0');
+  return {
+    dateFolder: `${yyyy}-${mm}-${dd}`,
+    dateBR: `${dd}-${mm}-${yyyy}`,
+    timeHM: `${hh}-${mi}`,
+    timeHMS: `${hh}-${mi}-${ss}`,
+    timeCompact: `${hh}${mi}${ss}`,
+    human: d.toLocaleString()
+  };
+}
+
+$('btnLogout1').addEventListener('click', () => { currentUser=''; show('login'); });
+$('btnLogout2').addEventListener('click', () => { currentUser=''; show('login'); });
+
+/**********************
+ * LOGIN
+ **********************/
+function isValidPin(p){ return /^[0-9]{4}$/.test(String(p || '')); }
+
+$('btnLogin').addEventListener('click', () => {
+  const u = $('userSelect').value;
+  const pin = $('pin').value;
+  if (!u) return toast('Selecione o usuário.');
+  if (!isValidPin(pin)) return toast('PIN precisa ter 4 dígitos.');
+
+  const expected = (u === 'GERENTE') ? pins.GERENTE : pins[u];
+  if (!expected) return toast('Usuário sem PIN configurado.');
+  if (pin !== expected) return toast('PIN incorreto.');
+
+  currentUser = u;
+  $('pin').value = '';
+
+  if (u === 'GERENTE') {
+    renderManager();
+    show('gerente');
   } else {
-    document.getElementById("nome").innerText = u;
-    document.getElementById("funcionario").classList.remove("hidden");
+    renderEmployee();
+    show('funcionario');
   }
-};
+});
 
-/* =====================
-   FALTAS
-===================== */
-document.getElementById("btnFalta").onclick = () => {
-  document.getElementById("inputFalta").classList.toggle("hidden");
-  document.getElementById("salvarFalta").classList.toggle("hidden");
-};
+/**********************
+ * CAMPO "CLIENTE PEDIU E NÃO TEM"
+ **********************/
+$('btnMissing').addEventListener('click', () => {
+  const box = $('missingBox');
+  box.classList.toggle('hidden');
+  if (!box.classList.contains('hidden')) $('missingInput').focus();
+});
 
-document.getElementById("salvarFalta").onclick = () => {
-  const texto = document.getElementById("inputFalta").value.trim();
-  if (!texto) return;
+$('missingSave').addEventListener('click', async () => {
+  const raw = $('missingInput').value.trim();
+  if (!raw) return toast('Digite o item em falta.');
 
-  faltas.push({
-    usuario: usuarioAtual,
-    item: texto,
-    data: new Date().toLocaleString()
-  });
+  const when = nowStamp();
+  const rec = { user: currentUser, item: raw, when: when.human };
+  missingReports.push(rec);
+  persist();
 
-  localStorage.setItem("faltas", JSON.stringify(faltas));
-  document.getElementById("inputFalta").value = "";
-  alert("Registrado!");
-};
+  $('missingInput').value = '';
+  $('missingBox').classList.add('hidden');
+  toast('Registrado!');
 
-/* =====================
-   GERENTE
-===================== */
-function mostrarGerente() {
-  document.getElementById("gerente").classList.remove("hidden");
-  const div = document.getElementById("faltas");
-  div.innerHTML = "";
+  await driveUploadJSON(rec, `__missing__${currentUser}__${when.timeCompact}.json`, when.dateFolder);
+});
 
-  if (!faltas.length) {
-    div.innerHTML = "<p>Nenhuma falta registrada</p>";
+/**********************
+ * RENDER FUNCIONÁRIA
+ **********************/
+function renderEmployee() {
+  $('userName').innerText = currentUser;
+  $('score').innerText = scores[currentUser] || 0;
+  $('missingBox').classList.add('hidden');
+  $('missingInput').value = '';
+
+  const container = $('tasks');
+  container.innerHTML = '';
+
+  const cats = data[currentUser] || {};
+  const catNames = Object.keys(cats);
+  if (!catNames.length) {
+    container.innerHTML = "<div class='bg-white p-4 rounded-xl shadow text-gray-600'>Nenhuma categoria cadastrada para este usuário.</div>";
     return;
   }
 
-  faltas.forEach(f => {
-    div.innerHTML += `
-      <div class="border p-2 mb-2">
-        <b>${f.usuario}</b><br>
-        ${f.item}<br>
-        <small>${f.data}</small>
-      </div>
-    `;
+  catNames.forEach(cat => {
+    const card = document.createElement('div');
+    card.className = 'bg-white p-4 rounded-xl shadow';
+
+    const isArmarios = cat.toLowerCase().includes('armários') || cat.toLowerCase().includes('armarios');
+
+    card.innerHTML = `<div class='flex items-center justify-between gap-2'>
+      <h3 class='font-semibold'>${escapeHtml(cat)}</h3>
+      <span class='text-xs text-gray-500'>+10 ⭐</span>
+    </div>`;
+
+    const body = document.createElement('div');
+    body.className = 'mt-3 space-y-2';
+
+    const itens = cats[cat] || [];
+
+    if (isArmarios) {
+      body.innerHTML = `
+        <p class='text-sm text-gray-700'>📸 Envie as fotos dos armários (precisa aparecer o armário inteiro: em cima e em baixo).</p>
+        <input data-cat="${encodeURIComponent(cat)}" type='file' accept='image/*' capture='environment' multiple class='w-full border rounded p-2 bg-white'>
+        <p class='text-xs text-gray-500'>As fotos serão enviadas para seu Google Drive (se conectado).</p>
+      `;
+    } else {
+      itens.forEach((item) => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-2';
+        row.innerHTML = `
+          <span class='text-sm text-gray-800'>${escapeHtml(item)}</span>
+          <input data-item="${encodeURIComponent(item)}" type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>
+        `;
+        body.appendChild(row);
+      });
+    }
+
+    const btn = document.createElement('button');
+    btn.className = 'mt-4 w-full bg-green-600 hover:bg-green-700 text-white p-2 rounded';
+    btn.innerText = 'Concluir';
+    btn.addEventListener('click', async () => {
+      const when = nowStamp();
+
+      if (isArmarios) {
+        const input = body.querySelector('input[type=file]');
+        const files = input?.files || [];
+        if (!files.length) return toast('Envie pelo menos 1 foto dos armários antes de concluir.');
+
+        for (const f of files) {
+          await driveUploadPhoto(f, currentUser, cat, when.dateFolder);
+        }
+      }
+
+      const itensQtd = {};
+      if (!isArmarios) {
+        body.querySelectorAll('input[type=number]').forEach(inp => {
+          const name = decodeURIComponent(inp.getAttribute('data-item'));
+          const val = inp.value === '' ? 0 : Number(inp.value);
+          itensQtd[name] = Number.isFinite(val) ? val : 0;
+        });
+      }
+
+      const record = {
+        user: currentUser,
+        categoria: cat,
+        itens: itensQtd,
+        when: when.human
+      };
+      tasksDone.push(record);
+      scores[currentUser] = (scores[currentUser] || 0) + 10;
+      persist();
+
+      $('score').innerText = scores[currentUser];
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+      btn.innerText = '✔ Concluído';
+
+      await driveUploadJSON(record, `__task__${currentUser}__${safeName(cat)}__${when.timeCompact}.json`, when.dateFolder);
+    });
+
+    card.appendChild(body);
+    card.appendChild(btn);
+    container.appendChild(card);
   });
 }
 
-/* =====================
-   LOGOUT
-===================== */
-function logout() {
-  location.reload();
+function safeName(s) {
+  return String(s)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9_-]+/g, '_')
+    .slice(0, 60);
 }
 
-console.log("JS OK - login funcionando");
+/**********************
+ * RENDER GERENTE
+ **********************/
+function renderManager() {
+  const t = $('gerTasks');
+  t.innerHTML = '';
+  const ordered = [...tasksDone].reverse();
+  if (!ordered.length) t.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa registrada ainda.</p>";
+  ordered.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'border rounded p-2 bg-gray-50';
+    const itens = r.itens && Object.keys(r.itens).length
+      ? Object.entries(r.itens).map(([k,v]) => `${k}: ${v}`).join(' • ')
+      : '(sem quantidades / ou fotos)';
+    div.innerHTML = `<div class='font-semibold'>${escapeHtml(r.user)} — ${escapeHtml(r.categoria)}</div>
+      <div class='text-xs text-gray-600'>${escapeHtml(r.when)}</div>
+      <div class='text-xs mt-1'>${escapeHtml(itens)}</div>`;
+    t.appendChild(div);
+  });
+
+  const m = $('gerMissing');
+  m.innerHTML = '';
+  const mo = [...missingReports].reverse();
+  if (!mo.length) m.innerHTML = "<p class='text-gray-500'>Nenhuma falta registrada ainda.</p>";
+  mo.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'border rounded p-2 bg-gray-50';
+    div.innerHTML = `<div class='font-semibold'>${escapeHtml(r.user)}</div>
+      <div class='text-xs text-gray-600'>${escapeHtml(r.when)}</div>
+      <div class='text-sm mt-1'>${escapeHtml(r.item)}</div>`;
+    m.appendChild(div);
+  });
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;');
+}
+
+/**********************
+ * EXPORT CSV (corrigido \n)
+ **********************/
+$('btnExport').addEventListener('click', () => {
+  const header = ['tipo','usuario','categoria','quando','detalhes'];
+  let csv = header.join(',') + "\n";
+
+  for (const r of tasksDone) {
+    csv += ['tarefa', r.user, r.categoria, r.when, JSON.stringify(r.itens || {})]
+      .map(csvCell).join(',') + "\n";
+  }
+  for (const r of missingReports) {
+    csv += ['falta', r.user, '', r.when, JSON.stringify({item:r.item})]
+      .map(csvCell).join(',') + "\n";
+  }
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'relatorio_missoes.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+});
+
+function csvCell(v){
+  const s = String(v ?? '');
+  // quebra de linha, vírgula e aspas precisam de escape
+  if (/[\n\r,"]/g.test(s)) return '"' + s.replaceAll('"','""') + '"';
+  return s;
+}
+
+/**********************
+ * GERENCIAR CATEGORIAS
+ **********************/
+$('btnAddCategory').addEventListener('click', () => {
+  const u = $('addUser').value;
+  const cat = $('categoriaNome').value.trim();
+  const items = $('itensCategoria').value.trim();
+  if (!cat) return toast('Informe o nome da categoria');
+
+  if (!data[u]) data[u] = {};
+  if (items) data[u][cat] = items.split(',').map(s => s.trim()).filter(Boolean);
+  else data[u][cat] = [];
+
+  persist();
+  toast('Categoria adicionada/atualizada.');
+  $('categoriaNome').value = '';
+  $('itensCategoria').value = '';
+});
+
+/**********************
+ * GOOGLE DRIVE INTEGRAÇÃO
+ **********************/
+let driveToken = null;
+let tokenClient = null;
+let driveRootId = null;
+
+function setDriveStatus(ok) {
+  $('btnDriveStatus').disabled = false;
+  $('btnDriveStatus').innerText = ok ? 'Drive: conectado' : 'Drive: desconectado';
+  $('btnDriveStatus').className = ok ? 'bg-emerald-100 text-emerald-900 p-2 rounded' : 'bg-gray-200 text-gray-900 p-2 rounded';
+}
+
+$('btnDriveConnect').addEventListener('click', async () => {
+  if (!GOOGLE_CLIENT_ID) return toast('Client ID não configurado.');
+
+  if (!window.google || !google.accounts || !google.accounts.oauth2) {
+    return toast('OAuth do Google ainda não carregou. Tente novamente em 2 segundos.');
+  }
+
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/drive.file',
+    callback: async (resp) => {
+      if (resp.error) {
+        console.error(resp);
+        setDriveStatus(false);
+        return toast('Falha ao conectar no Google Drive.');
+      }
+      driveToken = resp.access_token;
+      setDriveStatus(true);
+      driveRootId = await ensureFolder(DRIVE_ROOT_FOLDER_NAME, null);
+      toast('Google Drive conectado!');
+    }
+  });
+
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+});
+
+async function driveFetch(url, options = {}) {
+  if (!driveToken) return null;
+  const headers = options.headers || {};
+  headers['Authorization'] = `Bearer ${driveToken}`;
+  options.headers = headers;
+  const res = await fetch(url, options);
+  if (!res.ok) {
+    const t = await res.text().catch(()=> '');
+    console.warn('Drive error', res.status, t);
+    return null;
+  }
+  return res;
+}
+
+async function ensureFolder(name, parentId) {
+  if (!driveToken) return null;
+
+  const safe = String(name).replaceAll("'", "\\'");
+  const qParts = [
+    `mimeType='application/vnd.google-apps.folder'`,
+    `name='${safe}'`,
+    'trashed=false'
+  ];
+  if (parentId) qParts.push(`'${parentId}' in parents`);
+  const q = qParts.join(' and ');
+
+  const listUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`;
+  const listRes = await driveFetch(listUrl);
+  if (listRes) {
+    const js = await listRes.json();
+    if (js.files && js.files.length) return js.files[0].id;
+  }
+
+  const meta = { name, mimeType: 'application/vnd.google-apps.folder' };
+  if (parentId) meta.parents = [parentId];
+
+  const createRes = await driveFetch('https://www.googleapis.com/drive/v3/files', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(meta)
+  });
+  if (!createRes) return null;
+  const created = await createRes.json();
+  return created.id;
+}
+
+async function driveUploadPhoto(file, user, categoria, dateFolder) {
+  if (!driveToken) {
+    toast('Drive desconectado. Conecte o Google Drive para enviar fotos.');
+    return;
+  }
+  if (!driveRootId) driveRootId = await ensureFolder(DRIVE_ROOT_FOLDER_NAME, null);
+  const dayId = await ensureFolder(dateFolder, driveRootId);
+
+  const stamp = nowStamp();
+  const filename = `${safeName(categoria)}_${safeName(user)}_${stamp.dateBR}_${stamp.timeHMS}.jpg`;
+
+  const metadata = { name: filename, parents: [dayId] };
+
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+  form.append('file', file);
+
+  const res = await driveFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name', {
+    method: 'POST',
+    body: form
+  });
+
+  if (!res) toast('Falha ao enviar foto para o Drive.');
+}
+
+async function driveUploadJSON(obj, name, dateFolder) {
+  if (!driveToken) return;
+  if (!driveRootId) driveRootId = await ensureFolder(DRIVE_ROOT_FOLDER_NAME, null);
+  const dayId = await ensureFolder(dateFolder, driveRootId);
+
+  const finalName = `${dateFolder}${name.startsWith('__') ? '' : '__'}${name}`;
+  const metadata = { name: finalName, parents: [dayId] };
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+  form.append('file', blob, metadata.name);
+
+  await driveFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+    method: 'POST',
+    body: form
+  });
+}
+
+$('btnSync').addEventListener('click', async () => {
+  if (!driveToken) return toast('Conecte o Google Drive primeiro.');
+  if (!driveRootId) driveRootId = await ensureFolder(DRIVE_ROOT_FOLDER_NAME, null);
+
+  const foldersRes = await driveFetch(
+    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`'${driveRootId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`)}&fields=files(id,name)&pageSize=1000`
+  );
+  if (!foldersRes) return toast('Não consegui listar pastas do Drive.');
+  const folders = (await foldersRes.json()).files || [];
+
+  let newTasks = 0;
+  let newMissing = 0;
+
+  for (const f of folders) {
+    const filesRes = await driveFetch(
+      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`'${f.id}' in parents and trashed=false and (name contains '__task__' or name contains '__missing__')`)}&fields=files(id,name)&pageSize=1000`
+    );
+    if (!filesRes) continue;
+    const files = (await filesRes.json()).files || [];
+
+    for (const file of files) {
+      const getRes = await driveFetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`);
+      if (!getRes) continue;
+      const obj = await getRes.json().catch(()=>null);
+      if (!obj) continue;
+
+      if (file.name.includes('__task__')) {
+        const key = `${obj.when || ''}__${obj.user || ''}__${obj.categoria || ''}`;
+        if (!tasksDone.some(x => `${x.when}__${x.user}__${x.categoria}` === key)) {
+          tasksDone.push(obj);
+          newTasks++;
+        }
+      } else {
+        const key = `${obj.when || ''}__${obj.user || ''}__${obj.item || ''}`;
+        if (!missingReports.some(x => `${x.when}__${x.user}__${x.item}` === key)) {
+          missingReports.push(obj);
+          newMissing++;
+        }
+      }
+    }
+  }
+
+  persist();
+  renderManager();
+  toast(`Sincronizado. Novas tarefas: ${newTasks} • Novas faltas: ${newMissing}`);
+});
+
+/**********************
+ * TESTES (sanidade)
+ **********************/
+console.assert(document.querySelector('head') && document.querySelector('body'), 'HTML deve ter head e body');
+console.assert(typeof resetSemanal === 'function', 'resetSemanal deve existir');
+console.assert(typeof renderEmployee === 'function', 'renderEmployee deve existir');
+console.assert(typeof renderManager === 'function', 'renderManager deve existir');
+console.assert(isValidPin('0000') === true, 'PIN 0000 deve ser válido');
+console.assert(isValidPin('123') === false, 'PIN com 3 dígitos deve ser inválido');
+console.assert(isValidPin('12a4') === false, 'PIN com letra deve ser inválido');
+console.assert(pins.Sandra === '1111', 'PIN Sandra deve estar fixo');
+console.assert(Array.isArray(defaultData.Sandra['Pedido Itaipava (Segunda)']), 'Lista da Sandra deve existir');
+console.assert(typeof window.pins === 'object', 'pins deve estar em window.pins');
+
+setDriveStatus(false);
+
+// Banner de build (ajuda a confirmar que este arquivo é o publicado)
+console.log('BUILD OK - JS carregou', new Date().toISOString());
+window.__BUILD_OK__ = true;
 </script>
 
 </body>
