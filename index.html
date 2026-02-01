@@ -154,7 +154,7 @@
     </div>
   </div>
 
-  <!-- Tarefas (inclui GLOBAIS + pessoais) -->
+  <!-- Tarefas (inclui GLOBAL + pessoais) -->
   <div id="tasks" class="space-y-4"></div>
 </section>
 
@@ -201,24 +201,33 @@
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <h3 class="font-semibold mb-2">Tarefas GLOBAIS salvas (Templates)</h3>
     <p class="text-xs text-gray-500 mb-3">
-      Crie templates de GLOBAL e depois publique QUANTAS GLOBAIS quiser na semana escolhendo no dropdown.
-      Quem concluir primeiro “trava” e some dos demais.
+      Crie templates de GLOBAL e depois publique UMA OU VÁRIAS GLOBAIS da semana escolhendo no dropdown.
+      Tipos:
+      <b>Corrida</b> = primeiro que concluir “trava” e some dos demais.
+      <b>Individual</b> = cada funcionário conclui a sua.
     </p>
 
-    <div class="grid md:grid-cols-4 gap-2">
+    <div class="grid md:grid-cols-5 gap-2">
       <select id="globalTplSelect" class="border p-2 rounded md:col-span-2">
         <option value="">Carregando templates...</option>
       </select>
+
+      <select id="globalModeSelect" class="border p-2 rounded">
+        <option value="race">GLOBAL Corrida (1º conclui)</option>
+        <option value="individual">GLOBAL Individual (cada um conclui)</option>
+      </select>
+
       <button id="btnPublishGlobalFromTpl" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
         Publicar GLOBAL (semana)
       </button>
+
       <button id="btnDeleteTpl" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded">
         Excluir template
       </button>
     </div>
 
     <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold mb-2">Status das GLOBAIS desta semana</div>
+      <div class="text-sm font-semibold mb-2">Status GLOBAIS desta semana</div>
       <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
     </div>
 
@@ -455,11 +464,11 @@
   let employees = [];
   let escala = null;
 
+  // GLOBAIS (MULTI)
+  let globalTasks = []; // [{id, weekKey, status, mode, name, items, ...}]
+
   // Templates globais
   let globalTemplates = []; // [{id,name,items,createdAtHuman}]
-  // >>>>>> AGORA: VÁRIAS GLOBAIS POR SEMANA <<<<<<
-  let globalTasks = [];     // [{id, weekKey, status, name, items, completedBy, ...}]
-
   let escalaLocalEmployee = null;
   let escalaLocalGer = null;
 
@@ -470,11 +479,12 @@
   const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
   const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
+
   const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
 
-  // >>>>>> NOVO: COLLECTION de globais <<<<<<
-  const globalsColRef = () => collection(db, "stores", STORE_ID, "globals");
-  const globalDocRef  = (id) => doc(db, "stores", STORE_ID, "globals", id);
+  // MULTI GLOBAL collection
+  const globalsColRef = () => collection(db,"stores",STORE_ID,"globals");
+  const globalDocRef  = (id) => doc(db,"stores",STORE_ID,"globals",id);
 
   // ===== Top bar =====
   function monthKey(date){
@@ -669,6 +679,7 @@
   }
 
   // ===== Categorias base =====
+  // (ARMÁRIOS REMOVIDO do padrão inicial)
   const defaultData = {
     Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
     Thauane: {
@@ -747,48 +758,27 @@
     });
   }
 
-  // =======================
-  // ===== GLOBAIS (multi) ==
-  // =======================
-  function getGlobalStatusHtml(){
-    if (!globalTasks || globalTasks.length === 0){
-      return `<div class="text-gray-500">Nenhuma GLOBAL publicada nesta semana.</div>`;
-    }
-
-    const ordered = globalTasks.slice().sort((a,b)=>{
-      const aT = a?.createdAt?.seconds ? a.createdAt.seconds : 0;
-      const bT = b?.createdAt?.seconds ? b.createdAt.seconds : 0;
-      return bT - aT;
-    });
-
-    let html = `<div class="space-y-2">`;
-    ordered.forEach((g)=>{
-      const title = g.name || "(sem nome)";
-      if (g.status === "completed"){
-        html += `
-          <div class="border rounded p-2 bg-gray-50">
-            <div class="font-semibold">✅ ${title}</div>
-            <div class="text-xs text-gray-600">Concluída por <b>${g.completedBy || "-"}</b> em ${g.completedAtHuman || "-"}</div>
-          </div>
-        `;
-      } else {
-        html += `
-          <div class="border rounded p-2 bg-yellow-50 border-yellow-200">
-            <div class="font-semibold">⏳ ${title}</div>
-            <div class="text-xs text-gray-600">Pendente (aberta)</div>
-          </div>
-        `;
-      }
-    });
-    html += `</div>`;
-    return html;
+  // ===== GLOBALS (MULTI + MODOS) =====
+  function globalModeLabel(mode){
+    return mode === "individual" ? "Individual" : "Corrida";
   }
 
-  async function publishGlobalTaskFromTemplate(tpl){
-    // Agora pode publicar várias. Cada publicação = novo doc.
+  function isGlobalDoneByUser(globalId, user){
+    return tasksDone.some(t =>
+      t.weekKey === currentWeekKey &&
+      t.user === user &&
+      t.type === "global" &&
+      t.globalId === globalId
+    );
+  }
+
+  async function publishGlobalTaskFromTemplate(tpl, mode){
+    mode = (mode === "individual") ? "individual" : "race";
+
     await addDoc(globalsColRef(), {
       weekKey: currentWeekKey,
-      status: "open",
+      status: "open",          // open | completed | closed
+      mode,                    // race | individual
       name: tpl.name,
       items: tpl.items || [],
       templateId: tpl.id || "",
@@ -797,14 +787,31 @@
     });
   }
 
-  async function completeGlobalTaskAsFirst(globalId, user, itensQtd){
+  async function closeGlobalById(id){
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    await updateDoc(globalDocRef(id), {
+      status: "closed",
+      closedBy: currentUser,
+      closedAt: serverTimestamp(),
+      closedAtHuman: nowHuman()
+    });
+  }
+
+  async function deleteGlobalById(id){
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    await deleteDoc(globalDocRef(id));
+  }
+
+  async function completeGlobalRaceAsFirst(globalId, user, itensQtd){
     const ref = globalDocRef(globalId);
 
     await runTransaction(db, async (tx)=>{
       const snap = await tx.get(ref);
       if (!snap.exists()) throw new Error("GLOBAL não existe.");
       const g = snap.data();
-      if (g.status !== "open") throw new Error("GLOBAL já foi concluída.");
+      if (g.status !== "open") throw new Error("GLOBAL já foi encerrada/concluída.");
+      if ((g.mode || "race") !== "race") throw new Error("GLOBAL não é do tipo corrida.");
+
       tx.update(ref, {
         status: "completed",
         completedBy: user,
@@ -813,9 +820,12 @@
       });
     });
 
-    // salva em tasks (histórico) + pontua
     const gLocal = globalTasks.find(x=>x.id === globalId);
+
     await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
+      type: "global",
+      globalId,
+      globalMode: "race",
       user,
       categoria: "[GLOBAL] " + (gLocal?.name || "GLOBAL"),
       itens: itensQtd || {},
@@ -825,6 +835,107 @@
     });
 
     await bumpMonthlyScore(user, 10);
+  }
+
+  async function completeGlobalIndividual(globalId, user, itensQtd){
+    const gLocal = globalTasks.find(x=>x.id === globalId);
+    if (!gLocal) throw new Error("GLOBAL não encontrada.");
+    if (gLocal.status !== "open") throw new Error("GLOBAL encerrada/concluída.");
+    if ((gLocal.mode || "race") !== "individual") throw new Error("GLOBAL não é individual.");
+    if (isGlobalDoneByUser(globalId, user)) throw new Error("Você já concluiu essa GLOBAL.");
+
+    await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
+      type: "global",
+      globalId,
+      globalMode: "individual",
+      user,
+      categoria: "[GLOBAL IND] " + (gLocal?.name || "GLOBAL"),
+      itens: itensQtd || {},
+      when: nowHuman(),
+      weekKey: currentWeekKey,
+      createdAt: serverTimestamp()
+    });
+
+    await bumpMonthlyScore(user, 10);
+  }
+
+  function renderGlobalStatusManager(){
+    const box = $("globalStatus");
+    if (!box) return;
+
+    if (!globalTasks || globalTasks.length === 0){
+      box.innerHTML = `<div class="text-gray-500">Nenhuma GLOBAL publicada nesta semana.</div>`;
+      return;
+    }
+
+    const ordered = globalTasks.slice().sort((a,b)=>{
+      const aT = a?.createdAt?.seconds ? a.createdAt.seconds : 0;
+      const bT = b?.createdAt?.seconds ? b.createdAt.seconds : 0;
+      return bT - aT;
+    });
+
+    box.innerHTML = "";
+    const wrap = document.createElement("div");
+    wrap.className = "space-y-2";
+
+    ordered.forEach((g)=>{
+      const mode = g.mode || "race";
+      const modeBadge = mode === "individual"
+        ? `<span class="text-xs px-2 py-1 rounded bg-indigo-50 border border-indigo-200 text-indigo-700">Individual</span>`
+        : `<span class="text-xs px-2 py-1 rounded bg-blue-50 border border-blue-200 text-blue-700">Corrida</span>`;
+
+      const statusTxt =
+        g.status === "completed" ? `✅ Concluída por ${g.completedBy || "-"} em ${g.completedAtHuman || "-"}` :
+        g.status === "closed"    ? `⛔ Encerrada por ${g.closedBy || "-"} em ${g.closedAtHuman || "-"}` :
+                                  `⏳ Aberta`;
+
+      const row = document.createElement("div");
+      row.className = "border rounded p-2 bg-gray-50";
+
+      row.innerHTML = `
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <div class="font-semibold truncate">${g.name || "(sem nome)"}</div>
+            <div class="mt-1 flex items-center gap-2">${modeBadge}<span class="text-xs text-gray-600">${statusTxt}</span></div>
+            <div class="text-xs text-gray-500 mt-1">Criada em: ${g.createdAtHuman || "-"}</div>
+          </div>
+
+          <div class="flex flex-col gap-2 shrink-0">
+            <button data-close="${g.id}" class="px-3 py-2 rounded text-sm bg-yellow-600 hover:bg-yellow-700 text-white">
+              Encerrar
+            </button>
+            <button data-del="${g.id}" class="px-3 py-2 rounded text-sm bg-red-600 hover:bg-red-700 text-white">
+              Deletar
+            </button>
+          </div>
+        </div>
+      `;
+
+      const btnClose = row.querySelector(`[data-close="${g.id}"]`);
+      if (g.status !== "open"){
+        btnClose.disabled = true;
+        btnClose.classList.add("opacity-50");
+        btnClose.innerText = "Encerrada";
+      } else {
+        btnClose.addEventListener("click", async ()=>{
+          if (!confirm(`Encerrar GLOBAL "${g.name || "(sem nome)"}"?\nEla para de aparecer para os funcionários.`)) return;
+          try{ await closeGlobalById(g.id); toast("GLOBAL encerrada."); }
+          catch(e){ console.error(e); toast("Erro ao encerrar."); }
+        });
+      }
+
+      const btnDel = row.querySelector(`[data-del="${g.id}"]`);
+      btnDel.addEventListener("click", async ()=>{
+        const name = g.name || "(sem nome)";
+        if (!confirm(`DELETAR GLOBAL "${name}"?\nIsso remove do sistema (não aparece mais).`)) return;
+        try{ await deleteGlobalById(g.id); toast("GLOBAL deletada."); }
+        catch(e){ console.error(e); toast("Erro ao deletar."); }
+      });
+
+      wrap.appendChild(row);
+    });
+
+    box.appendChild(wrap);
   }
 
   // ===== GLOBAL TEMPLATES =====
@@ -1178,17 +1289,28 @@
     const container = $("tasks");
     container.innerHTML = "";
 
-    // >>>>>> MULTI GLOBAIS: renderiza todas as abertas <<<<<<
+    // ===== GLOBAIS abertas desta semana =====
     const openGlobals = (globalTasks || []).filter(g => g.weekKey === currentWeekKey && g.status === "open");
-
     if (openGlobals.length){
       openGlobals.forEach((g)=>{
+        const mode = g.mode || "race";
+        const doneByMe = (mode === "individual") ? isGlobalDoneByUser(g.id, currentUser) : false;
+
         const card = document.createElement("div");
         card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
 
+        const badge = mode === "individual"
+          ? `<span class="text-xs px-2 py-1 rounded bg-indigo-50 border border-indigo-200 text-indigo-700">Individual</span>`
+          : `<span class="text-xs px-2 py-1 rounded bg-blue-50 border border-blue-200 text-blue-700">Corrida</span>`;
+
         const title = document.createElement("div");
         title.className = "flex items-center justify-between gap-2";
-        title.innerHTML = `<h3 class="font-semibold">[GLOBAL] ${g.name || "Tarefa Global"}</h3><span class="text-xs text-gray-500">+10 (primeiro que concluir)</span>`;
+        title.innerHTML = `
+          <div class="min-w-0">
+            <h3 class="font-semibold truncate">[GLOBAL] ${g.name || "Tarefa Global"}</h3>
+            <div class="mt-1">${badge} <span class="text-xs text-gray-500 ml-2">+10 pontos</span></div>
+          </div>
+        `;
         card.appendChild(title);
 
         const body = document.createElement("div");
@@ -1211,9 +1333,15 @@
 
         const btn = document.createElement("button");
         btn.className = "mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded";
-        btn.innerText = "Concluir GLOBAL";
+        btn.innerText = (mode === "individual" && doneByMe) ? "Você já concluiu" : "Concluir GLOBAL";
+        if (mode === "individual" && doneByMe){
+          btn.disabled = true;
+          btn.classList.add("opacity-50");
+        }
 
         btn.addEventListener("click", async ()=>{
+          if (btn.disabled) return;
+
           const itensQtd = {};
           const inputs = Array.from(body.querySelectorAll("input[type=number]"));
           for (const inp of inputs){
@@ -1229,17 +1357,28 @@
 
           btn.disabled = true;
           btn.classList.add("opacity-50");
-          btn.innerText = "Tentando concluir...";
+          btn.innerText = "Salvando...";
 
           try{
-            await completeGlobalTaskAsFirst(g.id, currentUser, itensQtd);
-            toast("Você concluiu essa GLOBAL primeiro!");
+            if (mode === "individual"){
+              await completeGlobalIndividual(g.id, currentUser, itensQtd);
+              toast("GLOBAL individual concluída!");
+              btn.innerText = "Você já concluiu";
+            } else {
+              await completeGlobalRaceAsFirst(g.id, currentUser, itensQtd);
+              toast("Você concluiu essa GLOBAL primeiro!");
+              btn.innerText = "Encerrada";
+            }
           } catch(e){
             console.error(e);
-            toast("Essa GLOBAL já foi concluída por outra pessoa.");
-          } finally {
-            btn.disabled = true;
-            btn.innerText = "Encerrada";
+            toast(String(e?.message || "Erro ao concluir."));
+            if (mode === "individual"){
+              btn.disabled = false;
+              btn.classList.remove("opacity-50");
+              btn.innerText = "Concluir GLOBAL";
+            } else {
+              btn.innerText = "Encerrada";
+            }
           }
         });
 
@@ -1249,7 +1388,7 @@
       });
     }
 
-    // categorias pessoais
+    // ===== categorias pessoais =====
     const cats = data[currentUser] || {};
     const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
     if (!catNames.length){
@@ -1355,9 +1494,7 @@
     $("weekKeyLabelGer").innerText = currentWeekKey;
     $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
 
-    // >>>>>> status MULTI GLOBAIS <<<<<<
-    if ($("globalStatus")) $("globalStatus").innerHTML = getGlobalStatusHtml();
-
+    renderGlobalStatusManager();
     renderRanking();
 
     // tarefas
@@ -1506,10 +1643,13 @@
     const tpl = findTemplateById(id);
     if (!tpl) return toast("Template não encontrado.");
 
-    if (!confirm(`Publicar uma NOVA GLOBAL nesta semana usando "${tpl.name}"?`)) return;
+    const mode = $("globalModeSelect")?.value || "race";
+    const modeTxt = (mode === "individual") ? "INDIVIDUAL (cada um conclui)" : "CORRIDA (1º conclui)";
+
+    if (!confirm(`Publicar uma NOVA GLOBAL nesta semana usando "${tpl.name}"?\nTipo: ${modeTxt}`)) return;
 
     try{
-      await publishGlobalTaskFromTemplate(tpl);
+      await publishGlobalTaskFromTemplate(tpl, mode);
       toast("GLOBAL publicada para esta semana.");
     } catch(e){
       console.error(e);
@@ -1679,13 +1819,11 @@
   // ===== Reset semana =====
   $("btnResetWeek").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
+    if (!confirm("ATENÇÃO: Apaga tarefas, faltas, GLOBAIS e escala da semana atual. Confirmar?")) return;
 
     try{
       await deleteByWeek("tasks", currentWeekKey);
       await deleteByWeek("missing", currentWeekKey);
-
-      // >>>>>> APAGA TODAS AS GLOBAIS DA SEMANA <<<<<<
       await deleteGlobalsByWeek(currentWeekKey);
 
       try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
@@ -1904,7 +2042,7 @@
       if (currentUser === "GERENTE") renderManager();
     });
 
-    // >>>>>> MULTI GLOBAIS listener <<<<<<
+    // globals (MULTI)
     const globalsQ = query(
       globalsColRef(),
       where("weekKey","==",currentWeekKey),
@@ -1912,10 +2050,10 @@
       limit(80)
     );
     onSnapshot(globalsQ, (qs)=>{
-      globalTasks = qs.docs.map(d => ({ id: d.id, ...d.data() }));
-      if ($("globalStatus")) $("globalStatus").innerHTML = getGlobalStatusHtml();
+      globalTasks = qs.docs.map(d => ({ id:d.id, ...d.data() }));
       if (currentUser === "GERENTE") renderManager();
       if (currentUser && currentUser !== "GERENTE") renderEmployee();
+      renderGlobalStatusManager();
     });
 
     // escala week doc
