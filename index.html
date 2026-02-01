@@ -67,7 +67,7 @@
 /* =====================
    CONFIGURAÇÕES
 ===================== */
-const pins = {
+window.pins = {
   GERENTE: "1234",
   Sandra: "1111",
   Thauane: "2222",
@@ -75,6 +75,10 @@ const pins = {
   Claudia: "4444",
   DADA: "5555"
 };
+const pins = window.pins;
+
+window.__BUILD_OK__ = true;
+console.log("BUILD OK - JS carregou");
 
 let faltas = JSON.parse(localStorage.getItem("faltas")) || [];
 let usuarioAtual = "";
