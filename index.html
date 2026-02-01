@@ -74,7 +74,7 @@
 <!-- FUNCIONÁRIO -->
 <section id="funcionario" class="hidden max-w-3xl mx-auto">
 
-  <!-- Escala (viewer + editor pra Claudia/Gerente) -->
+  <!-- ESCALA (visível para todos; edição só Claudia e Gerente) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -110,6 +110,7 @@
     </div>
   </div>
 
+  <!-- CABEÇALHO FUNCIONÁRIO -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
@@ -163,6 +164,7 @@
     </div>
   </div>
 
+  <!-- RANKING MENSAL -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -179,12 +181,11 @@
     </div>
   </div>
 
-  <!-- TEMPLATES GLOBAIS + PUBLICAR -->
+  <!-- TEMPLATES GLOBAIS -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <h3 class="font-semibold mb-2">Tarefas GLOBAIS salvas (Templates)</h3>
     <p class="text-xs text-gray-500 mb-3">
-      Crie templates e depois publique a GLOBAL da semana escolhendo no dropdown.
-      Quem concluir primeiro “trava” e some dos demais.
+      Selecione no dropdown e publique a GLOBAL da semana. Quem concluir primeiro “trava” e some dos demais.
     </p>
 
     <div class="grid md:grid-cols-4 gap-2">
@@ -222,7 +223,33 @@
     </div>
   </div>
 
-  <!-- APAGAR TAREFAS POR FUNCIONÁRIO (SEMANA) -->
+  <!-- ESCALA DO GERENTE (editor) -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-semibold">Escala da Semana</h3>
+        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscalaGer">-</span></p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnToggleEscalaGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+          Minimizar
+        </button>
+        <button id="btnSaveEscalaGer" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
+          Salvar escala
+        </button>
+      </div>
+    </div>
+
+    <p class="text-xs text-gray-500 mt-2">
+      Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
+    </p>
+
+    <div id="escalaGerContent" class="mt-3">
+      <div id="escalaEditorGer" class="space-y-3"></div>
+    </div>
+  </div>
+
+  <!-- APAGAR TAREFAS POR FUNCIONÁRIO -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Apagar tarefas por funcionário (semana)</h3>
     <div class="grid md:grid-cols-3 gap-2">
@@ -242,7 +269,7 @@
 </section>
 
 <script type="module">
-  // ======= SEU FIREBASE CONFIG =======
+  // Firebase config (seu)
   const firebaseConfig = {
     apiKey: "AIzaSyDsWJ9VVMSIsQNtifkLVnRNnbzU7favF7s",
     authDomain: "missoes-drive.firebaseapp.com",
@@ -260,7 +287,7 @@
   import {
     getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc,
     onSnapshot, query, orderBy, limit, serverTimestamp, increment,
-    deleteDoc, getDocs, writeBatch, where, runTransaction
+    getDocs, writeBatch, where, runTransaction, deleteDoc
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
   const app = initializeApp(firebaseConfig);
@@ -269,8 +296,8 @@
   const $ = (id) => document.getElementById(id);
   function toast(msg){ alert(msg); }
   function show(section){
-    ["login","funcionario","gerente"].forEach(s => $(s)?.classList.add("hidden"));
-    $(section)?.classList.remove("hidden");
+    ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
+    $(section).classList.remove("hidden");
     updateTopBar();
   }
   function isValidPin(p){ return /^[0-9]{4}$/.test(String(p || "")); }
@@ -282,12 +309,15 @@
   // ====== State ======
   let scoresDoc = {};
   let tasksDone = [];
+  let missingReports = [];
   let currentUser = "";
   let currentWeekKey = "";
   let employees = [];
   let globalTask = null;
+  let escala = null;
+  let escalaLocalEmployee = null;
+  let escalaLocalGer = null;
 
-  // Templates globais
   let globalTemplates = [];
 
   // ===== Refs =====
@@ -297,6 +327,7 @@
   const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
   const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
+  const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
 
   // ===== Top bar =====
   function monthKey(date){
@@ -387,7 +418,7 @@
     } catch(e){ return null; }
   }
 
-  // ===== Funcionários (config/app.employees) =====
+  // ===== Funcionários =====
   const defaultEmployeesLegacy = ["Sandra","Thauane","Ingrid","Claudia","DADA"];
   const defaultEmployees = defaultEmployeesLegacy.map(n => ({ name: n, active: true }));
 
@@ -405,32 +436,24 @@
 
   async function ensureEmployeesConfig(){
     const snap = await getDoc(cfgAppRef());
-
     if (!snap.exists()){
       await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
       employees = clone(defaultEmployees);
       return;
     }
-
     const raw = snap.data().employees;
-
     if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "string"){
       const migrated = raw.map(n => ({ name: normalizeName(n), active: true })).filter(x=>x.name);
       await setDoc(cfgAppRef(), { employees: migrated, updatedAt: serverTimestamp() }, { merge:true });
       employees = migrated;
       return;
     }
-
     if (!Array.isArray(raw) || raw.length === 0){
       await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
       employees = clone(defaultEmployees);
       return;
     }
-
-    employees = raw
-      .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name);
-
+    employees = raw.map(x => ({ name: normalizeName(x?.name), active: !!x?.active })).filter(x => x.name);
     const seen = new Set();
     employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
   }
@@ -442,11 +465,10 @@
     loginSel.appendChild(new Option("Gerente", "GERENTE"));
     activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
 
-    const namesAll = allNames();
     const delSel = $("delTasksUser");
     delSel.innerHTML = "";
     delSel.appendChild(new Option("Selecione um funcionário...", ""));
-    namesAll.forEach(n => delSel.appendChild(new Option(n, n)));
+    allNames().forEach(n => delSel.appendChild(new Option(n, n)));
   }
 
   // ===== PIN =====
@@ -510,7 +532,6 @@
       const g = snap.data();
       if (g?.exists) throw new Error("Já existe GLOBAL nesta semana.");
     }
-
     await setDoc(ref, {
       exists: true,
       weekKey: currentWeekKey,
@@ -603,7 +624,241 @@
     return (globalTemplates || []).find(t=>t.id === id);
   }
 
-  // ===== Ranking mensal (gerente) =====
+  // ===== ESCALA =====
+  const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+
+  function emptyEscala(){
+    const days = {};
+    for (const d of DAYS) days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
+    return { weekKey: currentWeekKey, days };
+  }
+
+  function canEditEscala(){
+    return currentUser === "GERENTE" || currentUser === "Claudia";
+  }
+
+  function validateEscala(obj){
+    for (const d of DAYS){
+      const day = obj?.days?.[d];
+      if (!day) return `Dia inválido: ${d}`;
+
+      const m1 = normalizeName(day.manha?.[0] || "");
+      const m2 = normalizeName(day.manha?.[1] || "");
+      const t1 = normalizeName(day.tarde?.[0] || "");
+      const t2 = normalizeName(day.tarde?.[1] || "");
+      const f  = normalizeName(day.folga?.[0] || "");
+
+      if (!m1 || !m2) return `${d}: Manhã precisa ter 2 funcionários.`;
+      if (m1 === m2) return `${d}: Manhã não pode repetir.`;
+
+      if (!t1 || !t2) return `${d}: Tarde precisa ter 2 funcionários.`;
+      if (t1 === t2) return `${d}: Tarde não pode repetir.`;
+
+      if (!f) return `${d}: Folga precisa ter 1 funcionário.`;
+
+      const setWork = new Set([m1,m2,t1,t2].filter(Boolean));
+      if (setWork.has(f)) return `${d}: Folga não pode ser alguém que trabalha no mesmo dia.`;
+
+      const setManha = new Set([m1,m2]);
+      if (setManha.has(t1) || setManha.has(t2)) return `${d}: Não é permitido dobrar (mesma pessoa manhã+tarde).`;
+    }
+    return null;
+  }
+
+  async function saveEscala(obj){
+    const err = validateEscala(obj);
+    if (err) return toast(err);
+
+    await setDoc(escalaRef(currentWeekKey), {
+      exists: true,
+      weekKey: currentWeekKey,
+      days: obj.days,
+      updatedAt: serverTimestamp(),
+      updatedAtHuman: nowHuman(),
+      updatedBy: currentUser
+    }, { merge:false });
+
+    toast("Escala salva.");
+  }
+
+  function renderEscalaViewer(){
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+
+    const view = $("escalaViewer");
+    view.innerHTML = "";
+
+    const s = (escala && escala.exists) ? escala : null;
+    if (!s){
+      view.innerHTML = `<div class="text-gray-500">Sem escala cadastrada ainda.</div>`;
+      return;
+    }
+
+    const box = document.createElement("div");
+    box.className = "border rounded p-2 bg-gray-50";
+
+    let html = `<div class="text-xs text-gray-600">Atualizada por <b>${s.updatedBy || "-"}</b> em ${s.updatedAtHuman || "-"}</div>`;
+    html += `<div class="mt-2 space-y-2">`;
+
+    for (const d of DAYS){
+      const day = s.days?.[d] || {};
+      const manha = (day.manha||[]).filter(Boolean).join(" + ") || "-";
+      const tarde = (day.tarde||[]).filter(Boolean).join(" + ") || "-";
+      const folga = (day.folga||[]).filter(Boolean).join(" + ") || "-";
+      html += `
+        <div class="border rounded bg-white p-2">
+          <div class="font-semibold">${d}</div>
+          <div class="text-sm mt-1"><b>Manhã:</b> ${manha}</div>
+          <div class="text-sm"><b>Tarde:</b> ${tarde}</div>
+          <div class="text-sm"><b>Folga:</b> ${folga}</div>
+        </div>
+      `;
+    }
+    html += `</div>`;
+    box.innerHTML = html;
+    view.appendChild(box);
+  }
+
+  function buildSelect(options, value){
+    const sel = document.createElement("select");
+    sel.className = "border p-2 rounded w-full";
+    sel.appendChild(new Option("Selecione...", ""));
+    options.forEach(n => sel.appendChild(new Option(n, n)));
+    sel.value = value || "";
+    return sel;
+  }
+
+  function setSelectOptions(selectEl, options, keepValue){
+    const current = keepValue || "";
+    selectEl.innerHTML = "";
+    selectEl.appendChild(new Option("Selecione...", ""));
+    options.forEach(n => selectEl.appendChild(new Option(n, n)));
+    if (current && options.includes(current)) selectEl.value = current;
+    else selectEl.value = "";
+  }
+
+  function renderEscalaEditor(containerId){
+    const container = $(containerId);
+    container.innerHTML = "";
+
+    const names = activeNames();
+    const base = (escala && escala.exists) ? escala : emptyEscala();
+    const local = clone(base);
+
+    for (const d of DAYS){
+      const day = local.days[d];
+
+      const row = document.createElement("div");
+      row.className = "border rounded p-3 bg-gray-50";
+
+      const title = document.createElement("div");
+      title.className = "font-semibold mb-2";
+      title.innerText = d;
+
+      const grid = document.createElement("div");
+      grid.className = "grid md:grid-cols-3 gap-2";
+
+      const mWrap = document.createElement("div");
+      mWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Manhã (2)</div>`;
+      const m1 = buildSelect(names, day.manha[0]);
+      const m2 = buildSelect(names, day.manha[1]);
+      mWrap.appendChild(m1);
+      mWrap.appendChild(document.createElement("div")).className = "h-2";
+      mWrap.appendChild(m2);
+
+      const tWrap = document.createElement("div");
+      tWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Tarde (2)</div>`;
+      const t1 = buildSelect(names, day.tarde[0]);
+      const t2 = buildSelect(names, day.tarde[1]);
+      tWrap.appendChild(t1);
+      tWrap.appendChild(document.createElement("div")).className = "h-2";
+      tWrap.appendChild(t2);
+
+      const fWrap = document.createElement("div");
+      fWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Folga (1)</div>`;
+      const f1 = buildSelect(names, day.folga[0]);
+      fWrap.appendChild(f1);
+
+      grid.appendChild(mWrap);
+      grid.appendChild(tWrap);
+      grid.appendChild(fWrap);
+
+      row.appendChild(title);
+      row.appendChild(grid);
+      container.appendChild(row);
+
+      const getPicked = () => {
+        const picked = new Set();
+        [m1.value, m2.value, t1.value, t2.value, f1.value].forEach(v=>{
+          const vv = normalizeName(v || "");
+          if (vv) picked.add(vv);
+        });
+        return picked;
+      };
+
+      const availableFor = (selfValue) => {
+        const picked = getPicked();
+        const me = normalizeName(selfValue || "");
+        if (me) picked.delete(me);
+        return names.filter(n => !picked.has(n));
+      };
+
+      const sync = () => {
+        day.manha[0] = normalizeName(m1.value);
+        day.manha[1] = normalizeName(m2.value);
+        day.tarde[0] = normalizeName(t1.value);
+        day.tarde[1] = normalizeName(t2.value);
+        day.folga[0] = normalizeName(f1.value);
+
+        setSelectOptions(m1, availableFor(m1.value), m1.value);
+        setSelectOptions(m2, availableFor(m2.value), m2.value);
+        setSelectOptions(t1, availableFor(t1.value), t1.value);
+        setSelectOptions(t2, availableFor(t2.value), t2.value);
+        setSelectOptions(f1, availableFor(f1.value), f1.value);
+
+        day.manha[0] = normalizeName(m1.value);
+        day.manha[1] = normalizeName(m2.value);
+        day.tarde[0] = normalizeName(t1.value);
+        day.tarde[1] = normalizeName(t2.value);
+        day.folga[0] = normalizeName(f1.value);
+      };
+
+      const jumpTo = (nextSel) => setTimeout(() => nextSel?.focus?.(), 0);
+
+      m1.addEventListener("change", ()=>{ sync(); jumpTo(m2); });
+      m2.addEventListener("change", ()=>{ sync(); jumpTo(t1); });
+      t1.addEventListener("change", ()=>{ sync(); jumpTo(t2); });
+      t2.addEventListener("change", ()=>{ sync(); jumpTo(f1); });
+      f1.addEventListener("change", ()=>{ sync(); });
+
+      sync();
+    }
+
+    return local;
+  }
+
+  function setupEscalaUI(){
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+
+    const can = canEditEscala();
+    $("escalaPermLabel").innerText = can ? "Você pode editar" : "Somente leitura";
+
+    const editorWrap = $("escalaEditorWrap");
+    if (can){
+      editorWrap.classList.remove("hidden");
+      escalaLocalEmployee = renderEscalaEditor("escalaEditor");
+      $("btnSaveEscala").onclick = async ()=>{
+        if (!escalaLocalEmployee) escalaLocalEmployee = renderEscalaEditor("escalaEditor");
+        await saveEscala(escalaLocalEmployee);
+      };
+    } else {
+      editorWrap.classList.add("hidden");
+      escalaLocalEmployee = null;
+    }
+  }
+
+  // ===== Ranking =====
   function renderRanking(){
     const mk = monthKey(new Date());
     $("monthKeyLabelGer").innerText = mk;
@@ -646,7 +901,7 @@
     });
   }
 
-  // ===== Render funcionário (GLOBAL) =====
+  // ===== Render funcionário (com GLOBAL) =====
   function renderEmployee(){
     if (!isEmployeeActive(currentUser)){
       clearSession();
@@ -735,25 +990,26 @@
     }
   }
 
-  // ===== Render gerente =====
   function renderManager(){
     $("weekKeyLabelGer").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
     $("globalStatus").innerText = getGlobalStatusText();
     renderRanking();
   }
 
-  // ===== Collapses =====
+  // ===== Collapse helpers =====
   function setupCollapse(btnId, contentId){
     const btn = $(btnId);
     const content = $(contentId);
     if (!btn || !content) return;
-
     btn.addEventListener("click", ()=>{
       const hidden = content.classList.toggle("hidden");
       btn.innerText = hidden ? "Expandir" : "Minimizar";
     });
   }
   setupCollapse("btnToggleRanking", "rankingContent");
+  setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
+  setupCollapse("btnToggleEscalaGer", "escalaGerContent");
 
   // ===== Missing =====
   $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
@@ -797,13 +1053,8 @@
     const tpl = findTemplateById(id);
     if (!tpl) return toast("Template não encontrado.");
     if (!confirm(`Excluir template "${tpl.name}"?`)) return;
-    try{
-      await deleteGlobalTemplateById(id);
-      toast("Template excluído.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao excluir template.");
-    }
+    await deleteGlobalTemplateById(id);
+    toast("Template excluído.");
   });
 
   $("btnPublishGlobalFromTpl").addEventListener("click", async ()=>{
@@ -836,7 +1087,7 @@
     box.innerHTML = "";
 
     const list = tasksDone
-      .filter(t=>t.user === user)
+      .filter(t=>t.user === user && t.weekKey === currentWeekKey)
       .slice()
       .sort((a,b)=>(String(b.when||"").localeCompare(String(a.when||""))));
 
@@ -876,38 +1127,33 @@
     if (!checks.length) return toast("Marque pelo menos 1 tarefa.");
     if (!confirm(`Apagar ${checks.length} tarefa(s) de ${u}?`)) return;
 
-    try{
-      let batch = writeBatch(db);
-      let count = 0;
-      for (const c of checks){
-        const id = c.dataset.id;
-        if (!id) continue;
-        const ref = doc(db,"stores",STORE_ID,"tasks",id);
-        batch.delete(ref);
-        count++;
-        if (count % 450 === 0){
-          await batch.commit();
-          batch = writeBatch(db);
-        }
+    let batch = writeBatch(db);
+    let count = 0;
+    for (const c of checks){
+      const id = c.dataset.id;
+      if (!id) continue;
+      batch.delete(doc(db,"stores",STORE_ID,"tasks",id));
+      count++;
+      if (count % 450 === 0){
+        await batch.commit();
+        batch = writeBatch(db);
       }
-      await batch.commit();
-      toast("Tarefas apagadas.");
-      renderUserTasksForDelete(u);
-    } catch(e){
-      console.error(e);
-      toast("Erro ao apagar tarefas.");
     }
+    await batch.commit();
+    toast("Tarefas apagadas.");
+    renderUserTasksForDelete(u);
   });
 
   // ===== Export CSV =====
   $("btnExport").addEventListener("click", ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente exporta.");
-
     const header = ["tipo","usuario","categoria","quando","detalhes"];
     let csv = header.join(",") + "\n";
-
-    tasksDone.forEach((r)=>{
+    tasksDone.filter(x=>x.weekKey===currentWeekKey).forEach((r)=>{
       csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {})].map(csvCell).join(",") + "\n";
+    });
+    missingReports.filter(x=>x.weekKey===currentWeekKey).forEach((r)=>{
+      csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item })].map(csvCell).join(",") + "\n";
     });
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -923,6 +1169,38 @@
     const s = String(v == null ? "" : v);
     if (/[\n\r,"]/g.test(s)) return '"' + s.replaceAll('"', '""') + '"';
     return s;
+  }
+
+  // ===== Reset semana =====
+  $("btnResetWeek").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
+
+    await deleteByWeek("tasks", currentWeekKey);
+    await deleteByWeek("missing", currentWeekKey);
+    try{ await deleteDoc(globalRef(currentWeekKey)); }catch(e){}
+    try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
+    toast("Semana zerada.");
+  });
+
+  async function deleteByWeek(colName, wk){
+    const colRef = collection(db, "stores", STORE_ID, colName);
+    const q = query(colRef, where("weekKey","==",wk), limit(450));
+    const snap = await getDocs(q);
+    if (snap.empty) return;
+
+    let batch = writeBatch(db);
+    let count = 0;
+    for (const d of snap.docs){
+      batch.delete(d.ref);
+      count++;
+      if (count % 450 === 0){
+        await batch.commit();
+        batch = writeBatch(db);
+      }
+    }
+    await batch.commit();
+    if (snap.docs.length === 450) await deleteByWeek(colName, wk);
   }
 
   // ===== Login / Logout =====
@@ -956,13 +1234,20 @@
     saveSession(u);
 
     if (u === "GERENTE"){
+      // editor escala gerente
+      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      $("btnSaveEscalaGer").onclick = async ()=>{
+        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+        await saveEscala(escalaLocalGer);
+      };
       renderManager();
       show("gerente");
     } else {
       renderEmployee();
+      setupEscalaUI();
+      renderEscalaViewer();
       show("funcionario");
     }
-
     updateTopBar();
   }
 
@@ -975,58 +1260,69 @@
   // ===== Cloud init =====
   async function cloudInit(){
     await ensureWeekKey();
+    $("weekKeyLabel").innerText = currentWeekKey;
+    $("weekKeyLabelGer").innerText = currentWeekKey;
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+
     await ensureEmployeesConfig();
     renderEmployeesUI();
 
     await ensureScoresDoc();
-
     await ensureGlobalTemplatesDoc();
     renderGlobalTplDropdown();
 
+    // templates realtime
     onSnapshot(cfgGlobalTplRef(), (snap)=>{
       const raw = snap.exists() ? snap.data().templates : [];
       globalTemplates = Array.isArray(raw) ? raw : [];
       renderGlobalTplDropdown();
     });
 
+    // employees realtime
     onSnapshot(cfgAppRef(), (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
       employees = (Array.isArray(raw) ? raw : [])
         .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
         .filter(x => x.name);
-
       renderEmployeesUI();
 
-      if (currentUser && currentUser !== "GERENTE" && !isEmployeeActive(currentUser)){
-        clearSession();
-        currentUser = "";
-        toast("Usuário bloqueado. Faça login novamente.");
-        show("login");
+      // atualiza editores de escala quando muda lista
+      if (currentUser === "GERENTE"){
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      } else if (currentUser){
+        setupEscalaUI();
       }
-
       renderRanking();
       updateTopBar();
     });
 
+    // scores realtime
     onSnapshot(scoresRef(), (snap)=>{
       scoresDoc = snap.data() || {};
       if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
       if (currentUser && currentUser !== "GERENTE"){
-        const pts = getMonthPoints(currentUser);
-        $("monthPointsInline").innerText = pts;
-        $("monthPointsTop").innerText = pts;
+        $("monthPointsInline").innerText = getMonthPoints(currentUser);
+        $("monthPointsTop").innerText = getMonthPoints(currentUser);
       }
       renderRanking();
       updateTopBar();
     });
 
+    // tasks realtime (para apagar por funcionário)
     const tasksQ = query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(900));
     onSnapshot(tasksQ, (qs)=>{
-      const all = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-      tasksDone = all.filter(x=>x.weekKey === currentWeekKey);
+      tasksDone = qs.docs.map(d => ({ id:d.id, ...d.data() }));
     });
 
+    // missing realtime (para CSV)
+    const missQ = query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(900));
+    onSnapshot(missQ, (qs)=>{
+      missingReports = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+    });
+
+    // global week realtime
     onSnapshot(globalRef(currentWeekKey), (snap)=>{
       globalTask = snap.exists() ? { id: snap.id, ...snap.data() } : null;
       if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
@@ -1034,7 +1330,19 @@
       if (currentUser === "GERENTE") renderManager();
     });
 
+    // escala week realtime
+    onSnapshot(escalaRef(currentWeekKey), (snap)=>{
+      escala = snap.exists() ? { id:snap.id, ...snap.data() } : null;
+      renderEscalaViewer();
+      if (currentUser === "GERENTE"){
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      } else if (currentUser){
+        setupEscalaUI();
+      }
+    });
+
     renderRanking();
+    renderEscalaViewer();
     updateTopBar();
   }
 
@@ -1044,6 +1352,11 @@
   if (ses && ses.user){
     currentUser = ses.user;
     if (currentUser === "GERENTE"){
+      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      $("btnSaveEscalaGer").onclick = async ()=>{
+        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+        await saveEscala(escalaLocalGer);
+      };
       renderManager();
       show("gerente");
     } else {
@@ -1053,6 +1366,8 @@
         show("login");
       } else {
         renderEmployee();
+        setupEscalaUI();
+        renderEscalaViewer();
         show("funcionario");
       }
     }
@@ -1061,7 +1376,6 @@
   }
 
   updateTopBar();
-
   console.log("BUILD OK");
   window.__BUILD_OK__ = true;
 </script>
