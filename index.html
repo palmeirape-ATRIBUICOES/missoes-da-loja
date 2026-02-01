@@ -12,7 +12,7 @@
 <header class="max-w-3xl mx-auto mb-4">
   <h1 class="text-2xl font-bold text-center">Missoes da Loja</h1>
   <p class="text-center text-sm text-gray-600 mt-1">
-    PIN (criado pelo usuário) • Checklist • Falta de produto • Gerente em tempo real
+    PIN (criado pelo usuário) • Checklist • Falta • Gerente em tempo real • Global • Escala
   </p>
 </header>
 
@@ -61,6 +61,38 @@
 
 <!-- FUNCIONÁRIO -->
 <section id="funcionario" class="hidden max-w-3xl mx-auto">
+
+  <!-- Escala (visível para todos; editor só Claudia) -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h2 class="text-lg font-semibold">Escala da Semana</h2>
+        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscala">-</span></p>
+      </div>
+      <div class="text-xs text-gray-500">
+        <span id="escalaPermLabel">Somente leitura</span>
+      </div>
+    </div>
+
+    <!-- Viewer -->
+    <div id="escalaViewer" class="mt-3 text-sm space-y-2"></div>
+
+    <!-- Editor (só Claudia e Gerente) -->
+    <div id="escalaEditorWrap" class="hidden mt-4 border-t pt-4">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold text-sm">Editar escala</div>
+        <button id="btnSaveEscala" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
+          Salvar escala
+        </button>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">
+        Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
+      </p>
+      <div id="escalaEditor" class="mt-3 space-y-3"></div>
+    </div>
+  </div>
+
+  <!-- topo usuário -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
@@ -89,6 +121,7 @@
     </div>
   </div>
 
+  <!-- Tarefas (inclui GLOBAL + pessoais) -->
   <div id="tasks" class="space-y-4"></div>
 </section>
 
@@ -113,10 +146,49 @@
       </div>
     </div>
     <p class="text-xs text-gray-500 mt-2">
-      “Zerar semana” apaga tarefas e faltas da semana atual e zera pontuações.
+      Agora você também pode apagar tarefas por funcionário (abaixo).
     </p>
   </div>
 
+  <!-- GLOBAL (criar tarefa para todos) -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <h3 class="font-semibold mb-2">Criar categoria GLOBAL (para todos)</h3>
+    <p class="text-xs text-gray-500 mb-3">
+      Ela aparece para todos os usuários ativos. Quem concluir primeiro, “trava” e some dos demais.
+    </p>
+
+    <div class="grid md:grid-cols-4 gap-2">
+      <input id="globalCatName" class="border p-2 rounded md:col-span-2" placeholder="Nome (ex: Conferir geladeira)" />
+      <input id="globalCatItems" class="border p-2 rounded md:col-span-2" placeholder="Itens separados por vírgula (ex: Coca, Guaraná...)" />
+    </div>
+    <button id="btnCreateGlobal" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded w-full">
+      Criar GLOBAL
+    </button>
+
+    <div class="mt-3 border-t pt-3">
+      <div class="text-sm font-semibold mb-2">GLOBAL pendente nesta semana</div>
+      <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
+    </div>
+  </div>
+
+  <!-- Escala (gerente pode editar também) -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-semibold">Escala da Semana</h3>
+        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscalaGer">-</span></p>
+      </div>
+      <button id="btnSaveEscalaGer" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
+        Salvar escala
+      </button>
+    </div>
+    <p class="text-xs text-gray-500 mt-2">
+      Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
+    </p>
+    <div id="escalaEditorGer" class="mt-3 space-y-3"></div>
+  </div>
+
+  <!-- tarefas e faltas -->
   <div class="grid md:grid-cols-2 gap-4">
     <div class="bg-white p-4 rounded-xl shadow">
       <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
@@ -127,6 +199,24 @@
       <h3 class="font-semibold mb-2">Itens em falta</h3>
       <div id="gerMissing" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
     </div>
+  </div>
+
+  <!-- apagar tarefas por funcionário -->
+  <div class="bg-white p-4 rounded-xl shadow mt-4">
+    <h3 class="font-semibold mb-2">Apagar tarefas por funcionário (semana)</h3>
+    <div class="grid md:grid-cols-3 gap-2">
+      <select id="delTasksUser" class="border p-2 rounded"></select>
+      <button id="btnLoadUserTasks" class="bg-gray-900 hover:bg-black text-white p-2 rounded">
+        Carregar tarefas
+      </button>
+      <button id="btnDeleteSelectedTasks" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded">
+        Apagar selecionadas
+      </button>
+    </div>
+    <p class="text-xs text-gray-500 mt-2">
+      Marque as tarefas e apague. Isso não mexe na pontuação automaticamente (se quiser, eu adiciono depois).
+    </p>
+    <div id="userTasksList" class="mt-3 space-y-2"></div>
   </div>
 
   <!-- FUNCIONÁRIOS -->
@@ -147,26 +237,11 @@
     </div>
 
     <div id="employeeTable" class="mt-3 space-y-2"></div>
-
-    <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold mb-2">Excluir funcionário</div>
-      <div class="grid md:grid-cols-3 gap-2">
-        <select id="delEmployeeSelect" class="border p-2 rounded">
-          <option value="">Carregando...</option>
-        </select>
-        <button id="btnDeleteEmployee" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded md:col-span-2">
-          Excluir funcionário selecionado (remove do sistema)
-        </button>
-      </div>
-      <p class="text-xs text-gray-500 mt-2">
-        Excluir remove: da lista, categorias dele e PIN dele. (Tarefas/faltas antigas não são apagadas.)
-      </p>
-    </div>
   </div>
 
   <!-- CATEGORIAS: ADD/UPDATE -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
-    <h3 class="font-semibold mb-2">Adicionar / Atualizar categoria</h3>
+    <h3 class="font-semibold mb-2">Adicionar / Atualizar categoria (individual)</h3>
     <div class="grid md:grid-cols-4 gap-2">
       <select id="addUser" class="border p-2 rounded"></select>
       <input id="categoriaNome" placeholder="Nome da categoria" class="border p-2 rounded" />
@@ -180,9 +255,9 @@
     </p>
   </div>
 
-  <!-- CATEGORIAS: EDITAR / RENOMEAR / EXCLUIR -->
+  <!-- CATEGORIAS: EDITAR / EXCLUIR -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
-    <h3 class="font-semibold mb-2">Editar / Renomear / Excluir categoria</h3>
+    <h3 class="font-semibold mb-2">Editar / Renomear / Excluir categoria (individual)</h3>
 
     <div class="grid md:grid-cols-4 gap-2">
       <select id="editUser" class="border p-2 rounded"></select>
@@ -247,7 +322,7 @@
   import {
     getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc,
     onSnapshot, query, orderBy, limit, serverTimestamp, increment,
-    deleteDoc, getDocs, writeBatch, where
+    deleteDoc, getDocs, writeBatch, where, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
   import {
     getStorage, ref as sref, uploadBytes, getDownloadURL
@@ -277,6 +352,8 @@
   let currentUser = "";
   let currentWeekKey = "";
   let employees = []; // [{name, active}]
+  let globalTask = null; // {id, ...}
+  let escala = null; // {weekKey, days:{...}}
 
   // Refs
   const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
@@ -284,6 +361,8 @@
   const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
   const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
+  const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
+  const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
 
   // SHA-256
   async function sha256(str){
@@ -335,7 +414,7 @@
     } catch(e){ return null; }
   }
 
-  // ===== Funcionários (active/inactive) =====
+  // ===== Funcionários =====
   const defaultEmployeesLegacy = ["Sandra","Thauane","Ingrid","Claudia","DADA"];
   const defaultEmployees = defaultEmployeesLegacy.map(n => ({ name: n, active: true }));
 
@@ -344,7 +423,6 @@
     const e = employees.find(x => x.name === n);
     return !!(e && e.active);
   }
-
   function activeNames(){
     return employees.filter(e=>e.active).map(e=>e.name).sort((a,b)=>a.localeCompare(b));
   }
@@ -363,7 +441,6 @@
 
     const raw = snap.data().employees;
 
-    // Migração: array de string -> array de {name, active}
     if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "string"){
       const migrated = raw.map(n => ({ name: normalizeName(n), active: true })).filter(x=>x.name);
       await setDoc(cfgAppRef(), { employees: migrated, updatedAt: serverTimestamp() }, { merge:true });
@@ -381,7 +458,6 @@
       .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
       .filter(x => x.name);
 
-    // dedup
     const seen = new Set();
     employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
   }
@@ -394,7 +470,6 @@
     const seen = new Set();
     const unique = cleaned.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
     unique.sort((a,b)=>a.name.localeCompare(b.name));
-
     await setDoc(cfgAppRef(), { employees: unique, updatedAt: serverTimestamp() }, { merge:true });
   }
 
@@ -409,9 +484,7 @@
 
     const newCats = clone(data || {});
     if (!newCats[name]) newCats[name] = {};
-    // *** overwrite forte do doc de categories ***
     await setDoc(cfgCatsRef(), { data: newCats, updatedAt: serverTimestamp() }, { merge:false });
-
     toast("Funcionário adicionado (ativo).");
   }
 
@@ -421,34 +494,13 @@
     await setEmployees(next);
   }
 
-  async function deleteEmployeeHard(name){
-    name = normalizeName(name);
-    if (!name) return toast("Selecione um funcionário.");
-    if (name.toUpperCase() === "GERENTE") return toast("Não é permitido remover o gerente.");
-
-    const ok = confirm(
-      `Excluir o funcionário "${name}"?\n` +
-      `Isso remove da lista, apaga categorias dele e o PIN dele.\n` +
-      `(Tarefas e faltas antigas NÃO serão apagadas.)`
-    );
-    if (!ok) return;
-
-    const next = employees.filter(e => e.name !== name);
-    await setEmployees(next);
-
-    const newCats = clone(data || {});
-    if (newCats[name]) delete newCats[name];
-    // *** overwrite forte do doc de categories ***
-    await setDoc(cfgCatsRef(), { data: newCats, updatedAt: serverTimestamp() }, { merge:false });
-
-    try{ await deleteDoc(userRef(name)); }catch(e){}
-    toast("Funcionário excluído.");
-  }
-
-  function fillSelect(selectEl, values, includeManager=false){
+  function fillSelect(selectEl, values, includeManager=false, placeholder=null){
     if (!selectEl) return;
     const prev = selectEl.value;
     selectEl.innerHTML = "";
+    if (placeholder !== null){
+      selectEl.appendChild(new Option(placeholder, ""));
+    }
     if (includeManager){
       selectEl.appendChild(new Option("GERENTE", "GERENTE"));
     }
@@ -457,7 +509,6 @@
   }
 
   function renderEmployeesUI(){
-    // LOGIN: gerente + apenas ativos
     const loginSel = $("userSelect");
     loginSel.innerHTML = "";
     loginSel.appendChild(new Option("Selecione", ""));
@@ -465,71 +516,51 @@
     activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
 
     const namesAll = allNames();
+    fillSelect($("addUser"), namesAll, false, null);
+    fillSelect($("editUser"), namesAll, false, null);
+    fillSelect($("pinUser"), namesAll, true, null);
 
-    // gerente pode editar categoria/pin de bloqueados também
-    fillSelect($("addUser"), namesAll);
-    fillSelect($("editUser"), namesAll);
-    fillSelect($("pinUser"), namesAll, true);
-
-    // delete select: todos
-    const delSel = $("delEmployeeSelect");
-    delSel.innerHTML = "";
-    delSel.appendChild(new Option("Selecione um funcionário...", ""));
-    namesAll.forEach(n => delSel.appendChild(new Option(n, n)));
+    // apagar tarefas: só funcionários (não gerente)
+    fillSelect($("delTasksUser"), namesAll.filter(n=>n.toUpperCase()!=="GERENTE"), false, "Selecione um funcionário...");
 
     // tabela
     const wrap = $("employeeTable");
+    if (!wrap) return;
     wrap.innerHTML = "";
-    if (!employees.length){
-      wrap.innerHTML = "<div class='text-sm text-gray-500'>Nenhum funcionário cadastrado.</div>";
-      return;
-    }
-
-    employees
-      .slice()
-      .sort((a,b)=>a.name.localeCompare(b.name))
-      .forEach((e)=>{
-        const row = document.createElement("div");
-        row.className = "flex items-center justify-between gap-2 border rounded p-2 bg-gray-50";
-
-        const badge = e.active
-          ? "<span class='text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-800'>ATIVO</span>"
-          : "<span class='text-xs px-2 py-1 rounded bg-red-100 text-red-800'>BLOQUEADO</span>";
-
-        row.innerHTML = `
-          <div class="flex items-center gap-2">
-            <div class="font-semibold text-sm">${e.name}</div>
-            ${badge}
-          </div>
-          <div class="flex gap-2">
-            <button class="btnToggle px-3 py-1 rounded text-xs ${e.active ? "bg-red-600 hover:bg-red-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}"
-              data-name="${encodeURIComponent(e.name)}" data-active="${e.active ? "1" : "0"}">
-              ${e.active ? "Bloquear" : "Ativar"}
-            </button>
-          </div>
-        `;
-        wrap.appendChild(row);
-      });
+    employees.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach((e)=>{
+      const row = document.createElement("div");
+      row.className = "flex items-center justify-between gap-2 border rounded p-2 bg-gray-50";
+      const badge = e.active
+        ? "<span class='text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-800'>ATIVO</span>"
+        : "<span class='text-xs px-2 py-1 rounded bg-red-100 text-red-800'>BLOQUEADO</span>";
+      row.innerHTML = `
+        <div class="flex items-center gap-2">
+          <div class="font-semibold text-sm">${e.name}</div>
+          ${badge}
+        </div>
+        <div class="flex gap-2">
+          <button class="btnToggle px-3 py-1 rounded text-xs ${e.active ? "bg-red-600 hover:bg-red-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}"
+            data-name="${encodeURIComponent(e.name)}" data-active="${e.active ? "1" : "0"}">
+            ${e.active ? "Bloquear" : "Ativar"}
+          </button>
+        </div>
+      `;
+      wrap.appendChild(row);
+    });
 
     wrap.querySelectorAll(".btnToggle").forEach(btn=>{
       btn.addEventListener("click", async ()=>{
         const name = decodeURIComponent(btn.getAttribute("data-name") || "");
         const isActive = btn.getAttribute("data-active") === "1";
         const action = isActive ? "bloquear" : "ativar";
-        const ok = confirm(`Deseja ${action} "${name}"?`);
-        if (!ok) return;
-        try{
-          await toggleEmployee(name, !isActive);
-          toast(`Funcionário ${action}do.`);
-        }catch(e){
-          console.error(e);
-          toast("Erro ao atualizar status.");
-        }
+        if (!confirm(`Deseja ${action} "${name}"?`)) return;
+        await toggleEmployee(name, !isActive);
+        toast(`Funcionário ${action}do.`);
       });
     });
   }
 
-  // ===== Categorias padrão (fallback) =====
+  // ===== Categorias base =====
   const defaultData = {
     Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
     Thauane: {
@@ -552,7 +583,10 @@
       ],
       "Armarios (Fotos obrigatorias)": []
     },
-    Claudia: { "Sadia (Segunda)": ["Mortadela comum","Mortadela defumada","Presunto","Calabresa","Salsicha","Hamburguer"], "Queijos": ["Queijo prato","Queijo mussarela","Queijo minas","Minas padrao"] },
+    Claudia: {
+      "Sadia (Segunda)": ["Mortadela comum","Mortadela defumada","Presunto","Calabresa","Salsicha","Hamburguer"],
+      "Queijos": ["Queijo prato","Queijo mussarela","Queijo minas","Minas padrao"]
+    },
     DADA: { "Mineirinho (Terca)": ["Mineirinho 2L","Mineirinho 350ml"] }
   };
 
@@ -571,7 +605,6 @@
 
   async function verifyUserPin(user, pin){
     const snap = await getDoc(userRef(user));
-
     if (!snap.exists()){
       if (user === "GERENTE" && pin === MASTER_MANAGER_PIN){
         await ensureUserPin(user, pin);
@@ -579,7 +612,6 @@
       }
       return { ok:false, noUser:true };
     }
-
     const pinHash = snap.data().pinHash || "";
     return { ok: (await sha256(pin)) === pinHash, noUser:false };
   }
@@ -589,7 +621,6 @@
     const urls = [];
     const ts = Date.now();
     let idx = 0;
-
     for (const f of files){
       idx++;
       const safeName = String(f.name || ("foto_"+idx)).replace(/[^\w.\-]+/g, "_");
@@ -605,20 +636,273 @@
     return tasksDone.some(t => t.user === user && t.categoria === cat && t.weekKey === currentWeekKey);
   }
 
-  // ===== Init Firestore =====
+  // ===== GLOBAL (para todos) =====
+  function getGlobalStatusText(){
+    if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL criada nesta semana.";
+    if (globalTask.status === "completed") return `GLOBAL concluída por ${globalTask.completedBy} em ${globalTask.completedAtHuman || ""}`;
+    if (globalTask.status === "open") return `GLOBAL pendente: ${globalTask.name || "(sem nome)"} (aguardando conclusão)`;
+    return "GLOBAL: estado desconhecido.";
+  }
+
+  async function createGlobalTask(name, itemsArr){
+    const ref = globalRef(currentWeekKey);
+    // sobrescreve a global da semana (se quiser impedir, me fala)
+    await setDoc(ref, {
+      exists: true,
+      weekKey: currentWeekKey,
+      status: "open",
+      name,
+      items: itemsArr,
+      createdAt: serverTimestamp(),
+      createdAtHuman: nowHuman()
+    }, { merge:false });
+  }
+
+  async function completeGlobalTaskAsFirst(user, itensQtd, photos){
+    const ref = globalRef(currentWeekKey);
+
+    // trava: só o primeiro consegue mudar de open -> completed
+    await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(ref);
+      if (!snap.exists()) throw new Error("GLOBAL não existe.");
+      const g = snap.data();
+      if (!g.exists || g.status !== "open") throw new Error("GLOBAL já foi concluída.");
+      tx.update(ref, {
+        status: "completed",
+        completedBy: user,
+        completedAt: serverTimestamp(),
+        completedAtHuman: nowHuman()
+      });
+    });
+
+    // registra como tarefa comum (para o gerente ver detalhes)
+    await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
+      user,
+      categoria: "[GLOBAL] " + (globalTask?.name || "GLOBAL"),
+      itens: itensQtd || {},
+      photos: photos || [],
+      when: nowHuman(),
+      weekKey: currentWeekKey,
+      createdAt: serverTimestamp()
+    });
+
+    await bumpScore(user, 10);
+  }
+
+  // ===== ESCALA =====
+  const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+
+  function emptyEscala(){
+    const days = {};
+    for (const d of DAYS){
+      days[d] = {
+        manha: ["",""],
+        tarde: ["",""],
+        folga: [""]
+      };
+    }
+    return { weekKey: currentWeekKey, days };
+  }
+
+  function canEditEscala(){
+    return currentUser === "GERENTE" || currentUser === "Claudia";
+  }
+
+  function validateEscala(obj){
+    // Regras:
+    // - manhã e tarde: 2 pessoas e não podem ser iguais
+    // - folga: 1 pessoa
+    // - ninguém dobra: não pode aparecer em manhã e tarde no mesmo dia
+    // - folga não pode estar em manhã/tarde no mesmo dia
+    for (const d of DAYS){
+      const day = obj?.days?.[d];
+      if (!day) return `Dia inválido: ${d}`;
+
+      const m1 = normalizeName(day.manha?.[0] || "");
+      const m2 = normalizeName(day.manha?.[1] || "");
+      const t1 = normalizeName(day.tarde?.[0] || "");
+      const t2 = normalizeName(day.tarde?.[1] || "");
+      const f  = normalizeName(day.folga?.[0] || "");
+
+      if (!m1 || !m2) return `${d}: Manhã precisa ter 2 funcionários.`;
+      if (m1 === m2) return `${d}: Manhã não pode repetir o mesmo funcionário.`;
+
+      if (!t1 || !t2) return `${d}: Tarde precisa ter 2 funcionários.`;
+      if (t1 === t2) return `${d}: Tarde não pode repetir o mesmo funcionário.`;
+
+      if (!f) return `${d}: Folga precisa ter 1 funcionário.`;
+
+      const setWork = new Set([m1,m2,t1,t2].filter(Boolean));
+      if (setWork.has(f)) return `${d}: Folga não pode ser alguém que trabalha no mesmo dia.`;
+
+      // dobrar
+      const setManha = new Set([m1,m2]);
+      if (setManha.has(t1) || setManha.has(t2)) return `${d}: Não é permitido dobrar (mesma pessoa manhã+tarde).`;
+    }
+    return null;
+  }
+
+  async function saveEscala(obj){
+    const err = validateEscala(obj);
+    if (err) return toast(err);
+
+    await setDoc(escalaRef(currentWeekKey), {
+      exists: true,
+      weekKey: currentWeekKey,
+      days: obj.days,
+      updatedAt: serverTimestamp(),
+      updatedAtHuman: nowHuman(),
+      updatedBy: currentUser
+    }, { merge:false });
+
+    toast("Escala salva.");
+  }
+
+  function renderEscalaViewer(){
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    const view = $("escalaViewer");
+    view.innerHTML = "";
+
+    const s = escala && escala.exists ? escala : null;
+    if (!s){
+      view.innerHTML = `<div class="text-gray-500">Sem escala cadastrada ainda.</div>`;
+      return;
+    }
+
+    const box = document.createElement("div");
+    box.className = "border rounded p-2 bg-gray-50";
+
+    let html = `<div class="text-xs text-gray-600">Atualizada por <b>${s.updatedBy || "-"}</b> em ${s.updatedAtHuman || "-"}</div>`;
+    html += `<div class="mt-2 space-y-2">`;
+
+    for (const d of DAYS){
+      const day = s.days?.[d] || {};
+      const manha = (day.manha||[]).filter(Boolean).join(" + ") || "-";
+      const tarde = (day.tarde||[]).filter(Boolean).join(" + ") || "-";
+      const folga = (day.folga||[]).filter(Boolean).join(" + ") || "-";
+      html += `
+        <div class="border rounded bg-white p-2">
+          <div class="font-semibold">${d}</div>
+          <div class="text-sm mt-1"><b>Manhã:</b> ${manha}</div>
+          <div class="text-sm"><b>Tarde:</b> ${tarde}</div>
+          <div class="text-sm"><b>Folga:</b> ${folga}</div>
+        </div>
+      `;
+    }
+
+    html += `</div>`;
+    box.innerHTML = html;
+    view.appendChild(box);
+  }
+
+  function buildSelect(options, value){
+    const sel = document.createElement("select");
+    sel.className = "border p-2 rounded w-full";
+    sel.appendChild(new Option("Selecione...", ""));
+    options.forEach(n => sel.appendChild(new Option(n, n)));
+    sel.value = value || "";
+    return sel;
+  }
+
+  function renderEscalaEditor(containerId, onSaveBtnId=null){
+    const container = $(containerId);
+    if (!container) return;
+
+    container.innerHTML = "";
+    const names = activeNames(); // só ativos para escalar
+
+    const base = (escala && escala.exists) ? escala : emptyEscala();
+    const local = clone(base);
+
+    for (const d of DAYS){
+      const day = local.days[d];
+
+      const row = document.createElement("div");
+      row.className = "border rounded p-3 bg-gray-50";
+
+      const title = document.createElement("div");
+      title.className = "font-semibold mb-2";
+      title.innerText = d;
+
+      const grid = document.createElement("div");
+      grid.className = "grid md:grid-cols-3 gap-2";
+
+      // manhã (2)
+      const mWrap = document.createElement("div");
+      mWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Manhã (2)</div>`;
+      const m1 = buildSelect(names, day.manha[0]);
+      const m2 = buildSelect(names, day.manha[1]);
+      mWrap.appendChild(m1);
+      mWrap.appendChild(document.createElement("div")).className = "h-2";
+      mWrap.appendChild(m2);
+
+      // tarde (2)
+      const tWrap = document.createElement("div");
+      tWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Tarde (2)</div>`;
+      const t1 = buildSelect(names, day.tarde[0]);
+      const t2 = buildSelect(names, day.tarde[1]);
+      tWrap.appendChild(t1);
+      tWrap.appendChild(document.createElement("div")).className = "h-2";
+      tWrap.appendChild(t2);
+
+      // folga (1)
+      const fWrap = document.createElement("div");
+      fWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Folga (1)</div>`;
+      const f1 = buildSelect(names, day.folga[0]);
+      fWrap.appendChild(f1);
+
+      grid.appendChild(mWrap);
+      grid.appendChild(tWrap);
+      grid.appendChild(fWrap);
+
+      row.appendChild(title);
+      row.appendChild(grid);
+      container.appendChild(row);
+
+      // bind
+      const bind = ()=>{
+        day.manha[0] = normalizeName(m1.value);
+        day.manha[1] = normalizeName(m2.value);
+        day.tarde[0] = normalizeName(t1.value);
+        day.tarde[1] = normalizeName(t2.value);
+        day.folga[0] = normalizeName(f1.value);
+      };
+      [m1,m2,t1,t2,f1].forEach(x => x.addEventListener("change", bind));
+      bind();
+    }
+
+    // bind save button if provided
+    if (onSaveBtnId){
+      const btn = $(onSaveBtnId);
+      if (btn){
+        btn.onclick = async ()=> {
+          await saveEscala(local);
+        };
+      }
+    }
+
+    return local;
+  }
+
+  // ===== Helpers pontuação =====
+  async function bumpScore(user, delta){
+    await updateDoc(scoresRef(), { ["scores."+user]: increment(delta), updatedAt: serverTimestamp() });
+  }
+
+  // ===== Cloud init =====
   async function cloudInit(){
     await ensureWeekKey();
     $("weekKeyLabel").innerText = currentWeekKey;
     $("weekKeyLabelGer").innerText = currentWeekKey;
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
 
     await ensureEmployeesConfig();
     renderEmployeesUI();
 
-    // listener employees
     onSnapshot(cfgAppRef(), async (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
-
       if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "string"){
         const migrated = raw.map(n => ({ name: normalizeName(n), active: true })).filter(x=>x.name);
         await setDoc(cfgAppRef(), { employees: migrated, updatedAt: serverTimestamp() }, { merge:true });
@@ -627,14 +911,20 @@
         employees = (Array.isArray(raw) ? raw : [])
           .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
           .filter(x => x.name);
-
         const seen = new Set();
         employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
       }
 
       renderEmployeesUI();
-      refreshCategoryEditorLists();
 
+      // re-render escala editors (listas podem mudar)
+      if (currentUser === "GERENTE"){
+        renderEscalaEditor("escalaEditorGer", "btnSaveEscalaGer");
+      } else if (currentUser){
+        maybeSetupEscalaUI();
+      }
+
+      // derruba se bloquear
       if (currentUser && currentUser !== "GERENTE"){
         if (!isEmployeeActive(currentUser)){
           clearSession();
@@ -648,7 +938,6 @@
     // categories
     const catsSnap = await getDoc(cfgCatsRef());
     if (!catsSnap.exists()){
-      // cria doc
       await setDoc(cfgCatsRef(), { data: defaultData, updatedAt: serverTimestamp() }, { merge:false });
       data = clone(defaultData);
     } else {
@@ -677,7 +966,7 @@
     });
 
     // tasks
-    const tasksQ = query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(500));
+    const tasksQ = query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(700));
     onSnapshot(tasksQ, (qs)=>{
       const all = qs.docs.map(d => ({ id:d.id, ...d.data() }));
       tasksDone = all.filter(x=>x.weekKey === currentWeekKey);
@@ -686,16 +975,51 @@
     });
 
     // missing
-    const missQ = query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(500));
+    const missQ = query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(700));
     onSnapshot(missQ, (qs)=>{
       const all = qs.docs.map(d => ({ id:d.id, ...d.data() }));
       missingReports = all.filter(x=>x.weekKey === currentWeekKey);
       if (currentUser === "GERENTE") renderManager();
     });
-  }
 
-  async function bumpScore(user, delta){
-    await updateDoc(scoresRef(), { ["scores."+user]: increment(delta), updatedAt: serverTimestamp() });
+    // global doc (semana)
+    onSnapshot(globalRef(currentWeekKey), (snap)=>{
+      if (!snap.exists()){
+        globalTask = null;
+      } else {
+        globalTask = { id: snap.id, ...snap.data() };
+      }
+
+      // painel gerente
+      if ($("globalStatus")){
+        $("globalStatus").innerText = getGlobalStatusText();
+      }
+
+      // atualiza tarefas do funcionário
+      if (currentUser && currentUser !== "GERENTE"){
+        renderEmployee();
+      }
+    });
+
+    // escala doc
+    onSnapshot(escalaRef(currentWeekKey), (snap)=>{
+      if (!snap.exists()){
+        escala = null;
+      } else {
+        escala = { id: snap.id, ...snap.data() };
+      }
+      if (currentUser === "GERENTE"){
+        // reconstruir editor no gerente (com os valores atuais)
+        renderEscalaEditor("escalaEditorGer", "btnSaveEscalaGer");
+      }
+      if (currentUser && currentUser !== "GERENTE"){
+        renderEscalaViewer();
+        maybeSetupEscalaUI();
+      }
+    });
+
+    // inicializa viewer escala mesmo sem doc
+    renderEscalaViewer();
   }
 
   // ===== Login =====
@@ -724,12 +1048,17 @@
     currentUser = u;
     $("pin").value = "";
     saveSession(u);
+
     if (u === "GERENTE"){
       renderManager();
       refreshCategoryEditorLists();
+      // editor escala gerente
+      renderEscalaEditor("escalaEditorGer", "btnSaveEscalaGer");
       show("gerente");
     } else {
       renderEmployee();
+      maybeSetupEscalaUI();
+      renderEscalaViewer();
       show("funcionario");
     }
   }
@@ -761,7 +1090,30 @@
     toast("Registrado!");
   });
 
-  // ===== Render Funcionário =====
+  // ===== Escala UI employee =====
+  function maybeSetupEscalaUI(){
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+
+    const can = canEditEscala();
+    $("escalaPermLabel").innerText = can ? "Você pode editar" : "Somente leitura";
+
+    const editorWrap = $("escalaEditorWrap");
+    if (can){
+      editorWrap.classList.remove("hidden");
+      renderEscalaEditor("escalaEditor", null);
+      $("btnSaveEscala").onclick = async ()=>{
+        // pega o estado atual recriando um local a partir do DOM? (mais simples: rebuild e salva)
+        // Para não complicar: reconstruímos e salvamos pegando um clone da escala atual (recomendo editar e clicar salvar rápido).
+        // Melhor: vamos pegar do editor de novo:
+        const built = renderEscalaEditor("escalaEditor", null);
+        await saveEscala(built);
+      };
+    } else {
+      editorWrap.classList.add("hidden");
+    }
+  }
+
+  // ===== Render Funcionário (GLOBAL + pessoais) =====
   function renderEmployee(){
     if (!isEmployeeActive(currentUser)){
       clearSession();
@@ -777,12 +1129,81 @@
     const container = $("tasks");
     container.innerHTML = "";
 
-    const cats = data[currentUser] || {};
-    // *** FIX: ordena as categorias sempre (para não parecer que “subiu de posição”) ***
-    const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
+    // 1) GLOBAL aparece antes, se estiver open
+    if (globalTask && globalTask.exists && globalTask.status === "open"){
+      const card = document.createElement("div");
+      card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
 
+      const title = document.createElement("div");
+      title.className = "flex items-center justify-between gap-2";
+      title.innerHTML = `<h3 class="font-semibold">[GLOBAL] ${globalTask.name || "Tarefa Global"}</h3><span class="text-xs text-gray-500">+10 (primeiro que concluir)</span>`;
+      card.appendChild(title);
+
+      const body = document.createElement("div");
+      body.className = "mt-3 space-y-2";
+
+      const itens = Array.isArray(globalTask.items) ? globalTask.items : [];
+      itens.forEach((item)=>{
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between gap-2";
+        row.innerHTML =
+          "<span class='text-sm text-gray-800'>" + item + "</span>" +
+          "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
+        body.appendChild(row);
+      });
+
+      const warn = document.createElement("p");
+      warn.className = "text-xs text-gray-500 mt-2";
+      warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
+      body.appendChild(warn);
+
+      const btn = document.createElement("button");
+      btn.className = "mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded";
+      btn.innerText = "Concluir GLOBAL";
+
+      btn.addEventListener("click", async ()=>{
+        const itensQtd = {};
+        const inputs = Array.from(body.querySelectorAll("input[type=number]"));
+        for (const inp of inputs){
+          const name = decodeURIComponent(inp.getAttribute("data-item"));
+          if (inp.value === ""){
+            toast("Preencha todos os itens. Se for zero, digite 0.");
+            inp.focus();
+            return;
+          }
+          const val = Number(inp.value);
+          itensQtd[name] = Number.isFinite(val) ? val : 0;
+        }
+
+        btn.disabled = true;
+        btn.classList.add("opacity-50");
+        btn.innerText = "Tentando concluir...";
+
+        try{
+          await completeGlobalTaskAsFirst(currentUser, itensQtd, []);
+          toast("Você concluiu a GLOBAL primeiro!");
+        } catch(e){
+          console.error(e);
+          toast("GLOBAL já foi concluída por outra pessoa.");
+        } finally {
+          btn.disabled = true;
+          btn.innerText = "Encerrada";
+        }
+      });
+
+      card.appendChild(body);
+      card.appendChild(btn);
+      container.appendChild(card);
+    }
+
+    // 2) Categorias pessoais (ordenadas)
+    const cats = data[currentUser] || {};
+    const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
     if (!catNames.length){
-      container.innerHTML = "<div class='bg-white p-4 rounded-xl shadow text-gray-600'>Sem categorias para este usuário.</div>";
+      const box = document.createElement("div");
+      box.className = "bg-white p-4 rounded-xl shadow text-gray-600";
+      box.innerText = "Sem categorias para este usuário.";
+      container.appendChild(box);
       return;
     }
 
@@ -800,7 +1221,6 @@
 
       const body = document.createElement("div");
       body.className = "mt-3 space-y-2";
-
       const itens = cats[cat] || [];
       let fileInput = null;
 
@@ -820,7 +1240,6 @@
             "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
           body.appendChild(row);
         });
-
         const warn = document.createElement("p");
         warn.className = "text-xs text-gray-500 mt-2";
         warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
@@ -906,10 +1325,15 @@
   function renderManager(){
     $("weekKeyLabelGer").innerText = currentWeekKey;
 
-    // --- TAREFAS COM DETALHES (FIX PEDIDO) ---
+    // status global
+    if ($("globalStatus")){
+      $("globalStatus").innerText = getGlobalStatusText();
+    }
+
+    // tarefas com detalhes
     const t = $("gerTasks");
     t.innerHTML = "";
-    const ordered = tasksDone.slice(0, 250);
+    const ordered = tasksDone.slice(0, 300);
 
     if (!ordered.length){
       t.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa nesta semana.</p>";
@@ -957,11 +1381,10 @@
       });
     }
 
-    // --- FALTAS ---
+    // faltas
     const m = $("gerMissing");
     m.innerHTML = "";
     const mo = missingReports.slice(0, 250);
-
     if (!mo.length){
       m.innerHTML = "<p class='text-gray-500'>Nenhuma falta nesta semana.</p>";
     } else {
@@ -977,144 +1400,113 @@
     }
   }
 
-  // ===== Categoria CRUD (FIX: overwrite forte) =====
-  function refreshCategoryEditorLists(){
-    const u = $("editUser")?.value || allNames()[0] || "";
-    const sel = $("editCatSelect");
-    if (!sel) return;
+  // ===== GLOBAL: gerente cria =====
+  $("btnCreateGlobal").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const name = normalizeCat($("globalCatName").value);
+    const items = $("globalCatItems").value.trim();
+    if (!name) return toast("Digite o nome da GLOBAL.");
+    const arr = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
+    if (!arr.length) return toast("Informe pelo menos 1 item.");
+    await createGlobalTask(name, arr);
+    $("globalCatName").value = "";
+    $("globalCatItems").value = "";
+    toast("GLOBAL criada.");
+  });
 
-    sel.innerHTML = `<option value="">Selecione uma categoria...</option>`;
-    const cats = (data[u] && typeof data[u] === "object") ? Object.keys(data[u]) : [];
-    cats.sort((a,b)=>a.localeCompare(b));
-    for (const c of cats){
-      sel.appendChild(new Option(c, c));
+  // ===== Apagar tarefas por funcionário =====
+  $("btnLoadUserTasks").addEventListener("click", ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const u = $("delTasksUser").value;
+    if (!u) return toast("Selecione um funcionário.");
+    renderUserTasksForDelete(u);
+  });
+
+  function renderUserTasksForDelete(user){
+    const box = $("userTasksList");
+    box.innerHTML = "";
+
+    const list = tasksDone
+      .filter(t=>t.user === user)
+      .slice()
+      .sort((a,b)=>(String(b.when||"").localeCompare(String(a.when||""))));
+
+    if (!list.length){
+      box.innerHTML = `<div class="text-sm text-gray-500">Nenhuma tarefa na semana para ${user}.</div>`;
+      return;
     }
 
-    $("editCatName").value = "";
-    $("editItemsArea").value = "";
+    list.forEach((t)=>{
+      const row = document.createElement("div");
+      row.className = "border rounded p-2 bg-gray-50 flex items-start gap-2";
+
+      const chk = document.createElement("input");
+      chk.type = "checkbox";
+      chk.className = "mt-1";
+      chk.dataset.id = t.id;
+
+      const info = document.createElement("div");
+      info.className = "flex-1";
+      info.innerHTML = `
+        <div class="font-semibold">${t.categoria}</div>
+        <div class="text-xs text-gray-600">${t.when || ""}</div>
+      `;
+
+      row.appendChild(chk);
+      row.appendChild(info);
+      box.appendChild(row);
+    });
   }
 
-  $("editUser").addEventListener("change", refreshCategoryEditorLists);
-
-  $("btnAddCategory").addEventListener("click", async ()=>{
+  $("btnDeleteSelectedTasks").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("addUser").value;
-    const cat = normalizeCat($("categoriaNome").value);
-    const items = $("itensCategoria").value.trim();
-    if (!u) return toast("Selecione o funcionário.");
-    if (!cat) return toast("Informe o nome da categoria");
+    const u = $("delTasksUser").value;
+    if (!u) return toast("Selecione um funcionário.");
 
-    const newData = clone(data || {});
-    if (!newData[u]) newData[u] = {};
-    newData[u][cat] = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
+    const checks = Array.from($("userTasksList").querySelectorAll("input[type=checkbox]:checked"));
+    if (!checks.length) return toast("Marque pelo menos 1 tarefa.");
 
-    // *** overwrite forte (merge:false) ***
-    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
+    if (!confirm(`Apagar ${checks.length} tarefa(s) de ${u}?`)) return;
 
-    $("categoriaNome").value = "";
-    $("itensCategoria").value = "";
-    toast("Categoria atualizada.");
+    try{
+      // batch delete
+      let batch = writeBatch(db);
+      let count = 0;
+      for (const c of checks){
+        const id = c.dataset.id;
+        if (!id) continue;
+        const ref = doc(db,"stores",STORE_ID,"tasks",id);
+        batch.delete(ref);
+        count++;
+        if (count % 450 === 0){
+          await batch.commit();
+          batch = writeBatch(db);
+        }
+      }
+      await batch.commit();
+      toast("Tarefas apagadas.");
+      renderUserTasksForDelete(u);
+    } catch(e){
+      console.error(e);
+      toast("Erro ao apagar tarefas.");
+    }
   });
 
-  $("btnLoadCategory").addEventListener("click", ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("editUser").value;
-    const c = $("editCatSelect").value;
-    if (!u) return toast("Selecione o funcionário.");
-    if (!c) return toast("Selecione uma categoria para carregar.");
-
-    const items = (data[u] && data[u][c]) ? data[u][c] : [];
-    $("editCatName").value = c;
-    $("editItemsArea").value = (items || []).join(", ");
-    toast("Categoria carregada.");
-  });
-
-  $("btnSaveCategory").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("editUser").value;
-    const c = $("editCatSelect").value;
-    if (!u) return toast("Selecione o funcionário.");
-    if (!c) return toast("Selecione uma categoria.");
-
-    const raw = $("editItemsArea").value.trim();
-    const newItems = raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : [];
-
-    const newData = clone(data || {});
-    if (!newData[u]) newData[u] = {};
-    if (!newData[u][c]) return toast("Categoria não existe mais.");
-
-    newData[u][c] = newItems;
-
-    // *** overwrite forte (merge:false) ***
-    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
-
-    toast("Itens atualizados.");
-  });
-
-  $("btnRenameCategory").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("editUser").value;
-    const oldName = $("editCatSelect").value;
-    const newName = normalizeCat($("editCatName").value);
-
-    if (!u) return toast("Selecione o funcionário.");
-    if (!oldName) return toast("Selecione uma categoria.");
-    if (!newName) return toast("Digite o novo nome.");
-    if (newName === oldName) return toast("O novo nome é igual ao atual.");
-
-    const ok = confirm(`Renomear "${oldName}" para "${newName}"?`);
-    if (!ok) return;
-
-    const newData = clone(data || {});
-    if (!newData[u] || !newData[u][oldName]) return toast("Categoria não existe mais.");
-    if (newData[u][newName]) return toast("Já existe uma categoria com esse nome.");
-
-    newData[u][newName] = newData[u][oldName];
-    delete newData[u][oldName];
-
-    // *** overwrite forte (merge:false) ***
-    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
-
-    toast("Categoria renomeada.");
-    refreshCategoryEditorLists();
-    $("editCatSelect").value = newName;
-    $("editCatName").value = newName;
-    $("editItemsArea").value = (newData[u][newName] || []).join(", ");
-  });
-
-  $("btnDeleteCategory").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("editUser").value;
-    const c = $("editCatSelect").value;
-    if (!u) return toast("Selecione o funcionário.");
-    if (!c) return toast("Selecione uma categoria.");
-
-    const ok = confirm(`Excluir a categoria "${c}" do usuário ${u}?`);
-    if (!ok) return;
-
-    const newData = clone(data || {});
-    if (!newData[u] || !newData[u][c]) return toast("Categoria não existe mais.");
-
-    delete newData[u][c];
-
-    // *** overwrite forte (merge:false) ***
-    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
-
-    toast("Categoria excluída.");
-    refreshCategoryEditorLists();
-  });
-
-  // ===== Reset semana =====
+  // ===== Reset semana (tudo) =====
   $("btnResetWeek").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const ok = confirm("ATENÇÃO: Isso vai apagar tarefas e faltas da semana atual e zerar pontuações. Confirmar?");
-    if (!ok) return;
+    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual e zera pontuações. Confirmar?")) return;
 
     try{
       await deleteByWeek("tasks", currentWeekKey);
       await deleteByWeek("missing", currentWeekKey);
       await setDoc(scoresRef(), { scores: {}, updatedAt: serverTimestamp() }, { merge:true });
-      toast("Semana zerada com sucesso.");
+
+      // também apaga GLOBAL e Escala da semana
+      try{ await deleteDoc(globalRef(currentWeekKey)); }catch(e){}
+      try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
+
+      toast("Semana zerada.");
     } catch(e){
       console.error(e);
       toast("Erro ao zerar semana.");
@@ -1170,6 +1562,119 @@
     return s;
   }
 
+  // ===== Categorias CRUD (individual) =====
+  function refreshCategoryEditorLists(){
+    const u = $("editUser")?.value || allNames()[0] || "";
+    const sel = $("editCatSelect");
+    if (!sel) return;
+
+    sel.innerHTML = `<option value="">Selecione uma categoria...</option>`;
+    const cats = (data[u] && typeof data[u] === "object") ? Object.keys(data[u]) : [];
+    cats.sort((a,b)=>a.localeCompare(b));
+    for (const c of cats){
+      sel.appendChild(new Option(c, c));
+    }
+    $("editCatName").value = "";
+    $("editItemsArea").value = "";
+  }
+  $("editUser").addEventListener("change", refreshCategoryEditorLists);
+
+  $("btnAddCategory").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const u = $("addUser").value;
+    const cat = normalizeCat($("categoriaNome").value);
+    const items = $("itensCategoria").value.trim();
+    if (!u) return toast("Selecione o funcionário.");
+    if (!cat) return toast("Informe o nome da categoria");
+
+    const newData = clone(data || {});
+    if (!newData[u]) newData[u] = {};
+    newData[u][cat] = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
+
+    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
+    $("categoriaNome").value = "";
+    $("itensCategoria").value = "";
+    toast("Categoria atualizada.");
+  });
+
+  $("btnLoadCategory").addEventListener("click", ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const u = $("editUser").value;
+    const c = $("editCatSelect").value;
+    if (!u) return toast("Selecione o funcionário.");
+    if (!c) return toast("Selecione uma categoria.");
+
+    const items = (data[u] && data[u][c]) ? data[u][c] : [];
+    $("editCatName").value = c;
+    $("editItemsArea").value = (items || []).join(", ");
+    toast("Categoria carregada.");
+  });
+
+  $("btnSaveCategory").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const u = $("editUser").value;
+    const c = $("editCatSelect").value;
+    if (!u) return toast("Selecione o funcionário.");
+    if (!c) return toast("Selecione uma categoria.");
+
+    const raw = $("editItemsArea").value.trim();
+    const newItems = raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : [];
+
+    const newData = clone(data || {});
+    if (!newData[u]) newData[u] = {};
+    if (!newData[u][c]) return toast("Categoria não existe mais.");
+
+    newData[u][c] = newItems;
+    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
+    toast("Itens atualizados.");
+  });
+
+  $("btnRenameCategory").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const u = $("editUser").value;
+    const oldName = $("editCatSelect").value;
+    const newName = normalizeCat($("editCatName").value);
+    if (!u) return toast("Selecione o funcionário.");
+    if (!oldName) return toast("Selecione uma categoria.");
+    if (!newName) return toast("Digite o novo nome.");
+    if (newName === oldName) return toast("O novo nome é igual.");
+
+    if (!confirm(`Renomear "${oldName}" para "${newName}"?`)) return;
+
+    const newData = clone(data || {});
+    if (!newData[u] || !newData[u][oldName]) return toast("Categoria não existe.");
+    if (newData[u][newName]) return toast("Já existe categoria com esse nome.");
+
+    newData[u][newName] = newData[u][oldName];
+    delete newData[u][oldName];
+
+    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
+
+    toast("Categoria renomeada.");
+    refreshCategoryEditorLists();
+    $("editCatSelect").value = newName;
+    $("editCatName").value = newName;
+    $("editItemsArea").value = (newData[u][newName] || []).join(", ");
+  });
+
+  $("btnDeleteCategory").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const u = $("editUser").value;
+    const c = $("editCatSelect").value;
+    if (!u) return toast("Selecione o funcionário.");
+    if (!c) return toast("Selecione uma categoria.");
+    if (!confirm(`Excluir a categoria "${c}" do usuário ${u}?`)) return;
+
+    const newData = clone(data || {});
+    if (!newData[u] || !newData[u][c]) return toast("Categoria não existe.");
+    delete newData[u][c];
+
+    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
+
+    toast("Categoria excluída.");
+    refreshCategoryEditorLists();
+  });
+
   // ===== PIN reset =====
   $("btnSetPin").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
@@ -1178,20 +1683,15 @@
     if (!u) return toast("Selecione o usuário.");
     if (!isValidPin(p)) return toast("Novo PIN precisa ter 4 dígitos.");
 
-    try{
-      await setDoc(userRef(u), {
-        user: u,
-        role: (u === "GERENTE") ? "manager" : "employee",
-        pinHash: await sha256(p),
-        updatedAt: serverTimestamp()
-      }, { merge:true });
+    await setDoc(userRef(u), {
+      user: u,
+      role: (u === "GERENTE") ? "manager" : "employee",
+      pinHash: await sha256(p),
+      updatedAt: serverTimestamp()
+    }, { merge:true });
 
-      $("pinNew").value = "";
-      toast("PIN definido com sucesso.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao definir PIN.");
-    }
+    $("pinNew").value = "";
+    toast("PIN definido.");
   });
 
   // ===== Funcionários UI actions =====
@@ -1208,14 +1708,11 @@
     toast("Lista recarregada.");
   });
 
-  $("btnDeleteEmployee").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const name = $("delEmployeeSelect").value;
-    try{ await deleteEmployeeHard(name); }catch(e){ console.error(e); toast("Erro ao excluir funcionário."); }
-  });
-
-  // ===== Auto login =====
+  // ===== Start =====
   await cloudInit();
+
+  // Status global inicial no gerente
+  if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
 
   const ses = getSession();
   if (ses && ses.user){
@@ -1224,6 +1721,7 @@
     if (currentUser === "GERENTE"){
       renderManager();
       refreshCategoryEditorLists();
+      renderEscalaEditor("escalaEditorGer", "btnSaveEscalaGer");
       show("gerente");
     } else {
       if (!isEmployeeActive(currentUser)){
@@ -1232,6 +1730,8 @@
         show("login");
       } else {
         renderEmployee();
+        maybeSetupEscalaUI();
+        renderEscalaViewer();
         show("funcionario");
       }
     }
