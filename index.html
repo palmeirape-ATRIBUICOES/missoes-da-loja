@@ -154,7 +154,7 @@
     </div>
   </div>
 
-  <!-- Tarefas (inclui GLOBAL + pessoais) -->
+  <!-- Tarefas (inclui GLOBAIS + pessoais) -->
   <div id="tasks" class="space-y-4"></div>
 </section>
 
@@ -201,7 +201,7 @@
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <h3 class="font-semibold mb-2">Tarefas GLOBAIS salvas (Templates)</h3>
     <p class="text-xs text-gray-500 mb-3">
-      Crie templates de GLOBAL e depois publique a GLOBAL da semana escolhendo no dropdown.
+      Crie templates de GLOBAL e depois publique QUANTAS GLOBAIS quiser na semana escolhendo no dropdown.
       Quem concluir primeiro “trava” e some dos demais.
     </p>
 
@@ -218,7 +218,7 @@
     </div>
 
     <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold mb-2">Status GLOBAL desta semana</div>
+      <div class="text-sm font-semibold mb-2">Status das GLOBAIS desta semana</div>
       <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
     </div>
 
@@ -453,11 +453,13 @@
   let currentUser = "";
   let currentWeekKey = "";
   let employees = [];
-  let globalTask = null;
   let escala = null;
 
   // Templates globais
   let globalTemplates = []; // [{id,name,items,createdAtHuman}]
+  // >>>>>> AGORA: VÁRIAS GLOBAIS POR SEMANA <<<<<<
+  let globalTasks = [];     // [{id, weekKey, status, name, items, completedBy, ...}]
+
   let escalaLocalEmployee = null;
   let escalaLocalGer = null;
 
@@ -469,7 +471,10 @@
   const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
   const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
-  const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
+
+  // >>>>>> NOVO: COLLECTION de globais <<<<<<
+  const globalsColRef = () => collection(db, "stores", STORE_ID, "globals");
+  const globalDocRef  = (id) => doc(db, "stores", STORE_ID, "globals", id);
 
   // ===== Top bar =====
   function monthKey(date){
@@ -664,7 +669,6 @@
   }
 
   // ===== Categorias base =====
-  // (ARMÁRIOS REMOVIDO do padrão inicial)
   const defaultData = {
     Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
     Thauane: {
@@ -743,24 +747,46 @@
     });
   }
 
-  // ===== GLOBAL (semana) =====
-  function getGlobalStatusText(){
-    if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL publicada nesta semana.";
-    if (globalTask.status === "completed") return `GLOBAL concluída por ${globalTask.completedBy} em ${globalTask.completedAtHuman || ""}`;
-    if (globalTask.status === "open") return `GLOBAL pendente: ${globalTask.name || "(sem nome)"} (aguardando conclusão)`;
-    return "GLOBAL: estado desconhecido.";
+  // =======================
+  // ===== GLOBAIS (multi) ==
+  // =======================
+  function getGlobalStatusHtml(){
+    if (!globalTasks || globalTasks.length === 0){
+      return `<div class="text-gray-500">Nenhuma GLOBAL publicada nesta semana.</div>`;
+    }
+
+    const ordered = globalTasks.slice().sort((a,b)=>{
+      const aT = a?.createdAt?.seconds ? a.createdAt.seconds : 0;
+      const bT = b?.createdAt?.seconds ? b.createdAt.seconds : 0;
+      return bT - aT;
+    });
+
+    let html = `<div class="space-y-2">`;
+    ordered.forEach((g)=>{
+      const title = g.name || "(sem nome)";
+      if (g.status === "completed"){
+        html += `
+          <div class="border rounded p-2 bg-gray-50">
+            <div class="font-semibold">✅ ${title}</div>
+            <div class="text-xs text-gray-600">Concluída por <b>${g.completedBy || "-"}</b> em ${g.completedAtHuman || "-"}</div>
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="border rounded p-2 bg-yellow-50 border-yellow-200">
+            <div class="font-semibold">⏳ ${title}</div>
+            <div class="text-xs text-gray-600">Pendente (aberta)</div>
+          </div>
+        `;
+      }
+    });
+    html += `</div>`;
+    return html;
   }
 
   async function publishGlobalTaskFromTemplate(tpl){
-    const ref = globalRef(currentWeekKey);
-    const snap = await getDoc(ref);
-    if (snap.exists()){
-      const g = snap.data();
-      if (g?.exists) throw new Error("Já existe GLOBAL nesta semana.");
-    }
-
-    await setDoc(ref, {
-      exists: true,
+    // Agora pode publicar várias. Cada publicação = novo doc.
+    await addDoc(globalsColRef(), {
       weekKey: currentWeekKey,
       status: "open",
       name: tpl.name,
@@ -768,16 +794,17 @@
       templateId: tpl.id || "",
       createdAt: serverTimestamp(),
       createdAtHuman: nowHuman()
-    }, { merge:false });
+    });
   }
 
-  async function completeGlobalTaskAsFirst(user, itensQtd){
-    const ref = globalRef(currentWeekKey);
+  async function completeGlobalTaskAsFirst(globalId, user, itensQtd){
+    const ref = globalDocRef(globalId);
+
     await runTransaction(db, async (tx)=>{
       const snap = await tx.get(ref);
       if (!snap.exists()) throw new Error("GLOBAL não existe.");
       const g = snap.data();
-      if (!g.exists || g.status !== "open") throw new Error("GLOBAL já foi concluída.");
+      if (g.status !== "open") throw new Error("GLOBAL já foi concluída.");
       tx.update(ref, {
         status: "completed",
         completedBy: user,
@@ -786,9 +813,11 @@
       });
     });
 
+    // salva em tasks (histórico) + pontua
+    const gLocal = globalTasks.find(x=>x.id === globalId);
     await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
       user,
-      categoria: "[GLOBAL] " + (globalTask?.name || "GLOBAL"),
+      categoria: "[GLOBAL] " + (gLocal?.name || "GLOBAL"),
       itens: itensQtd || {},
       when: nowHuman(),
       weekKey: currentWeekKey,
@@ -1149,71 +1178,75 @@
     const container = $("tasks");
     container.innerHTML = "";
 
-    // GLOBAL open
-    if (globalTask && globalTask.exists && globalTask.status === "open"){
-      const card = document.createElement("div");
-      card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
+    // >>>>>> MULTI GLOBAIS: renderiza todas as abertas <<<<<<
+    const openGlobals = (globalTasks || []).filter(g => g.weekKey === currentWeekKey && g.status === "open");
 
-      const title = document.createElement("div");
-      title.className = "flex items-center justify-between gap-2";
-      title.innerHTML = `<h3 class="font-semibold">[GLOBAL] ${globalTask.name || "Tarefa Global"}</h3><span class="text-xs text-gray-500">+10 (primeiro que concluir)</span>`;
-      card.appendChild(title);
+    if (openGlobals.length){
+      openGlobals.forEach((g)=>{
+        const card = document.createElement("div");
+        card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
 
-      const body = document.createElement("div");
-      body.className = "mt-3 space-y-2";
+        const title = document.createElement("div");
+        title.className = "flex items-center justify-between gap-2";
+        title.innerHTML = `<h3 class="font-semibold">[GLOBAL] ${g.name || "Tarefa Global"}</h3><span class="text-xs text-gray-500">+10 (primeiro que concluir)</span>`;
+        card.appendChild(title);
 
-      const itens = Array.isArray(globalTask.items) ? globalTask.items : [];
-      itens.forEach((item)=>{
-        const row = document.createElement("div");
-        row.className = "flex items-center justify-between gap-2";
-        row.innerHTML =
-          "<span class='text-sm text-gray-800'>" + item + "</span>" +
-          "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
-        body.appendChild(row);
-      });
+        const body = document.createElement("div");
+        body.className = "mt-3 space-y-2";
 
-      const warn = document.createElement("p");
-      warn.className = "text-xs text-gray-500 mt-2";
-      warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
-      body.appendChild(warn);
+        const itens = Array.isArray(g.items) ? g.items : [];
+        itens.forEach((item)=>{
+          const row = document.createElement("div");
+          row.className = "flex items-center justify-between gap-2";
+          row.innerHTML =
+            "<span class='text-sm text-gray-800'>" + item + "</span>" +
+            "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
+          body.appendChild(row);
+        });
 
-      const btn = document.createElement("button");
-      btn.className = "mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded";
-      btn.innerText = "Concluir GLOBAL";
+        const warn = document.createElement("p");
+        warn.className = "text-xs text-gray-500 mt-2";
+        warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
+        body.appendChild(warn);
 
-      btn.addEventListener("click", async ()=>{
-        const itensQtd = {};
-        const inputs = Array.from(body.querySelectorAll("input[type=number]"));
-        for (const inp of inputs){
-          const name = decodeURIComponent(inp.getAttribute("data-item"));
-          if (inp.value === ""){
-            toast("Preencha todos os itens. Se for zero, digite 0.");
-            inp.focus();
-            return;
+        const btn = document.createElement("button");
+        btn.className = "mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded";
+        btn.innerText = "Concluir GLOBAL";
+
+        btn.addEventListener("click", async ()=>{
+          const itensQtd = {};
+          const inputs = Array.from(body.querySelectorAll("input[type=number]"));
+          for (const inp of inputs){
+            const name = decodeURIComponent(inp.getAttribute("data-item"));
+            if (inp.value === ""){
+              toast("Preencha todos os itens. Se for zero, digite 0.");
+              inp.focus();
+              return;
+            }
+            const val = Number(inp.value);
+            itensQtd[name] = Number.isFinite(val) ? val : 0;
           }
-          const val = Number(inp.value);
-          itensQtd[name] = Number.isFinite(val) ? val : 0;
-        }
 
-        btn.disabled = true;
-        btn.classList.add("opacity-50");
-        btn.innerText = "Tentando concluir...";
-
-        try{
-          await completeGlobalTaskAsFirst(currentUser, itensQtd);
-          toast("Você concluiu a GLOBAL primeiro!");
-        } catch(e){
-          console.error(e);
-          toast("GLOBAL já foi concluída por outra pessoa.");
-        } finally {
           btn.disabled = true;
-          btn.innerText = "Encerrada";
-        }
-      });
+          btn.classList.add("opacity-50");
+          btn.innerText = "Tentando concluir...";
 
-      card.appendChild(body);
-      card.appendChild(btn);
-      container.appendChild(card);
+          try{
+            await completeGlobalTaskAsFirst(g.id, currentUser, itensQtd);
+            toast("Você concluiu essa GLOBAL primeiro!");
+          } catch(e){
+            console.error(e);
+            toast("Essa GLOBAL já foi concluída por outra pessoa.");
+          } finally {
+            btn.disabled = true;
+            btn.innerText = "Encerrada";
+          }
+        });
+
+        card.appendChild(body);
+        card.appendChild(btn);
+        container.appendChild(card);
+      });
     }
 
     // categorias pessoais
@@ -1322,7 +1355,8 @@
     $("weekKeyLabelGer").innerText = currentWeekKey;
     $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
 
-    if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
+    // >>>>>> status MULTI GLOBAIS <<<<<<
+    if ($("globalStatus")) $("globalStatus").innerHTML = getGlobalStatusHtml();
 
     renderRanking();
 
@@ -1472,7 +1506,7 @@
     const tpl = findTemplateById(id);
     if (!tpl) return toast("Template não encontrado.");
 
-    if (!confirm(`Publicar GLOBAL desta semana usando "${tpl.name}"?`)) return;
+    if (!confirm(`Publicar uma NOVA GLOBAL nesta semana usando "${tpl.name}"?`)) return;
 
     try{
       await publishGlobalTaskFromTemplate(tpl);
@@ -1651,7 +1685,9 @@
       await deleteByWeek("tasks", currentWeekKey);
       await deleteByWeek("missing", currentWeekKey);
 
-      try{ await deleteDoc(globalRef(currentWeekKey)); }catch(e){}
+      // >>>>>> APAGA TODAS AS GLOBAIS DA SEMANA <<<<<<
+      await deleteGlobalsByWeek(currentWeekKey);
+
       try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
 
       toast("Semana zerada.");
@@ -1679,6 +1715,25 @@
     }
     await batch.commit();
     if (snap.docs.length === 450) await deleteByWeek(colName, wk);
+  }
+
+  async function deleteGlobalsByWeek(wk){
+    const qg = query(globalsColRef(), where("weekKey","==",wk), limit(450));
+    const snap = await getDocs(qg);
+    if (snap.empty) return;
+
+    let batch = writeBatch(db);
+    let count = 0;
+    for (const d of snap.docs){
+      batch.delete(d.ref);
+      count++;
+      if (count % 450 === 0){
+        await batch.commit();
+        batch = writeBatch(db);
+      }
+    }
+    await batch.commit();
+    if (snap.docs.length === 450) await deleteGlobalsByWeek(wk);
   }
 
   // ===== Collapses =====
@@ -1849,12 +1904,17 @@
       if (currentUser === "GERENTE") renderManager();
     });
 
-    // global week doc
-    onSnapshot(globalRef(currentWeekKey), (snap)=>{
-      if (!snap.exists()) globalTask = null;
-      else globalTask = { id: snap.id, ...snap.data() };
-
-      if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
+    // >>>>>> MULTI GLOBAIS listener <<<<<<
+    const globalsQ = query(
+      globalsColRef(),
+      where("weekKey","==",currentWeekKey),
+      orderBy("createdAt","desc"),
+      limit(80)
+    );
+    onSnapshot(globalsQ, (qs)=>{
+      globalTasks = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+      if ($("globalStatus")) $("globalStatus").innerHTML = getGlobalStatusHtml();
+      if (currentUser === "GERENTE") renderManager();
       if (currentUser && currentUser !== "GERENTE") renderEmployee();
     });
 
