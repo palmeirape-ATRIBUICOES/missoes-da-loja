@@ -170,6 +170,7 @@
       <div>
         <h2 class="text-xl font-semibold">Painel do Gerente</h2>
         <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelGer">-</span></p>
+        <p class="text-xs text-gray-500">Semana anterior: <span id="prevWeekKeyLabelGer">-</span></p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button id="btnResetWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
@@ -305,11 +306,11 @@
     </div>
   </div>
 
-  <!-- tarefas e faltas (agora com apagar 1 por 1) -->
+  <!-- tarefas e faltas (com semana anterior também) -->
   <div class="grid md:grid-cols-2 gap-4">
     <div class="bg-white p-4 rounded-xl shadow">
       <div class="flex items-center justify-between gap-2">
-        <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
+        <h3 class="font-semibold mb-2">Tarefas concluídas (semana atual)</h3>
         <button id="btnToggleTasksList" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
           Minimizar
         </button>
@@ -320,13 +321,44 @@
 
     <div class="bg-white p-4 rounded-xl shadow">
       <div class="flex items-center justify-between gap-2">
-        <h3 class="font-semibold mb-2">Itens em falta</h3>
+        <h3 class="font-semibold mb-2">Itens em falta (semana atual)</h3>
         <button id="btnToggleMissingList" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
           Minimizar
         </button>
       </div>
       <div id="missingListContent" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
       <p class="text-xs text-gray-500 mt-2">Use o botão <b>Excluir</b> ao lado para apagar um registro específico.</p>
+    </div>
+  </div>
+
+  <!-- NOVO: SEMANA ANTERIOR (somente visualização) -->
+  <div class="grid md:grid-cols-2 gap-4 mt-4">
+    <div class="bg-white p-4 rounded-xl shadow">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <h3 class="font-semibold">Tarefas concluídas (semana anterior)</h3>
+          <p class="text-xs text-gray-500">Semana: <span id="prevWeekKeyLabelTasks">-</span></p>
+        </div>
+        <button id="btnTogglePrevTasksList" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+          Minimizar
+        </button>
+      </div>
+      <div id="prevTasksListContent" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
+      <p class="text-xs text-gray-500 mt-2">Essa área é só para consulta. (Não altera a semana atual)</p>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl shadow">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <h3 class="font-semibold">Itens em falta (semana anterior)</h3>
+          <p class="text-xs text-gray-500">Semana: <span id="prevWeekKeyLabelMissing">-</span></p>
+        </div>
+        <button id="btnTogglePrevMissingList" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+          Minimizar
+        </button>
+      </div>
+      <div id="prevMissingListContent" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
+      <p class="text-xs text-gray-500 mt-2">Essa área é só para consulta. (Não altera a semana atual)</p>
     </div>
   </div>
 
@@ -500,10 +532,13 @@
   // ====== State ======
   let data = {};
   let scoresDoc = {};
-  let tasksDone = [];
-  let missingReports = [];
+  let tasksDone = [];        // semana atual
+  let tasksDonePrev = [];    // semana anterior
+  let missingReports = [];   // semana atual
+  let missingPrev = [];      // semana anterior
   let currentUser = "";
   let currentWeekKey = "";
+  let prevWeekKeyStr = "";
   let employees = [];
 
   // MULTI GLOBAIS (semana)
@@ -588,6 +623,31 @@
     return d.getUTCFullYear() + "-W" + String(weekNo).padStart(2,"0");
   }
 
+  // Quantas semanas ISO tem um ano (52 ou 53)
+  function isoWeeksInYear(year){
+    // semana ISO do dia 28/dez sempre cai na última semana ISO do ano
+    const d = new Date(Date.UTC(year, 11, 28));
+    const wk = weekKey(new Date(d));
+    const w = Number(String(wk).split("-W")[1] || "52");
+    return w;
+  }
+
+  function prevWeekKey(wk){
+    const parts = String(wk || "").split("-W");
+    if (parts.length !== 2) return wk;
+    let y = Number(parts[0]);
+    let w = Number(parts[1]);
+    if (!Number.isFinite(y) || !Number.isFinite(w)) return wk;
+
+    w -= 1;
+    if (w >= 1) return `${y}-W${String(w).padStart(2,"0")}`;
+
+    // volta pro ano anterior
+    y -= 1;
+    const last = isoWeeksInYear(y);
+    return `${y}-W${String(last).padStart(2,"0")}`;
+  }
+
   async function ensureWeekKey(){
     const snap = await getDoc(metaRef());
     const today = new Date();
@@ -596,6 +656,7 @@
     if (!snap.exists()){
       await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
       currentWeekKey = wk;
+      prevWeekKeyStr = prevWeekKey(wk);
       return;
     }
 
@@ -603,9 +664,11 @@
     if (today.getDay() === 1 && saved !== wk){
       await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
       currentWeekKey = wk;
+      prevWeekKeyStr = prevWeekKey(wk);
       return;
     }
     currentWeekKey = saved;
+    prevWeekKeyStr = prevWeekKey(saved);
   }
 
   // ===== Sessão =====
@@ -1363,7 +1426,7 @@
     });
   }
 
-  // ====== NOVO: excluir tarefa 1 por 1 / excluir falta 1 por 1 ======
+  // ====== excluir tarefa 1 por 1 / excluir falta 1 por 1 ======
   async function deleteTaskById(taskId){
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
     if (!confirm("Excluir esta tarefa?")) return;
@@ -1616,11 +1679,15 @@
     $("weekKeyLabelGer").innerText = currentWeekKey;
     $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
 
+    $("prevWeekKeyLabelGer").innerText = prevWeekKeyStr || "-";
+    $("prevWeekKeyLabelTasks").innerText = prevWeekKeyStr || "-";
+    $("prevWeekKeyLabelMissing").innerText = prevWeekKeyStr || "-";
+
     renderRanking();
     renderGlobalsStatusManager();
     renderEmployeeTable();
 
-    // tarefas
+    // ===== SEMANA ATUAL: tarefas =====
     const t = $("tasksListContent");
     t.innerHTML = "";
     const ordered = tasksDone.slice(0, 400);
@@ -1670,7 +1737,7 @@
       });
     }
 
-    // faltas
+    // ===== SEMANA ATUAL: faltas =====
     const m = $("missingListContent");
     m.innerHTML = "";
     const mo = missingReports.slice(0, 400);
@@ -1696,6 +1763,43 @@
         div.appendChild(left);
         div.appendChild(btnDel);
         m.appendChild(div);
+      });
+    }
+
+    // ===== SEMANA ANTERIOR: tarefas (consulta) =====
+    const pt = $("prevTasksListContent");
+    pt.innerHTML = "";
+    const prevT = tasksDonePrev.slice(0, 500);
+    if (!prevT.length){
+      pt.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa na semana anterior.</p>";
+    } else {
+      prevT.forEach((r)=>{
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 bg-gray-50";
+        div.innerHTML = `
+          <div class="font-semibold">${r.user} - ${r.categoria}</div>
+          <div class="text-xs text-gray-600">${(r.when || "")}</div>
+        `;
+        pt.appendChild(div);
+      });
+    }
+
+    // ===== SEMANA ANTERIOR: faltas (consulta) =====
+    const pm = $("prevMissingListContent");
+    pm.innerHTML = "";
+    const prevM = missingPrev.slice(0, 500);
+    if (!prevM.length){
+      pm.innerHTML = "<p class='text-gray-500'>Nenhuma falta na semana anterior.</p>";
+    } else {
+      prevM.forEach((r)=>{
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 bg-gray-50";
+        div.innerHTML = `
+          <div class="font-semibold">${r.user}</div>
+          <div class="text-xs text-gray-600">${(r.when || "")}</div>
+          <div class="text-sm mt-1">${r.item}</div>
+        `;
+        pm.appendChild(div);
       });
     }
   }
@@ -1924,17 +2028,21 @@
     const header = ["tipo","usuario","categoria","quando","detalhes"];
     let csv = header.join(",") + "\n";
 
-    tasksDone.forEach((r)=>{
+    // exporta semana atual + anterior (pra ficar completo)
+    const allTasks = [...tasksDone, ...tasksDonePrev];
+    const allMissing = [...missingReports, ...missingPrev];
+
+    allTasks.forEach((r)=>{
       csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {})].map(csvCell).join(",") + "\n";
     });
-    missingReports.forEach((r)=>{
+    allMissing.forEach((r)=>{
       csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item })].map(csvCell).join(",") + "\n";
     });
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "relatorio_" + currentWeekKey + ".csv";
+    a.download = "relatorio_" + currentWeekKey + "_e_anterior.csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -2006,7 +2114,7 @@
     if (snap.docs.length === 450) await deleteGlobalsByWeek(wk);
   }
 
-  // ===== Botões novos de limpeza =====
+  // ===== Botões de limpeza =====
   $("btnDeleteAllTasksThisWeek").addEventListener("click", deleteAllTasksThisWeek);
   $("btnDeleteAllMissingThisWeek").addEventListener("click", deleteAllMissingThisWeek);
 
@@ -2020,6 +2128,10 @@
   setupCollapse("btnToggleRanking", "rankingContent");
   setupCollapse("btnToggleTasksList", "tasksListContent");
   setupCollapse("btnToggleMissingList", "missingListContent");
+
+  // NOVOS colapsos semana anterior
+  setupCollapse("btnTogglePrevTasksList", "prevTasksListContent");
+  setupCollapse("btnTogglePrevMissingList", "prevMissingListContent");
 
   // ===== Login / Logout =====
   $("btnLogout1").addEventListener("click", doLogout);
@@ -2084,6 +2196,10 @@
     $("weekKeyLabelGer").innerText = currentWeekKey;
     $("weekKeyLabelEscala").innerText = currentWeekKey;
     $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+
+    $("prevWeekKeyLabelGer").innerText = prevWeekKeyStr || "-";
+    $("prevWeekKeyLabelTasks").innerText = prevWeekKeyStr || "-";
+    $("prevWeekKeyLabelMissing").innerText = prevWeekKeyStr || "-";
 
     await ensureEmployeesConfig();
     renderEmployeesUI();
@@ -2167,19 +2283,21 @@
     });
 
     // tasks realtime
-    const tasksQ = query(tasksColRef(), orderBy("createdAt","desc"), limit(900));
+    const tasksQ = query(tasksColRef(), orderBy("createdAt","desc"), limit(1200));
     onSnapshot(tasksQ, (qs)=>{
       const all = qs.docs.map(d => ({ id:d.id, ...d.data() }));
       tasksDone = all.filter(x=>x.weekKey === currentWeekKey);
+      tasksDonePrev = all.filter(x=>x.weekKey === prevWeekKeyStr);
       if (currentUser === "GERENTE") renderManager();
       if (currentUser && currentUser !== "GERENTE") renderEmployee();
     });
 
     // missing realtime
-    const missQ = query(missingColRef(), orderBy("createdAt","desc"), limit(900));
+    const missQ = query(missingColRef(), orderBy("createdAt","desc"), limit(1200));
     onSnapshot(missQ, (qs)=>{
       const all = qs.docs.map(d => ({ id:d.id, ...d.data() }));
       missingReports = all.filter(x=>x.weekKey === currentWeekKey);
+      missingPrev = all.filter(x=>x.weekKey === prevWeekKeyStr);
       if (currentUser === "GERENTE") renderManager();
     });
 
