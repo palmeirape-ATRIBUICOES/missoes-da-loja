@@ -46,7 +46,18 @@
 <section id="login" class="max-w-3xl mx-auto bg-white p-4 rounded-xl shadow">
   <h2 class="text-lg font-semibold mb-3">Entrar</h2>
 
-  <div class="grid md:grid-cols-3 gap-3">
+  <div class="grid md:grid-cols-4 gap-3">
+    <div class="md:col-span-1">
+      <label class="text-sm text-gray-700">Loja</label>
+      <select id="storeSelect" class="w-full border p-2 rounded">
+        <option value="loja_principal">Loja Principal</option>
+        <option value="loja_bogados">Bogados</option>
+      </select>
+      <p class="text-xs text-gray-500 mt-1">
+        Cada loja é um sistema separado.
+      </p>
+    </div>
+
     <div class="md:col-span-1">
       <label class="text-sm text-gray-700">Usuário</label>
       <select id="userSelect" class="w-full border p-2 rounded">
@@ -126,6 +137,7 @@
         <h2 class="text-xl font-semibold">Usuário: <span id="userName"></span></h2>
         <p class="text-sm text-gray-700">Pontos do mês: <span id="monthPointsInline">0</span></p>
         <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabel">-</span></p>
+        <p class="text-xs text-gray-500">Loja: <span id="storeLabelEmp">-</span></p>
       </div>
       <div class="flex gap-2">
         <button id="btnMissing" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
@@ -157,6 +169,7 @@
       <div>
         <h2 class="text-xl font-semibold">Painel do Gerente</h2>
         <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelGer">-</span></p>
+        <p class="text-xs text-gray-500">Loja: <span id="storeLabelGer">-</span></p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button id="btnResetWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
@@ -297,6 +310,10 @@
     </div>
 
     <div id="employeeTable" class="mt-3 space-y-2"></div>
+
+    <p class="text-xs text-gray-500 mt-3">
+      Obs: Cada loja tem sua própria lista de funcionários (separada).
+    </p>
   </div>
 
   <div class="bg-white p-4 rounded-xl shadow mt-4">
@@ -322,7 +339,7 @@
     </div>
 
     <p class="text-xs text-gray-500 mt-2">
-      PIN mestre inicial do gerente: <b>1234</b> só se o gerente ainda não tiver PIN criado.
+      PIN mestre inicial do gerente (primeiro acesso): <b>1234</b>
     </p>
   </div>
 </section>
@@ -331,12 +348,9 @@
   // =========================
   // ✅ ANTI-CACHE (PWA / SW)
   // =========================
-  const BUILD_ID = "2026-02-04-anti-cache-1";
+  const BUILD_ID = "2026-02-04-store-split-1";
   console.log("BUILD_ID", BUILD_ID);
 
-  // Se você já instalou como PWA ou rodou versão antiga com service worker,
-  // ele pode estar te servindo a versão antiga (com query que pede índice).
-  // Isso remove tudo automaticamente.
   try {
     if ("serviceWorker" in navigator) {
       const regs = await navigator.serviceWorker.getRegistrations();
@@ -403,9 +417,27 @@
     appId: "1:198254465545:web:dce028792e2c2c57161ed8"
   };
 
-  const STORE_ID = "loja_principal";
-  const SESSION_KEY = "mdl_session_v1";
+  // ====== Lojas separadas (sistemas separados) ======
+  const STORES = {
+    loja_principal: {
+      id: "loja_principal",
+      label: "Loja Principal",
+      managerUser: "GERENTE",
+      allowClaudiaEscala: true
+    },
+    loja_bogados: {
+      id: "loja_bogados",
+      label: "Bogados",
+      managerUser: "BOGADOS - GERENTE",
+      allowClaudiaEscala: false
+    }
+  };
+
   const MASTER_MANAGER_PIN = "1234";
+
+  // Session / persist
+  const LAST_STORE_KEY = "mdl_last_store_v1";
+  const SESSION_KEY = "mdl_session_v2"; // inclui store dentro
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
@@ -431,6 +463,44 @@
     box.innerText = msg;
   }
 
+  // ===== State =====
+  let currentStoreId = "loja_principal";
+  let currentUser = "";
+  let currentWeekKey = "";
+  let employees = [];
+  let data = {};
+  let scoresDoc = {};
+  let tasksAll = [];
+  let missingAll = [];
+  let tasksDone = [];
+  let missingReports = [];
+  let globalTask = null;
+  let escala = null;
+  let globalTemplates = [];
+  let escalaLocalEmployee = null;
+  let escalaLocalGer = null;
+
+  // unsubscribers (para trocar de loja sem misturar)
+  let unsubs = [];
+
+  function getStoreCfg(){
+    return STORES[currentStoreId] || STORES.loja_principal;
+  }
+  function isManager(user){
+    return user && user === getStoreCfg().managerUser;
+  }
+
+  // ===== Refs (dependem da loja) =====
+  const cfgCatsRef = () => doc(db,"stores",currentStoreId,"config","categories");
+  const cfgAppRef  = () => doc(db,"stores",currentStoreId,"config","app");
+  const cfgGlobalTplRef = () => doc(db,"stores",currentStoreId,"config","global_templates");
+  const scoresRef  = () => doc(db,"stores",currentStoreId,"state","scores");
+  const metaRef    = () => doc(db,"stores",currentStoreId,"meta","app");
+  const userRef    = (user) => doc(db,"stores",currentStoreId,"users",user);
+  const escalaRef  = (wk) => doc(db,"stores",currentStoreId,"state","escala_"+wk);
+  const globalRef  = (wk) => doc(db,"stores",currentStoreId,"state","global_"+wk);
+
+  // ===== util =====
   function show(section){
     ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
     $(section).classList.remove("hidden");
@@ -441,8 +511,6 @@
   function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
   function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
   function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
-
-  // ✅ Normaliza weekKey antigo "2026-W5" para "2026-W05"
   function normalizeWeekKeyLoose(wk){
     const s = String(wk || "").trim();
     const m = s.match(/^(\d{4})-W(\d{1,2})$/i);
@@ -451,79 +519,25 @@
     const w = String(Number(m[2])).padStart(2,"0");
     return `${y}-W${w}`;
   }
-
-  // ====== State ======
-  let data = {};
-  let scoresDoc = {};
-  let tasksAll = [];
-  let missingAll = [];
-  let tasksDone = [];
-  let missingReports = [];
-  let currentUser = "";
-  let currentWeekKey = "";
-  let employees = [];
-  let globalTask = null;
-  let escala = null;
-
-  let globalTemplates = [];
-  let escalaLocalEmployee = null;
-  let escalaLocalGer = null;
-
-  // ===== Refs =====
-  const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
-  const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
-  const cfgGlobalTplRef = () => doc(db,"stores",STORE_ID,"config","global_templates");
-  const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
-  const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
-  const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
-  const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
-  const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
-
-  // ===== Top bar =====
-  function monthKey(date){
-    const y = date.getFullYear();
-    const m = String(date.getMonth()+1).padStart(2,"0");
-    return `${y}-${m}`;
-  }
-  function getMonthPoints(user){
-    const mk = monthKey(new Date());
-    const ms = scoresDoc?.monthScores?.[mk] || {};
-    return Number(ms?.[user] || 0);
-  }
-  function updateTopBar(){
-    const topTitle = $("topTitle");
-    const topSubtitle = $("topSubtitle");
-    const pointsBox = $("topPointsBox");
-
-    if (!currentUser){
-      topTitle.innerText = "Entrar";
-      topSubtitle.innerText = "Login por PIN";
-      pointsBox.classList.add("hidden");
-      pointsBox.classList.remove("flex");
-      return;
-    }
-
-    if (currentUser === "GERENTE"){
-      topTitle.innerText = "Gerente";
-      topSubtitle.innerText = "Painel administrativo";
-      pointsBox.classList.add("hidden");
-      pointsBox.classList.remove("flex");
-      return;
-    }
-
-    topTitle.innerText = currentUser;
-    topSubtitle.innerText = "Acompanhe suas tarefas";
-    const pts = getMonthPoints(currentUser);
-    $("monthPointsTop").innerText = pts;
-    pointsBox.classList.remove("hidden");
-    pointsBox.classList.add("flex");
-  }
-
-  // ===== SHA-256 =====
   async function sha256(str){
     const enc = new TextEncoder().encode(str);
     const buf = await crypto.subtle.digest("SHA-256", enc);
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+
+  // ===== Sessão =====
+  function saveSession(user){
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ user, storeId: currentStoreId, at: Date.now() }));
+    localStorage.setItem(LAST_STORE_KEY, currentStoreId);
+  }
+  function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+  function getSession(){
+    try{
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      return (obj && obj.user && obj.storeId) ? obj : null;
+    } catch(e){ return null; }
   }
 
   // ===== Semana ISO =====
@@ -556,21 +570,9 @@
     currentWeekKey = saved;
   }
 
-  // ===== Sessão =====
-  function saveSession(user){ localStorage.setItem(SESSION_KEY, JSON.stringify({ user, at: Date.now() })); }
-  function clearSession(){ localStorage.removeItem(SESSION_KEY); }
-  function getSession(){
-    try{
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (!raw) return null;
-      const obj = JSON.parse(raw);
-      return obj && obj.user ? obj : null;
-    } catch(e){ return null; }
-  }
-
-  // ===== Funcionários =====
-  const defaultEmployeesLegacy = ["Sandra","Thauane","Ingrid","Claudia","DADA"];
-  const defaultEmployees = defaultEmployeesLegacy.map(n => ({ name: n, active: true }));
+  // ===== Funcionários (por loja) =====
+  const defaultEmployeesPrincipal = ["Sandra","Thauane","Ingrid","Claudia","DADA"].map(n => ({ name:n, active:true }));
+  const defaultEmployeesBogados = [{ name: "bogados", active: true }];
 
   function isEmployeeActive(name){
     const n = normalizeName(name);
@@ -586,10 +588,11 @@
 
   async function ensureEmployeesConfig(){
     const snap = await getDoc(cfgAppRef());
+    const def = (currentStoreId === "loja_bogados") ? defaultEmployeesBogados : defaultEmployeesPrincipal;
 
     if (!snap.exists()){
-      await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
-      employees = clone(defaultEmployees);
+      await setDoc(cfgAppRef(), { employees: def, updatedAt: serverTimestamp() }, { merge:true });
+      employees = clone(def);
       return;
     }
 
@@ -603,14 +606,12 @@
     }
 
     if (!Array.isArray(raw) || raw.length === 0){
-      await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
-      employees = clone(defaultEmployees);
+      await setDoc(cfgAppRef(), { employees: def, updatedAt: serverTimestamp() }, { merge:true });
+      employees = clone(def);
       return;
     }
 
-    employees = raw
-      .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name);
+    employees = raw.map(x => ({ name: normalizeName(x?.name), active: !!x?.active })).filter(x=>x.name);
 
     const seen = new Set();
     employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
@@ -619,7 +620,7 @@
   async function setEmployees(next){
     const cleaned = next
       .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name && x.name.toUpperCase() !== "GERENTE");
+      .filter(x => x.name && x.name.toUpperCase() !== getStoreCfg().managerUser.toUpperCase());
 
     const seen = new Set();
     const unique = cleaned.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
@@ -630,7 +631,7 @@
   async function addEmployee(name){
     name = normalizeName(name);
     if (!name) return toast("Digite um nome.");
-    if (name.toUpperCase() === "GERENTE") return toast("Nome inválido.");
+    if (name.toUpperCase() === getStoreCfg().managerUser.toUpperCase()) return toast("Nome inválido.");
     if (employees.some(e => e.name === name)) return toast("Esse funcionário já existe.");
 
     const next = employees.concat([{ name, active: true }]);
@@ -646,18 +647,23 @@
     const loginSel = $("userSelect");
     loginSel.innerHTML = "";
     loginSel.appendChild(new Option("Selecione", ""));
-    loginSel.appendChild(new Option("Gerente", "GERENTE"));
+
+    // manager da loja atual
+    loginSel.appendChild(new Option(getStoreCfg().managerUser, getStoreCfg().managerUser));
+
+    // funcionários ativos da loja atual
     activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
 
-    const namesAll = allNames();
     const addUser = $("addUser");
     const pinUser = $("pinUser");
+
+    const namesAll = allNames();
 
     addUser.innerHTML = "";
     namesAll.forEach(n => addUser.appendChild(new Option(n,n)));
 
     pinUser.innerHTML = "";
-    pinUser.appendChild(new Option("GERENTE", "GERENTE"));
+    pinUser.appendChild(new Option(getStoreCfg().managerUser, getStoreCfg().managerUser));
     namesAll.forEach(n => pinUser.appendChild(new Option(n,n)));
 
     renderEmployeeTable();
@@ -687,7 +693,7 @@
         : "bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm";
       btn.innerText = e.active ? "Bloquear" : "Ativar";
       btn.onclick = async ()=>{
-        if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+        if (!isManager(currentUser)) return toast("Apenas o gerente.");
         const next = employees.map(x => x.name===e.name ? ({...x, active: !x.active}) : x);
         await setEmployees(next);
       };
@@ -698,8 +704,8 @@
     });
   }
 
-  // ===== Categorias base =====
-  const defaultData = {
+  // ===== Categorias base (por loja) =====
+  const defaultDataPrincipal = {
     Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
     Thauane: {
       "Ambev (Segunda)": [
@@ -727,13 +733,19 @@
     DADA: { "Mineirinho (Terca)": ["Mineirinho 2L","Mineirinho 350ml"] }
   };
 
+  const defaultDataBogados = {
+    bogados: {
+      "Rotina (Bogados)": ["Abrir caixa", "Verificar estoque", "Limpeza rápida", "Conferir geladeira"]
+    }
+  };
+
   // ===== PIN =====
   async function ensureUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (snap.exists()) return { created:false };
     await setDoc(userRef(user), {
       user,
-      role: (user === "GERENTE") ? "manager" : "employee",
+      role: isManager(user) ? "manager" : "employee",
       pinHash: await sha256(pin),
       createdAt: serverTimestamp()
     }, { merge:true });
@@ -743,7 +755,8 @@
   async function verifyUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (!snap.exists()){
-      if (user === "GERENTE" && pin === MASTER_MANAGER_PIN){
+      // primeiro acesso do gerente com PIN mestre
+      if (isManager(user) && pin === MASTER_MANAGER_PIN){
         await ensureUserPin(user, pin);
         return { ok:true, usedMaster:true };
       }
@@ -753,12 +766,17 @@
     return { ok: (await sha256(pin)) === pinHash, noUser:false };
   }
 
-  function isCategoryDoneThisWeek(user, cat){
-    const wk = normalizeWeekKeyLoose(currentWeekKey);
-    return tasksDone.some(t => t.user === user && t.categoria === cat && normalizeWeekKeyLoose(t.weekKey) === wk);
+  // ===== Pontos mensal =====
+  function monthKey(date){
+    const y = date.getFullYear();
+    const m = String(date.getMonth()+1).padStart(2,"0");
+    return `${y}-${m}`;
   }
-
-  // ===== Scores (MENSAL) =====
+  function getMonthPoints(user){
+    const mk = monthKey(new Date());
+    const ms = scoresDoc?.monthScores?.[mk] || {};
+    return Number(ms?.[user] || 0);
+  }
   async function ensureScoresDoc(){
     const sSnap = await getDoc(scoresRef());
     if (!sSnap.exists()){
@@ -769,7 +787,6 @@
     scoresDoc = sSnap.data() || {};
     if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
   }
-
   async function bumpMonthlyScore(user, delta){
     const mk = monthKey(new Date());
     await updateDoc(scoresRef(), {
@@ -777,7 +794,6 @@
       updatedAt: serverTimestamp()
     });
   }
-
   async function resetStarsThisMonth(){
     const mk = monthKey(new Date());
     const active = activeNames();
@@ -786,66 +802,49 @@
     await updateDoc(scoresRef(), updates);
   }
 
-  // ===== GLOBAL (semana) =====
+  // ===== Top bar =====
+  function updateTopBar(){
+    const topTitle = $("topTitle");
+    const topSubtitle = $("topSubtitle");
+    const pointsBox = $("topPointsBox");
+
+    if (!currentUser){
+      topTitle.innerText = "Entrar";
+      topSubtitle.innerText = "Login por PIN";
+      pointsBox.classList.add("hidden");
+      pointsBox.classList.remove("flex");
+      return;
+    }
+
+    if (isManager(currentUser)){
+      topTitle.innerText = currentUser;
+      topSubtitle.innerText = "Painel administrativo";
+      pointsBox.classList.add("hidden");
+      pointsBox.classList.remove("flex");
+      return;
+    }
+
+    topTitle.innerText = currentUser;
+    topSubtitle.innerText = getStoreCfg().label;
+    const pts = getMonthPoints(currentUser);
+    $("monthPointsTop").innerText = pts;
+    pointsBox.classList.remove("hidden");
+    pointsBox.classList.add("flex");
+  }
+
+  // ===== Global =====
   function getGlobalStatusText(){
     if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL publicada nesta semana.";
     if (globalTask.status === "completed") return `GLOBAL concluída por ${globalTask.completedBy} em ${globalTask.completedAtHuman || ""}`;
     if (globalTask.status === "open") return `GLOBAL pendente: ${globalTask.name || "(sem nome)"} (aguardando conclusão)`;
     return "GLOBAL: estado desconhecido.";
   }
-
-  async function publishGlobalTaskFromTemplate(tpl){
-    const ref = globalRef(currentWeekKey);
-    const snap = await getDoc(ref);
-    if (snap.exists()){
-      const g = snap.data();
-      if (g?.exists) throw new Error("Já existe GLOBAL nesta semana.");
-    }
-
-    await setDoc(ref, {
-      exists: true,
-      weekKey: currentWeekKey,
-      status: "open",
-      name: tpl.name,
-      items: tpl.items || [],
-      templateId: tpl.id || "",
-      createdAt: serverTimestamp(),
-      createdAtHuman: nowHuman()
-    }, { merge:false });
-  }
-
-  async function completeGlobalTaskAsFirst(user, itensQtd){
-    const ref = globalRef(currentWeekKey);
-    await runTransaction(db, async (tx)=>{
-      const snap = await tx.get(ref);
-      if (!snap.exists()) throw new Error("GLOBAL não existe.");
-      const g = snap.data();
-      if (!g.exists || g.status !== "open") throw new Error("GLOBAL já foi concluída.");
-      tx.update(ref, {
-        status: "completed",
-        completedBy: user,
-        completedAt: serverTimestamp(),
-        completedAtHuman: nowHuman()
-      });
-    });
-
-    await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
-      user,
-      categoria: "[GLOBAL] " + (globalTask?.name || "GLOBAL"),
-      itens: itensQtd || {},
-      when: nowHuman(),
-      weekKey: currentWeekKey,
-      createdAt: serverTimestamp()
-    });
-
-    await bumpMonthlyScore(user, 10);
-  }
-
-  // ===== GLOBAL TEMPLATES =====
   function sanitizeItemsFromInput(raw){
     return raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : [];
   }
-
+  function findTemplateById(id){
+    return (globalTemplates || []).find(t=>t.id === id);
+  }
   function renderGlobalTplDropdown(){
     const sel = $("globalTplSelect");
     if (!sel) return;
@@ -858,7 +857,6 @@
 
     if (prev && ordered.some(t=>t.id===prev)) sel.value = prev;
   }
-
   async function ensureGlobalTemplatesDoc(){
     const snap = await getDoc(cfgGlobalTplRef());
     if (!snap.exists()){
@@ -869,7 +867,6 @@
     const raw = snap.data().templates;
     globalTemplates = Array.isArray(raw) ? raw : [];
   }
-
   async function saveGlobalTemplate(name, items){
     name = normalizeCat(name);
     if (!name) throw new Error("Nome do template vazio.");
@@ -885,19 +882,57 @@
 
     await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
   }
-
   async function deleteGlobalTemplateById(id){
     const next = (globalTemplates || []).filter(t=>t.id !== id);
     await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
   }
+  async function publishGlobalTaskFromTemplate(tpl){
+    const ref = globalRef(currentWeekKey);
+    const snap = await getDoc(ref);
+    if (snap.exists()){
+      const g = snap.data();
+      if (g?.exists) throw new Error("Já existe GLOBAL nesta semana.");
+    }
+    await setDoc(ref, {
+      exists: true,
+      weekKey: currentWeekKey,
+      status: "open",
+      name: tpl.name,
+      items: tpl.items || [],
+      templateId: tpl.id || "",
+      createdAt: serverTimestamp(),
+      createdAtHuman: nowHuman()
+    }, { merge:false });
+  }
+  async function completeGlobalTaskAsFirst(user, itensQtd){
+    const ref = globalRef(currentWeekKey);
+    await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(ref);
+      if (!snap.exists()) throw new Error("GLOBAL não existe.");
+      const g = snap.data();
+      if (!g.exists || g.status !== "open") throw new Error("GLOBAL já foi concluída.");
+      tx.update(ref, {
+        status: "completed",
+        completedBy: user,
+        completedAt: serverTimestamp(),
+        completedAtHuman: nowHuman()
+      });
+    });
 
-  function findTemplateById(id){
-    return (globalTemplates || []).find(t=>t.id === id);
+    await addDoc(collection(db,"stores",currentStoreId,"tasks"), {
+      user,
+      categoria: "[GLOBAL] " + (globalTask?.name || "GLOBAL"),
+      itens: itensQtd || {},
+      when: nowHuman(),
+      weekKey: currentWeekKey,
+      createdAt: serverTimestamp()
+    });
+
+    await bumpMonthlyScore(user, 10);
   }
 
-  // ===== ESCALA =====
+  // ===== Escala =====
   const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
-
   function emptyEscala(){
     const days = {};
     for (const d of DAYS) days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
@@ -905,7 +940,9 @@
   }
 
   function canEditEscala(){
-    return currentUser === "GERENTE" || currentUser === "Claudia";
+    if (isManager(currentUser)) return true;
+    // Claudia só na loja principal (como você pediu anteriormente)
+    return getStoreCfg().allowClaudiaEscala && currentUser === "Claudia";
   }
 
   function validateEscala(obj){
@@ -1005,7 +1042,6 @@
     view.appendChild(box);
   }
 
-  // ===== ESCALA EDITOR =====
   function buildSelect(options, value){
     const sel = document.createElement("select");
     sel.className = "border p-2 rounded w-full";
@@ -1014,7 +1050,6 @@
     sel.value = value || "";
     return sel;
   }
-
   function setSelectOptions(selectEl, options, keepValue){
     const current = keepValue || "";
     selectEl.innerHTML = "";
@@ -1144,7 +1179,7 @@
     }
   }
 
-  // ===== Ranking mensal (gerente) =====
+  // ===== Ranking mensal =====
   function renderRanking(){
     const mk = monthKey(new Date());
     $("monthKeyLabelGer").innerText = mk;
@@ -1187,6 +1222,12 @@
     });
   }
 
+  // ===== Tarefas concluídas =====
+  function isCategoryDoneThisWeek(user, cat){
+    const wk = normalizeWeekKeyLoose(currentWeekKey);
+    return tasksDone.some(t => t.user === user && t.categoria === cat && normalizeWeekKeyLoose(t.weekKey) === wk);
+  }
+
   // ===== Render funcionário =====
   function renderEmployee(){
     if (!isEmployeeActive(currentUser)){
@@ -1195,6 +1236,8 @@
       show("login");
       return;
     }
+
+    $("storeLabelEmp").innerText = getStoreCfg().label;
 
     $("userName").innerText = currentUser;
     $("weekKeyLabel").innerText = currentWeekKey;
@@ -1345,7 +1388,7 @@
         btn.innerText = "Salvando...";
 
         try{
-          await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
+          await addDoc(collection(db,"stores",currentStoreId,"tasks"), {
             user: currentUser,
             categoria: cat,
             itens: itensQtd,
@@ -1377,6 +1420,7 @@
   function renderManager(){
     $("weekKeyLabelGer").innerText = currentWeekKey;
     $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+    $("storeLabelGer").innerText = getStoreCfg().label;
 
     if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
     renderRanking();
@@ -1426,7 +1470,7 @@
         div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
           if (!confirm("Excluir esta tarefa concluída?")) return;
           try{
-            await deleteDoc(doc(db,"stores",STORE_ID,"tasks", r.id));
+            await deleteDoc(doc(db,"stores",currentStoreId,"tasks", r.id));
             toast("Tarefa excluída.");
           } catch(e){
             console.error(e);
@@ -1459,7 +1503,7 @@
         div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
           if (!confirm("Excluir este item em falta?")) return;
           try{
-            await deleteDoc(doc(db,"stores",STORE_ID,"missing", r.id));
+            await deleteDoc(doc(db,"stores",currentStoreId,"missing", r.id));
             toast("Falta excluída.");
           } catch(e){
             console.error(e);
@@ -1470,187 +1514,24 @@
     }
   }
 
+  // ===== Collapse =====
   function setupCollapse(btnId, contentId){
     const btn = $(btnId);
     const content = $(contentId);
     if (!btn || !content) return;
-
     btn.addEventListener("click", ()=>{
       const hidden = content.classList.toggle("hidden");
       btn.innerText = hidden ? "Expandir" : "Minimizar";
     });
   }
-
   setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
   setupCollapse("btnToggleEscalaGer", "escalaGerContent");
   setupCollapse("btnToggleRanking", "rankingContent");
 
-  $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
-  $("missingSave").addEventListener("click", async ()=>{
-    const raw = $("missingInput").value.trim();
-    if (!raw) return toast("Digite o item em falta.");
-
-    await addDoc(collection(db,"stores",STORE_ID,"missing"), {
-      user: currentUser,
-      item: raw,
-      when: nowHuman(),
-      weekKey: currentWeekKey,
-      createdAt: serverTimestamp()
-    });
-
-    $("missingInput").value = "";
-    $("missingBox").classList.add("hidden");
-    toast("Registrado!");
-  });
-
-  $("btnSaveTpl").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const name = normalizeCat($("tplName").value);
-    const items = sanitizeItemsFromInput($("tplItems").value.trim());
-    if (!name) return toast("Digite o nome do template.");
-    if (!items.length) return toast("Digite pelo menos 1 item.");
-    try{
-      await saveGlobalTemplate(name, items);
-      $("tplName").value = "";
-      $("tplItems").value = "";
-      toast("Template salvo.");
-    } catch(e){
-      console.error(e);
-      toast(String(e?.message || "Erro ao salvar template."));
-    }
-  });
-
-  $("btnDeleteTpl").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const id = $("globalTplSelect").value;
-    if (!id) return toast("Selecione um template.");
-    const tpl = findTemplateById(id);
-    if (!tpl) return toast("Template não encontrado.");
-    if (!confirm(`Excluir template "${tpl.name}"?`)) return;
-    try{
-      await deleteGlobalTemplateById(id);
-      toast("Template excluído.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao excluir template.");
-    }
-  });
-
-  $("btnPublishGlobalFromTpl").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const id = $("globalTplSelect").value;
-    if (!id) return toast("Selecione um template.");
-    const tpl = findTemplateById(id);
-    if (!tpl) return toast("Template não encontrado.");
-
-    if (!confirm(`Publicar GLOBAL desta semana usando "${tpl.name}"?`)) return;
-
-    try{
-      await publishGlobalTaskFromTemplate(tpl);
-      toast("GLOBAL publicada para esta semana.");
-    } catch(e){
-      console.error(e);
-      toast(String(e?.message || "Erro ao publicar GLOBAL."));
-    }
-  });
-
-  $("btnAddEmployee").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const name = $("newEmployeeName").value;
-    $("newEmployeeName").value = "";
-    try{ await addEmployee(name); }catch(e){ console.error(e); toast("Erro ao adicionar funcionário."); }
-  });
-
-  $("btnRefreshEmployees").addEventListener("click", ()=>{
-    renderEmployeesUI();
-    toast("Lista recarregada.");
-  });
-
-  $("btnAddCategory").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("addUser").value;
-    const cat = normalizeCat($("categoriaNome").value);
-    const items = $("itensCategoria").value.trim();
-    if (!u) return toast("Selecione o funcionário.");
-    if (!cat) return toast("Informe o nome da categoria");
-
-    const newData = clone(data || {});
-    if (!newData[u]) newData[u] = {};
-    newData[u][cat] = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
-
-    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
-    $("categoriaNome").value = "";
-    $("itensCategoria").value = "";
-    toast("Categoria atualizada.");
-  });
-
-  $("btnSetPin").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const u = $("pinUser").value;
-    const p = $("pinNew").value.trim();
-    if (!u) return toast("Selecione o usuário.");
-    if (!isValidPin(p)) return toast("Novo PIN precisa ter 4 dígitos.");
-
-    await setDoc(userRef(u), {
-      user: u,
-      role: (u === "GERENTE") ? "manager" : "employee",
-      pinHash: await sha256(p),
-      updatedAt: serverTimestamp()
-    }, { merge:true });
-
-    $("pinNew").value = "";
-    toast("PIN definido.");
-  });
-
-  $("btnExport").addEventListener("click", ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente exporta.");
-
-    const header = ["tipo","usuario","categoria","quando","detalhes"];
-    let csv = header.join(",") + "\n";
-
-    tasksDone.forEach((r)=>{
-      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {})].map(csvCell).join(",") + "\n";
-    });
-    missingReports.forEach((r)=>{
-      csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item })].map(csvCell).join(",") + "\n";
-    });
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "relatorio_" + currentWeekKey + ".csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  });
-
-  function csvCell(v){
-    const s = String(v == null ? "" : v);
-    if (/[\n\r,"]/g.test(s)) return '"' + s.replaceAll('"', '""') + '"';
-    return s;
-  }
-
-  $("btnResetWeek").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
-
-    try{
-      await deleteByWeek("tasks", currentWeekKey);
-      await deleteByWeek("missing", currentWeekKey);
-
-      try{ await deleteDoc(globalRef(currentWeekKey)); }catch(e){}
-      try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
-
-      toast("Semana zerada.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao zerar semana.");
-    }
-  });
-
+  // ===== Delete helpers =====
   async function deleteByWeek(colName, wk){
-    const colRef = collection(db, "stores", STORE_ID, colName);
-    const q = query(colRef, where("weekKey","==",wk), limit(450)); // ✅ sem orderBy => sem índice composto
+    const colRef = collection(db, "stores", currentStoreId, colName);
+    const q = query(colRef, where("weekKey","==",wk), limit(450)); // sem índice composto
     const snap = await getDocs(q);
     if (snap.empty) return;
 
@@ -1668,8 +1549,142 @@
     if (snap.docs.length === 450) await deleteByWeek(colName, wk);
   }
 
+  // ===== Actions =====
+  $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
+  $("missingSave").addEventListener("click", async ()=>{
+    const raw = $("missingInput").value.trim();
+    if (!raw) return toast("Digite o item em falta.");
+
+    await addDoc(collection(db,"stores",currentStoreId,"missing"), {
+      user: currentUser,
+      item: raw,
+      when: nowHuman(),
+      weekKey: currentWeekKey,
+      createdAt: serverTimestamp()
+    });
+
+    $("missingInput").value = "";
+    $("missingBox").classList.add("hidden");
+    toast("Registrado!");
+  });
+
+  $("btnSaveTpl").addEventListener("click", async ()=>{
+    if (!isManager(currentUser)) return toast("Apenas o gerente.");
+    const name = normalizeCat($("tplName").value);
+    const items = sanitizeItemsFromInput($("tplItems").value.trim());
+    if (!name) return toast("Digite o nome do template.");
+    if (!items.length) return toast("Digite pelo menos 1 item.");
+    try{
+      await saveGlobalTemplate(name, items);
+      $("tplName").value = "";
+      $("tplItems").value = "";
+      toast("Template salvo.");
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao salvar template."));
+    }
+  });
+
+  $("btnDeleteTpl").addEventListener("click", async ()=>{
+    if (!isManager(currentUser)) return toast("Apenas o gerente.");
+    const id = $("globalTplSelect").value;
+    if (!id) return toast("Selecione um template.");
+    const tpl = findTemplateById(id);
+    if (!tpl) return toast("Template não encontrado.");
+    if (!confirm(`Excluir template "${tpl.name}"?`)) return;
+    try{
+      await deleteGlobalTemplateById(id);
+      toast("Template excluído.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir template.");
+    }
+  });
+
+  $("btnPublishGlobalFromTpl").addEventListener("click", async ()=>{
+    if (!isManager(currentUser)) return toast("Apenas o gerente.");
+    const id = $("globalTplSelect").value;
+    if (!id) return toast("Selecione um template.");
+    const tpl = findTemplateById(id);
+    if (!tpl) return toast("Template não encontrado.");
+    if (!confirm(`Publicar GLOBAL desta semana usando "${tpl.name}"?`)) return;
+    try{
+      await publishGlobalTaskFromTemplate(tpl);
+      toast("GLOBAL publicada para esta semana.");
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao publicar GLOBAL."));
+    }
+  });
+
+  $("btnAddEmployee").addEventListener("click", async ()=>{
+    if (!isManager(currentUser)) return toast("Apenas o gerente.");
+    const name = $("newEmployeeName").value;
+    $("newEmployeeName").value = "";
+    try{ await addEmployee(name); }catch(e){ console.error(e); toast("Erro ao adicionar funcionário."); }
+  });
+
+  $("btnRefreshEmployees").addEventListener("click", ()=>{
+    renderEmployeesUI();
+    toast("Lista recarregada.");
+  });
+
+  $("btnAddCategory").addEventListener("click", async ()=>{
+    if (!isManager(currentUser)) return toast("Apenas o gerente.");
+    const u = $("addUser").value;
+    const cat = normalizeCat($("categoriaNome").value);
+    const items = $("itensCategoria").value.trim();
+    if (!u) return toast("Selecione o funcionário.");
+    if (!cat) return toast("Informe o nome da categoria");
+
+    const newData = clone(data || {});
+    if (!newData[u]) newData[u] = {};
+    newData[u][cat] = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
+
+    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
+    $("categoriaNome").value = "";
+    $("itensCategoria").value = "";
+    toast("Categoria atualizada.");
+  });
+
+  $("btnSetPin").addEventListener("click", async ()=>{
+    if (!isManager(currentUser)) return toast("Apenas o gerente.");
+    const u = $("pinUser").value;
+    const p = $("pinNew").value.trim();
+    if (!u) return toast("Selecione o usuário.");
+    if (!isValidPin(p)) return toast("Novo PIN precisa ter 4 dígitos.");
+
+    await setDoc(userRef(u), {
+      user: u,
+      role: isManager(u) ? "manager" : "employee",
+      pinHash: await sha256(p),
+      updatedAt: serverTimestamp()
+    }, { merge:true });
+
+    $("pinNew").value = "";
+    toast("PIN definido.");
+  });
+
+  $("btnResetWeek").addEventListener("click", async ()=>{
+    if (!isManager(currentUser)) return toast("Apenas o gerente.");
+    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
+
+    try{
+      await deleteByWeek("tasks", currentWeekKey);
+      await deleteByWeek("missing", currentWeekKey);
+
+      try{ await deleteDoc(globalRef(currentWeekKey)); }catch(e){}
+      try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
+
+      toast("Semana zerada.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao zerar semana.");
+    }
+  });
+
   $("btnResetStars").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager(currentUser)) return toast("Apenas o gerente.");
     if (!confirm("Zerar estrelas/pontos do mês para todos os funcionários ativos?")) return;
     try{
       await resetStarsThisMonth();
@@ -1681,7 +1696,7 @@
   });
 
   $("btnDeleteAllTasksWeek").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager(currentUser)) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODAS as tarefas concluídas desta semana?")) return;
     try{
       await deleteByWeek("tasks", currentWeekKey);
@@ -1693,7 +1708,7 @@
   });
 
   $("btnDeleteAllMissingWeek").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager(currentUser)) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODOS os itens em falta desta semana?")) return;
     try{
       await deleteByWeek("missing", currentWeekKey);
@@ -1710,13 +1725,219 @@
   $("btnLogout1").addEventListener("click", doLogout);
   $("btnLogout2").addEventListener("click", doLogout);
 
+  function doLogout(){
+    currentUser = "";
+    clearSession();
+    show("login");
+    updateTopBar();
+  }
+
+  // ===== Export CSV =====
+  function csvCell(v){
+    const s = String(v == null ? "" : v);
+    if (/[\n\r,"]/g.test(s)) return '"' + s.replaceAll('"', '""') + '"';
+    return s;
+  }
+  $("btnExport").addEventListener("click", ()=>{
+    if (!isManager(currentUser)) return toast("Apenas o gerente exporta.");
+
+    const header = ["tipo","usuario","categoria","quando","detalhes"];
+    let csv = header.join(",") + "\n";
+
+    tasksDone.forEach((r)=>{
+      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {})].map(csvCell).join(",") + "\n";
+    });
+    missingReports.forEach((r)=>{
+      csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item })].map(csvCell).join(",") + "\n";
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "relatorio_" + currentStoreId + "_" + currentWeekKey + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  // ===== Store switch =====
+  function stopListeners(){
+    unsubs.forEach(fn => { try{ fn(); }catch(e){} });
+    unsubs = [];
+  }
+
+  async function initStore(storeId){
+    // troca de loja (limpa listeners e states)
+    stopListeners();
+
+    currentStoreId = storeId;
+    globalTask = null;
+    escala = null;
+    tasksAll = [];
+    missingAll = [];
+    tasksDone = [];
+    missingReports = [];
+    scoresDoc = {};
+    globalTemplates = [];
+    data = {};
+    employees = [];
+    warnManager("");
+
+    localStorage.setItem(LAST_STORE_KEY, currentStoreId);
+
+    await ensureWeekKey();
+    await ensureEmployeesConfig();
+    await ensureScoresDoc();
+    await ensureGlobalTemplatesDoc();
+
+    // categorias
+    const catsSnap = await getDoc(cfgCatsRef());
+    const defCats = (currentStoreId === "loja_bogados") ? defaultDataBogados : defaultDataPrincipal;
+
+    if (!catsSnap.exists()){
+      await setDoc(cfgCatsRef(), { data: defCats, updatedAt: serverTimestamp() }, { merge:false });
+      data = clone(defCats);
+    } else {
+      const remote = catsSnap.data().data;
+      data = (remote && typeof remote === "object") ? remote : clone(defCats);
+    }
+
+    // UI login baseada na loja
+    renderEmployeesUI();
+
+    // listeners
+    unsubs.push(onSnapshot(cfgAppRef(), (snap)=>{
+      if (!snap.exists()) return;
+      const raw = snap.data().employees;
+      employees = (Array.isArray(raw) ? raw : [])
+        .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
+        .filter(x => x.name);
+      const seen = new Set();
+      employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
+
+      renderEmployeesUI();
+
+      if (currentUser && !isManager(currentUser) && !isEmployeeActive(currentUser)){
+        clearSession();
+        currentUser = "";
+        toast("Usuário bloqueado. Faça login novamente.");
+        show("login");
+      }
+
+      if (isManager(currentUser)){
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+        renderManager();
+      } else if (currentUser){
+        maybeSetupEscalaUI();
+        renderEmployee();
+      }
+
+      renderRanking();
+    }));
+
+    unsubs.push(onSnapshot(cfgCatsRef(), (snap)=>{
+      const remote = snap.data()?.data;
+      if (remote && typeof remote === "object"){
+        data = remote;
+        if (isManager(currentUser)) renderManager();
+        else if (currentUser) renderEmployee();
+      }
+    }));
+
+    unsubs.push(onSnapshot(scoresRef(), (snap)=>{
+      scoresDoc = snap.data() || {};
+      if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
+      if (currentUser && !isManager(currentUser)){
+        const pts = getMonthPoints(currentUser);
+        $("monthPointsInline").innerText = pts;
+        $("monthPointsTop").innerText = pts;
+      }
+      renderRanking();
+      updateTopBar();
+    }));
+
+    unsubs.push(onSnapshot(cfgGlobalTplRef(), (snap)=>{
+      if (!snap.exists()) globalTemplates = [];
+      else {
+        const raw = snap.data().templates;
+        globalTemplates = Array.isArray(raw) ? raw : [];
+      }
+      renderGlobalTplDropdown();
+    }));
+
+    const TASKS_LIMIT = 2500;
+    const MISSING_LIMIT = 2500;
+
+    const tasksQ = query(collection(db,"stores",currentStoreId,"tasks"), orderBy("createdAt","desc"), limit(TASKS_LIMIT));
+    unsubs.push(onSnapshot(tasksQ, (qs)=>{
+      tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+      const wk = normalizeWeekKeyLoose(currentWeekKey);
+      tasksDone = tasksAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
+
+      if (isManager(currentUser)) renderManager();
+      if (currentUser && !isManager(currentUser)) renderEmployee();
+
+      if (isManager(currentUser) && tasksAll.length > 0 && tasksDone.length === 0){
+        const samples = [...new Set(tasksAll.slice(0,50).map(t=>String(t.weekKey||"").trim()).filter(Boolean))].slice(0,8);
+        if (samples.length) warnManager("Nenhuma tarefa encontrada nesta semana. Exemplos de weekKey existentes: " + samples.join(" | "));
+      }
+    }, (err)=>{
+      console.error("Erro snapshot tasks:", err);
+      warnManager("Erro ao carregar tasks (veja o console).");
+    }));
+
+    const missQ = query(collection(db,"stores",currentStoreId,"missing"), orderBy("createdAt","desc"), limit(MISSING_LIMIT));
+    unsubs.push(onSnapshot(missQ, (qs)=>{
+      missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+      const wk = normalizeWeekKeyLoose(currentWeekKey);
+      missingReports = missingAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
+      if (isManager(currentUser)) renderManager();
+    }, (err)=>{
+      console.error("Erro snapshot missing:", err);
+      warnManager("Erro ao carregar missing (veja o console).");
+    }));
+
+    unsubs.push(onSnapshot(globalRef(currentWeekKey), (snap)=>{
+      if (!snap.exists()) globalTask = null;
+      else globalTask = { id: snap.id, ...snap.data() };
+      if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
+      if (currentUser && !isManager(currentUser)) renderEmployee();
+    }));
+
+    unsubs.push(onSnapshot(escalaRef(currentWeekKey), (snap)=>{
+      if (!snap.exists()) escala = null;
+      else escala = { id: snap.id, ...snap.data() };
+      renderEscalaViewer();
+      if (isManager(currentUser)){
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      }
+      if (currentUser && !isManager(currentUser)){
+        maybeSetupEscalaUI();
+      }
+    }));
+
+    renderGlobalTplDropdown();
+    renderEscalaViewer();
+    renderRanking();
+    updateTopBar();
+
+    // labels loja
+    const storeLabel = getStoreCfg().label;
+    $("storeLabelEmp").innerText = storeLabel;
+    $("storeLabelGer").innerText = storeLabel;
+
+    console.log("STORE READY:", currentStoreId);
+  }
+
+  // ===== Login =====
   $("btnLogin").addEventListener("click", async ()=>{
     const u = $("userSelect").value;
-    const p = $("pin").value;
+    const p = $("pin").value.trim();
     if (!u) return toast("Selecione o usuário.");
     if (!isValidPin(p)) return toast("PIN precisa ter 4 dígitos.");
 
-    if (u !== "GERENTE" && !isEmployeeActive(u)){
+    // bloqueio para funcionário
+    if (!isManager(u) && !isEmployeeActive(u)){
       return toast("Usuário bloqueado. Fale com o gerente.");
     }
 
@@ -1736,7 +1957,7 @@
     $("pin").value = "";
     saveSession(u);
 
-    if (u === "GERENTE"){
+    if (isManager(u)){
       renderManager();
       escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       $("btnSaveEscalaGer").onclick = async ()=>{
@@ -1754,166 +1975,34 @@
     updateTopBar();
   }
 
-  function doLogout(){
+  // ===== Loja selector (login) =====
+  $("storeSelect").addEventListener("change", async ()=>{
+    // ao trocar loja, sempre volta pra tela de login (pra não misturar sessão)
     currentUser = "";
     clearSession();
     show("login");
-  }
+    await initStore($("storeSelect").value);
+  });
 
-  async function cloudInit(){
-    await ensureWeekKey();
+  // ===== Bootstrap =====
+  const savedStore = localStorage.getItem(LAST_STORE_KEY);
+  if (savedStore && STORES[savedStore]) currentStoreId = savedStore;
 
-    $("weekKeyLabel").innerText = currentWeekKey;
-    $("weekKeyLabelGer").innerText = currentWeekKey;
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+  $("storeSelect").value = currentStoreId;
 
-    await ensureEmployeesConfig();
-    renderEmployeesUI();
+  await initStore(currentStoreId);
 
-    await ensureScoresDoc();
-    updateTopBar();
-
-    await ensureGlobalTemplatesDoc();
-    renderGlobalTplDropdown();
-
-    onSnapshot(cfgGlobalTplRef(), (snap)=>{
-      if (!snap.exists()){
-        globalTemplates = [];
-      } else {
-        const raw = snap.data().templates;
-        globalTemplates = Array.isArray(raw) ? raw : [];
-      }
-      renderGlobalTplDropdown();
-    });
-
-    onSnapshot(cfgAppRef(), (snap)=>{
-      if (!snap.exists()) return;
-      const raw = snap.data().employees;
-
-      employees = (Array.isArray(raw) ? raw : [])
-        .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-        .filter(x => x.name);
-
-      const seen = new Set();
-      employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
-
-      renderEmployeesUI();
-
-      if (currentUser && currentUser !== "GERENTE" && !isEmployeeActive(currentUser)){
-        clearSession();
-        currentUser = "";
-        toast("Usuário bloqueado. Faça login novamente.");
-        show("login");
-      }
-
-      if (currentUser === "GERENTE"){
-        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-      } else if (currentUser){
-        maybeSetupEscalaUI();
-      }
-
-      renderRanking();
-    });
-
-    const catsSnap = await getDoc(cfgCatsRef());
-    if (!catsSnap.exists()){
-      await setDoc(cfgCatsRef(), { data: defaultData, updatedAt: serverTimestamp() }, { merge:false });
-      data = clone(defaultData);
-    } else {
-      const remote = catsSnap.data().data;
-      data = (remote && typeof remote === "object") ? remote : clone(defaultData);
-    }
-
-    onSnapshot(cfgCatsRef(), (snap)=>{
-      const remote = snap.data().data;
-      if (remote && typeof remote === "object"){
-        data = remote;
-        if (currentUser && currentUser !== "GERENTE") renderEmployee();
-        if (currentUser === "GERENTE") renderManager();
-      }
-    });
-
-    onSnapshot(scoresRef(), (snap)=>{
-      scoresDoc = snap.data() || {};
-      if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
-
-      if (currentUser && currentUser !== "GERENTE"){
-        const pts = getMonthPoints(currentUser);
-        $("monthPointsInline").innerText = pts;
-        $("monthPointsTop").innerText = pts;
-      }
-      renderRanking();
-      updateTopBar();
-    });
-
-    // ✅✅✅ SEM ÍNDICE COMPOSTO: somente orderBy(createdAt) e filtra no JS
-    const TASKS_LIMIT = 2500;
-    const MISSING_LIMIT = 2500;
-
-    const tasksQ = query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(TASKS_LIMIT));
-    onSnapshot(tasksQ, (qs)=>{
-      tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-      const wk = normalizeWeekKeyLoose(currentWeekKey);
-      tasksDone = tasksAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
-
-      if (currentUser === "GERENTE") renderManager();
-      if (currentUser && currentUser !== "GERENTE") renderEmployee();
-
-      if (currentUser === "GERENTE" && tasksAll.length > 0 && tasksDone.length === 0){
-        const samples = [...new Set(tasksAll.slice(0,50).map(t=>String(t.weekKey||"").trim()).filter(Boolean))].slice(0,8);
-        if (samples.length) warnManager("Nenhuma tarefa encontrada nesta semana. Exemplos de weekKey existentes: " + samples.join(" | "));
-      }
-    }, (err)=>{
-      console.error("Erro snapshot tasks:", err);
-      warnManager("Erro ao carregar tasks (veja o console).");
-    });
-
-    const missQ = query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(MISSING_LIMIT));
-    onSnapshot(missQ, (qs)=>{
-      missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-      const wk = normalizeWeekKeyLoose(currentWeekKey);
-      missingReports = missingAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
-      if (currentUser === "GERENTE") renderManager();
-    }, (err)=>{
-      console.error("Erro snapshot missing:", err);
-      warnManager("Erro ao carregar missing (veja o console).");
-    });
-
-    onSnapshot(globalRef(currentWeekKey), (snap)=>{
-      if (!snap.exists()) globalTask = null;
-      else globalTask = { id: snap.id, ...snap.data() };
-
-      if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
-      if (currentUser && currentUser !== "GERENTE") renderEmployee();
-    });
-
-    onSnapshot(escalaRef(currentWeekKey), (snap)=>{
-      if (!snap.exists()) escala = null;
-      else escala = { id: snap.id, ...snap.data() };
-
-      renderEscalaViewer();
-
-      if (currentUser === "GERENTE"){
-        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-      }
-      if (currentUser && currentUser !== "GERENTE"){
-        maybeSetupEscalaUI();
-      }
-    });
-
-    renderEscalaViewer();
-    renderRanking();
-    updateTopBar();
-  }
-
-  await cloudInit();
-
+  // auto-login se existir sessão
   const ses = getSession();
-  if (ses && ses.user){
+  if (ses && ses.user && ses.storeId && STORES[ses.storeId]){
+    // garante que estamos na mesma loja da sessão
+    if (ses.storeId !== currentStoreId){
+      $("storeSelect").value = ses.storeId;
+      await initStore(ses.storeId);
+    }
     currentUser = ses.user;
 
-    if (currentUser === "GERENTE"){
+    if (isManager(currentUser)){
       renderManager();
       escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       $("btnSaveEscalaGer").onclick = async ()=>{
