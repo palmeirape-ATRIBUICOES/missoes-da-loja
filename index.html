@@ -7,7 +7,6 @@
 
   <meta name="theme-color" content="#2563eb" />
 
-  <!-- Ícone (favicon) em SVG (ALVO) -->
   <link id="appIcon" rel="icon" type="image/svg+xml" href="" />
   <link id="appAppleIcon" rel="apple-touch-icon" href="" />
   <link id="appManifest" rel="manifest" href="" />
@@ -17,11 +16,9 @@
 
 <body class="bg-gray-100 min-h-screen p-4">
 
-<!-- TOP BAR (dinâmico: login ou usuário) -->
 <header class="max-w-4xl mx-auto mb-4">
   <div class="bg-white rounded-xl shadow p-4 flex items-center justify-between gap-3">
     <div class="min-w-0 flex items-center gap-3">
-      <!-- LOGO (ALVO) -->
       <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-700" viewBox="0 0 24 24" fill="currentColor" aria-label="Logo">
           <path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 .001-16.001A8 8 0 0 1 12 20zm0-14a6 6 0 1 0 .001 12.001A6 6 0 0 0 12 6zm0 10a4 4 0 1 1 .001-8.001A4 4 0 0 1 12 16zm0-6a2 2 0 1 0 .001 4.001A2 2 0 0 0 12 10z"/>
@@ -34,7 +31,6 @@
       </div>
     </div>
 
-    <!-- bloco pontos (só quando logado como funcionário) -->
     <div id="topPointsBox" class="hidden items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 17.27l5.18 3.04-1.39-5.99 4.64-4.02-6.12-.53L12 4l-2.31 5.77-6.12.53 4.64 4.02-1.39 5.99L12 17.27z"/>
@@ -47,7 +43,6 @@
   </div>
 </header>
 
-<!-- LOGIN -->
 <section id="login" class="max-w-3xl mx-auto bg-white p-4 rounded-xl shadow">
   <h2 class="text-lg font-semibold mb-3">Entrar</h2>
 
@@ -83,19 +78,13 @@
   </div>
 </section>
 
-<!-- FUNCIONÁRIO -->
 <section id="funcionario" class="hidden max-w-3xl mx-auto">
 
-  <!-- Escala (visível para todos; editor só Claudia e Gerente) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
         <h2 class="text-lg font-semibold">Escala da Semana</h2>
-        <p class="text-xs text-gray-500">
-          Semana atual: <span id="weekKeyLabelEscala">-</span>
-          <span class="mx-2 text-gray-300">|</span>
-          Semana anterior: <span id="weekKeyLabelEscalaPrev">-</span>
-        </p>
+        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscala">-</span></p>
       </div>
 
       <div class="flex items-center gap-2">
@@ -108,26 +97,14 @@
       </div>
     </div>
 
-    <!-- Conteúdo colapsável -->
     <div id="escalaEmpContent" class="mt-3">
-      <!-- Viewer Semana Atual -->
-      <div class="mb-3">
-        <div class="text-xs font-semibold text-gray-700 mb-2">Semana atual</div>
-        <div id="escalaViewer" class="text-sm space-y-2"></div>
-      </div>
+      <div id="escalaViewer" class="text-sm space-y-2"></div>
 
-      <!-- Viewer Semana Anterior -->
-      <div class="border-t pt-3">
-        <div class="text-xs font-semibold text-gray-700 mb-2">Semana anterior</div>
-        <div id="escalaViewerPrev" class="text-sm space-y-2"></div>
-      </div>
-
-      <!-- Editor (só Claudia e Gerente) -->
       <div id="escalaEditorWrap" class="hidden mt-4 border-t pt-4">
         <div class="flex items-center justify-between">
-          <div class="font-semibold text-sm">Editar escala (semana atual)</div>
+          <div class="font-semibold text-sm">Editar escala</div>
           <div class="flex gap-2">
-            <button id="btnClearEscalaEmp" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+            <button id="btnClearEscala" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
               Limpar escala
             </button>
             <button id="btnSaveEscala" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
@@ -143,7 +120,6 @@
     </div>
   </div>
 
-  <!-- topo usuário -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
@@ -172,25 +148,22 @@
     </div>
   </div>
 
-  <!-- Tarefas (inclui GLOBAL + pessoais) -->
   <div id="tasks" class="space-y-4"></div>
 </section>
 
-<!-- GERENTE -->
 <section id="gerente" class="hidden max-w-4xl mx-auto">
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
         <h2 class="text-xl font-semibold">Painel do Gerente</h2>
-        <p class="text-xs text-gray-500">
-          Semana atual: <span id="weekKeyLabelGer">-</span>
-          <span class="mx-2 text-gray-300">|</span>
-          Semana anterior: <span id="weekKeyLabelGerPrev">-</span>
-        </p>
+        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelGer">-</span></p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button id="btnResetWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
           Zerar semana (tudo)
+        </button>
+        <button id="btnResetStars" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
+          Zerar estrelas do mês
         </button>
         <button id="btnExport" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded">
           Exportar CSV
@@ -200,9 +173,9 @@
         </button>
       </div>
     </div>
+    <div id="managerWarn" class="hidden mt-3 text-xs bg-yellow-50 border border-yellow-200 text-yellow-900 rounded p-2"></div>
   </div>
 
-  <!-- Ranking mensal (colapsável) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -219,11 +192,10 @@
     </div>
   </div>
 
-  <!-- GLOBAL: publicar por template + criar templates -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <h3 class="font-semibold mb-2">Tarefas GLOBAIS salvas (Templates)</h3>
     <p class="text-xs text-gray-500 mb-3">
-      Crie templates de GLOBAL e depois publique a GLOBAL da semana escolhendo no dropdown.
+      Crie templates de GLOBAL e depois publique.
       Quem concluir primeiro “trava” e some dos demais.
     </p>
 
@@ -256,28 +228,20 @@
         <input id="tplName" class="border p-2 rounded md:col-span-2" placeholder="Nome do template (ex: Conferir geladeira)" />
         <input id="tplItems" class="border p-2 rounded md:col-span-2" placeholder="Itens separados por vírgula (ex: Coca, Guaraná...)" />
       </div>
-      <p class="text-xs text-gray-500 mt-2">
-        Dica: se quiser “só checklist sem números”, mesmo assim use Qtd e coloque 0 quando for o caso.
-      </p>
     </div>
   </div>
 
-  <!-- Escala (gerente edita semana atual + visualiza semana anterior) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between">
       <div>
         <h3 class="font-semibold">Escala da Semana</h3>
-        <p class="text-xs text-gray-500">
-          Atual: <span id="weekKeyLabelEscalaGer">-</span>
-          <span class="mx-2 text-gray-300">|</span>
-          Anterior: <span id="weekKeyLabelEscalaGerPrev">-</span>
-        </p>
+        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscalaGer">-</span></p>
       </div>
       <div class="flex items-center gap-2">
         <button id="btnToggleEscalaGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
           Minimizar
         </button>
-        <button id="btnClearEscalaGer" class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
+        <button id="btnClearEscalaGer" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
           Limpar escala
         </button>
         <button id="btnSaveEscalaGer" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
@@ -290,40 +254,32 @@
     </p>
 
     <div id="escalaGerContent" class="mt-3">
-      <div class="text-xs font-semibold text-gray-700 mb-2">Editor (semana atual)</div>
       <div id="escalaEditorGer" class="space-y-3"></div>
-
-      <div class="border-t mt-4 pt-4">
-        <div class="text-xs font-semibold text-gray-700 mb-2">Visualização (semana anterior)</div>
-        <div id="escalaViewerGerPrev" class="text-sm space-y-2"></div>
-      </div>
     </div>
   </div>
 
-  <!-- tarefas e faltas (semana atual + anterior) -->
   <div class="grid md:grid-cols-2 gap-4">
     <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Tarefas concluídas (semana atual)</h3>
-      <div id="gerTasks" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
-
-      <div class="border-t mt-4 pt-4">
-        <h3 class="font-semibold mb-2">Tarefas concluídas (semana anterior)</h3>
-        <div id="gerTasksPrev" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
+      <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
+      <div class="flex gap-2 mb-3">
+        <button id="btnDeleteAllTasksWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+          Excluir TODAS tarefas (semana)
+        </button>
       </div>
+      <div id="gerTasks" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
     </div>
 
     <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Itens em falta (semana atual)</h3>
-      <div id="gerMissing" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
-
-      <div class="border-t mt-4 pt-4">
-        <h3 class="font-semibold mb-2">Itens em falta (semana anterior)</h3>
-        <div id="gerMissingPrev" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
+      <h3 class="font-semibold mb-2">Itens em falta</h3>
+      <div class="flex gap-2 mb-3">
+        <button id="btnDeleteAllMissingWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+          Excluir TODAS faltas (semana)
+        </button>
       </div>
+      <div id="gerMissing" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
     </div>
   </div>
 
-  <!-- FUNCIONÁRIOS -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Funcionários (Ativar / Bloquear)</h3>
     <p class="text-xs text-gray-500 mb-3">
@@ -343,7 +299,6 @@
     <div id="employeeTable" class="mt-3 space-y-2"></div>
   </div>
 
-  <!-- CATEGORIAS: ADD/UPDATE -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Adicionar / Atualizar categoria (individual)</h3>
     <div class="grid md:grid-cols-4 gap-2">
@@ -354,12 +309,8 @@
     <button id="btnAddCategory" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded w-full">
       Adicionar / Atualizar categoria
     </button>
-    <p class="text-xs text-gray-500 mt-2">
-      Observação: categorias aqui são checklist com Qtd (número) para cada item.
-    </p>
   </div>
 
-  <!-- PINS -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">PINs</h3>
     <div class="grid md:grid-cols-3 gap-2 mt-2">
@@ -377,7 +328,7 @@
 </section>
 
 <script type="module">
-  // ====== PWA: Manifest + Icon gerados automaticamente (logo ALVO) ======
+  // ====== PWA: Manifest + Icon ======
   const TARGET_SVG = `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
     <defs>
@@ -415,7 +366,6 @@
       { src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
     ]
   };
-
   const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
   const manifestUrl = URL.createObjectURL(manifestBlob);
   const $m = document.getElementById("appManifest");
@@ -447,6 +397,18 @@
 
   const $ = (id) => document.getElementById(id);
   function toast(msg){ alert(msg); }
+  function warnManager(msg){
+    const box = $("managerWarn");
+    if (!box) return;
+    if (!msg){
+      box.classList.add("hidden");
+      box.innerText = "";
+      return;
+    }
+    box.classList.remove("hidden");
+    box.innerText = msg;
+  }
+
   function show(section){
     ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
     $(section).classList.remove("hidden");
@@ -458,22 +420,29 @@
   function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
   function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
 
+  // ✅ Normaliza weekKey antigo "2026-W5" para "2026-W05"
+  function normalizeWeekKeyLoose(wk){
+    const s = String(wk || "").trim();
+    const m = s.match(/^(\d{4})-W(\d{1,2})$/i);
+    if (!m) return s;
+    const y = m[1];
+    const w = String(Number(m[2])).padStart(2,"0");
+    return `${y}-W${w}`;
+  }
+
   // ====== State ======
   let data = {};
   let scoresDoc = {};
+  let tasksAll = [];
+  let missingAll = [];
   let tasksDone = [];
-  let tasksPrevWeek = [];
   let missingReports = [];
-  let missingPrevWeek = [];
   let currentUser = "";
   let currentWeekKey = "";
-  let prevWeekKey = "";
   let employees = [];
   let globalTask = null;
   let escala = null;
-  let escalaPrev = null;
 
-  // Templates globais
   let globalTemplates = [];
   let escalaLocalEmployee = null;
   let escalaLocalGer = null;
@@ -545,34 +514,6 @@
     return d.getUTCFullYear() + "-W" + String(weekNo).padStart(2,"0");
   }
 
-  // ✅ Semana anterior correta por data (evita bug de W01/W52)
-  function prevWeekKeyByDate(currentWk){
-    const [yPart, wPart] = String(currentWk).split("-W");
-    const y = Number(yPart);
-    const w = Number(wPart);
-    if (!Number.isFinite(y) || !Number.isFinite(w)) return currentWk;
-
-    // Pega uma data no meio do ano e calcula a segunda-feira da semana ISO alvo
-    // Estratégia: achar a quinta-feira da semana ISO (define o ano ISO) e voltar para segunda
-    // Aqui usamos uma aproximação robusta:
-    // 1) Começa em 4 de janeiro (sempre na semana 1 ISO)
-    // 2) Vai para a semana desejada somando (w-1)*7 dias
-    // 3) Ajusta para segunda-feira
-    const jan4 = new Date(Date.UTC(y, 0, 4));
-    const jan4Day = jan4.getUTCDay() || 7;
-    const week1Mon = new Date(jan4);
-    week1Mon.setUTCDate(jan4.getUTCDate() - (jan4Day - 1));
-
-    const targetMon = new Date(week1Mon);
-    targetMon.setUTCDate(week1Mon.getUTCDate() + (w - 1) * 7);
-
-    // volta 7 dias para semana anterior
-    const prevMon = new Date(targetMon);
-    prevMon.setUTCDate(targetMon.getUTCDate() - 7);
-
-    return weekKey(new Date(prevMon.getUTCFullYear(), prevMon.getUTCMonth(), prevMon.getUTCDate()));
-  }
-
   async function ensureWeekKey(){
     const snap = await getDoc(metaRef());
     const today = new Date();
@@ -581,7 +522,6 @@
     if (!snap.exists()){
       await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
       currentWeekKey = wk;
-      prevWeekKey = prevWeekKeyByDate(wk);
       return;
     }
 
@@ -589,11 +529,9 @@
     if (today.getDay() === 1 && saved !== wk){
       await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
       currentWeekKey = wk;
-      prevWeekKey = prevWeekKeyByDate(wk);
       return;
     }
     currentWeekKey = saved;
-    prevWeekKey = prevWeekKeyByDate(saved);
   }
 
   // ===== Sessão =====
@@ -682,16 +620,6 @@
     toast("Funcionário adicionado (ativo).");
   }
 
-  function fillSelect(selectEl, values, includeManager=false, placeholder=null){
-    if (!selectEl) return;
-    const prev = selectEl.value;
-    selectEl.innerHTML = "";
-    if (placeholder !== null) selectEl.appendChild(new Option(placeholder, ""));
-    if (includeManager) selectEl.appendChild(new Option("GERENTE", "GERENTE"));
-    values.forEach(v => selectEl.appendChild(new Option(v, v)));
-    if (prev && Array.from(selectEl.options).some(o=>o.value===prev)) selectEl.value = prev;
-  }
-
   function renderEmployeesUI(){
     const loginSel = $("userSelect");
     loginSel.innerHTML = "";
@@ -700,8 +628,15 @@
     activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
 
     const namesAll = allNames();
-    fillSelect($("addUser"), namesAll, false, null);
-    fillSelect($("pinUser"), namesAll, true, null);
+    const addUser = $("addUser");
+    const pinUser = $("pinUser");
+
+    addUser.innerHTML = "";
+    namesAll.forEach(n => addUser.appendChild(new Option(n,n)));
+
+    pinUser.innerHTML = "";
+    pinUser.appendChild(new Option("GERENTE", "GERENTE"));
+    namesAll.forEach(n => pinUser.appendChild(new Option(n,n)));
 
     renderEmployeeTable();
   }
@@ -797,7 +732,8 @@
   }
 
   function isCategoryDoneThisWeek(user, cat){
-    return tasksDone.some(t => t.user === user && t.categoria === cat && t.weekKey === currentWeekKey);
+    const wk = normalizeWeekKeyLoose(currentWeekKey);
+    return tasksDone.some(t => t.user === user && t.categoria === cat && normalizeWeekKeyLoose(t.weekKey) === wk);
   }
 
   // ===== Scores (MENSAL) =====
@@ -818,6 +754,15 @@
       ["monthScores."+mk+"."+user]: increment(delta),
       updatedAt: serverTimestamp()
     });
+  }
+
+  // ===== Zerar estrelas do mês =====
+  async function resetStarsThisMonth(){
+    const mk = monthKey(new Date());
+    const active = activeNames();
+    const updates = { updatedAt: serverTimestamp() };
+    active.forEach(u => updates["monthScores."+mk+"."+u] = 0);
+    await updateDoc(scoresRef(), updates);
   }
 
   // ===== GLOBAL (semana) =====
@@ -988,29 +933,28 @@
 
   async function clearEscala(){
     if (!canEditEscala()) return toast("Sem permissão.");
-    if (!confirm("Limpar a escala da semana atual? (vai ficar tudo em branco)")) return;
-    const obj = emptyEscala();
+    if (!confirm("Limpar a escala desta semana?")) return;
+
     await setDoc(escalaRef(currentWeekKey), {
       exists: true,
       weekKey: currentWeekKey,
-      days: obj.days,
+      days: emptyEscala().days,
       updatedAt: serverTimestamp(),
       updatedAtHuman: nowHuman(),
       updatedBy: currentUser
     }, { merge:false });
+
     toast("Escala limpa.");
   }
 
-  function renderEscalaViewerInto(elId, escalaObj, labelWeekElId){
-    const view = $(elId);
-    if (!view) return;
+  function renderEscalaViewer(){
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    const view = $("escalaViewer");
     view.innerHTML = "";
 
-    if (labelWeekElId && $(labelWeekElId)) $(labelWeekElId).innerText = escalaObj?.weekKey || "-";
-
-    const s = escalaObj && escalaObj.exists ? escalaObj : null;
+    const s = escala && escala.exists ? escala : null;
     if (!s){
-      view.innerHTML = `<div class="text-gray-500">Sem escala cadastrada.</div>`;
+      view.innerHTML = `<div class="text-gray-500">Sem escala cadastrada ainda.</div>`;
       return;
     }
 
@@ -1040,6 +984,7 @@
     view.appendChild(box);
   }
 
+  // ===== ESCALA EDITOR =====
   function buildSelect(options, value){
     const sel = document.createElement("select");
     sel.className = "border p-2 rounded w-full";
@@ -1161,7 +1106,6 @@
 
   function maybeSetupEscalaUI(){
     $("weekKeyLabelEscala").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaPrev").innerText = prevWeekKey;
 
     const can = canEditEscala();
     $("escalaPermLabel").innerText = can ? "Você pode editar" : "Somente leitura";
@@ -1174,7 +1118,7 @@
         if (!escalaLocalEmployee) escalaLocalEmployee = renderEscalaEditor("escalaEditor");
         await saveEscala(escalaLocalEmployee);
       };
-      $("btnClearEscalaEmp").onclick = async ()=>{ await clearEscala(); };
+      $("btnClearEscala").onclick = clearEscala;
     } else {
       editorWrap.classList.add("hidden");
       escalaLocalEmployee = null;
@@ -1244,7 +1188,6 @@
     const container = $("tasks");
     container.innerHTML = "";
 
-    // GLOBAL open
     if (globalTask && globalTask.exists && globalTask.status === "open"){
       const card = document.createElement("div");
       card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
@@ -1311,7 +1254,6 @@
       container.appendChild(card);
     }
 
-    // categorias pessoais
     const cats = data[currentUser] || {};
     const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
     if (!catNames.length){
@@ -1413,87 +1355,102 @@
   }
 
   // ===== Render gerente =====
-  function renderTasksList(containerId, rows){
-    const t = $(containerId);
-    if (!t) return;
-    t.innerHTML = "";
-
-    const ordered = (rows || []).slice(0, 400);
-    if (!ordered.length){
-      t.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa.</p>";
-      return;
-    }
-
-    ordered.forEach((r)=>{
-      const itensObj = r.itens || {};
-      const itensKeys = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
-      const hasItens = itensKeys.length > 0;
-
-      const div = document.createElement("div");
-      div.className = "border rounded p-2 bg-gray-50";
-
-      let html = `
-        <div class="font-semibold">${r.user} - ${r.categoria}</div>
-        <div class="text-xs text-gray-600">${(r.when || "")}</div>
-      `;
-
-      if (hasItens){
-        html += `<div class="mt-2 bg-white rounded p-2 border">`;
-        itensKeys.forEach((k)=>{
-          const q = itensObj[k];
-          html += `
-            <div class="flex items-center justify-between gap-2 border-b last:border-b-0 py-1">
-              <div class="text-sm text-gray-800">${k}</div>
-              <div class="text-sm font-semibold">Qtd ${q}</div>
-            </div>
-          `;
-        });
-        html += `</div>`;
-      }
-
-      div.innerHTML = html;
-      t.appendChild(div);
-    });
-  }
-
-  function renderMissingList(containerId, rows){
-    const m = $(containerId);
-    if (!m) return;
-    m.innerHTML = "";
-    const mo = (rows || []).slice(0, 400);
-    if (!mo.length){
-      m.innerHTML = "<p class='text-gray-500'>Nenhuma falta.</p>";
-      return;
-    }
-    mo.forEach((r)=>{
-      const div = document.createElement("div");
-      div.className = "border rounded p-2 bg-gray-50";
-      div.innerHTML =
-        "<div class='font-semibold'>" + r.user + "</div>" +
-        "<div class='text-xs text-gray-600'>" + (r.when || "") + "</div>" +
-        "<div class='text-sm mt-1'>" + r.item + "</div>";
-      m.appendChild(div);
-    });
-  }
-
   function renderManager(){
     $("weekKeyLabelGer").innerText = currentWeekKey;
-    $("weekKeyLabelGerPrev").innerText = prevWeekKey;
     $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaGerPrev").innerText = prevWeekKey;
 
     if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
-
     renderRanking();
 
-    renderTasksList("gerTasks", tasksDone);
-    renderTasksList("gerTasksPrev", tasksPrevWeek);
+    // tarefas
+    const t = $("gerTasks");
+    t.innerHTML = "";
+    const ordered = tasksDone.slice(0, 350);
 
-    renderMissingList("gerMissing", missingReports);
-    renderMissingList("gerMissingPrev", missingPrevWeek);
+    if (!ordered.length){
+      t.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa nesta semana.</p>";
+    } else {
+      ordered.forEach((r)=>{
+        const itensObj = r.itens || {};
+        const itensKeys = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
+        const hasItens = itensKeys.length > 0;
 
-    // Escala viewers
-    renderEscalaViewerInto("escalaViewerGerPrev", escalaPrev, null);
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 bg-gray-50";
+
+        let html = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="font-semibold">${r.user} - ${r.categoria}</div>
+              <div class="text-xs text-gray-600">${(r.when || "")}</div>
+            </div>
+            <button data-id="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
+          </div>
+        `;
+
+        if (hasItens){
+          html += `<div class="mt-2 bg-white rounded p-2 border">`;
+          itensKeys.forEach((k)=>{
+            const q = itensObj[k];
+            html += `
+              <div class="flex items-center justify-between gap-2 border-b last:border-b-0 py-1">
+                <div class="text-sm text-gray-800">${k}</div>
+                <div class="text-sm font-semibold">Qtd ${q}</div>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+
+        div.innerHTML = html;
+        t.appendChild(div);
+
+        div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
+          if (!confirm("Excluir esta tarefa concluída?")) return;
+          try{
+            await deleteDoc(doc(db,"stores",STORE_ID,"tasks", r.id));
+            toast("Tarefa excluída.");
+          } catch(e){
+            console.error(e);
+            toast("Erro ao excluir tarefa.");
+          }
+        });
+      });
+    }
+
+    // faltas
+    const m = $("gerMissing");
+    m.innerHTML = "";
+    const mo = missingReports.slice(0, 350);
+    if (!mo.length){
+      m.innerHTML = "<p class='text-gray-500'>Nenhuma falta nesta semana.</p>";
+    } else {
+      mo.forEach((r)=>{
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 bg-gray-50";
+        div.innerHTML =
+          `<div class="flex items-start justify-between gap-2">
+            <div>
+              <div class='font-semibold'>${r.user}</div>
+              <div class='text-xs text-gray-600'>${(r.when || "")}</div>
+              <div class='text-sm mt-1'>${r.item}</div>
+            </div>
+            <button data-id="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
+          </div>`;
+        m.appendChild(div);
+
+        div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
+          if (!confirm("Excluir este item em falta?")) return;
+          try{
+            await deleteDoc(doc(db,"stores",STORE_ID,"missing", r.id));
+            toast("Falta excluída.");
+          } catch(e){
+            console.error(e);
+            toast("Erro ao excluir falta.");
+          }
+        });
+      });
+    }
   }
 
   // ===== Colapsar =====
@@ -1507,6 +1464,10 @@
       btn.innerText = hidden ? "Expandir" : "Minimizar";
     });
   }
+
+  setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
+  setupCollapse("btnToggleEscalaGer", "escalaGerContent");
+  setupCollapse("btnToggleRanking", "rankingContent");
 
   // ===== Missing =====
   $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
@@ -1579,7 +1540,7 @@
     }
   });
 
-  // ===== Funcionários add =====
+  // ===== Funcionários add / toggle =====
   $("btnAddEmployee").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
     const name = $("newEmployeeName").value;
@@ -1592,7 +1553,7 @@
     toast("Lista recarregada.");
   });
 
-  // ===== Categories individual =====
+  // ===== Categories individual buttons =====
   $("btnAddCategory").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
     const u = $("addUser").value;
@@ -1634,22 +1595,14 @@
   $("btnExport").addEventListener("click", ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente exporta.");
 
-    const header = ["tipo","usuario","categoria","quando","detalhes","weekKey"];
+    const header = ["tipo","usuario","categoria","quando","detalhes"];
     let csv = header.join(",") + "\n";
 
-    const addLine = (arr)=>{ csv += arr.map(csvCell).join(",") + "\n"; };
-
     tasksDone.forEach((r)=>{
-      addLine(["tarefa_atual", r.user, r.categoria, r.when, JSON.stringify(r.itens || {}), r.weekKey]);
-    });
-    tasksPrevWeek.forEach((r)=>{
-      addLine(["tarefa_anterior", r.user, r.categoria, r.when, JSON.stringify(r.itens || {}), r.weekKey]);
+      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {})].map(csvCell).join(",") + "\n";
     });
     missingReports.forEach((r)=>{
-      addLine(["falta_atual", r.user, "", r.when, JSON.stringify({ item: r.item }), r.weekKey]);
-    });
-    missingPrevWeek.forEach((r)=>{
-      addLine(["falta_anterior", r.user, "", r.when, JSON.stringify({ item: r.item }), r.weekKey]);
+      csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item })].map(csvCell).join(",") + "\n";
     });
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -1688,6 +1641,7 @@
 
   async function deleteByWeek(colName, wk){
     const colRef = collection(db, "stores", STORE_ID, colName);
+    // ✅ aqui pode usar where sem orderBy (não pede índice composto)
     const q = query(colRef, where("weekKey","==",wk), limit(450));
     const snap = await getDocs(q);
     if (snap.empty) return;
@@ -1706,10 +1660,47 @@
     if (snap.docs.length === 450) await deleteByWeek(colName, wk);
   }
 
-  // ===== Collapses =====
-  setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
-  setupCollapse("btnToggleEscalaGer", "escalaGerContent");
-  setupCollapse("btnToggleRanking", "rankingContent");
+  // ===== Zerar estrelas =====
+  $("btnResetStars").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!confirm("Zerar estrelas/pontos do mês para todos os funcionários ativos?")) return;
+    try{
+      await resetStarsThisMonth();
+      toast("Estrelas zeradas.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao zerar estrelas.");
+    }
+  });
+
+  // ===== Excluir todas tasks/faltas semana =====
+  $("btnDeleteAllTasksWeek").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!confirm("Excluir TODAS as tarefas concluídas desta semana?")) return;
+    try{
+      await deleteByWeek("tasks", currentWeekKey);
+      toast("Tarefas da semana excluídas.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir tarefas.");
+    }
+  });
+
+  $("btnDeleteAllMissingWeek").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!confirm("Excluir TODOS os itens em falta desta semana?")) return;
+    try{
+      await deleteByWeek("missing", currentWeekKey);
+      toast("Faltas da semana excluídas.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir faltas.");
+    }
+  });
+
+  // ===== Limpar escala =====
+  $("btnClearEscalaEmp")?.addEventListener("click", clearEscala);
+  $("btnClearEscalaGer")?.addEventListener("click", clearEscala);
 
   // ===== Login / Logout =====
   $("btnLogout1").addEventListener("click", doLogout);
@@ -1748,13 +1739,11 @@
         if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
         await saveEscala(escalaLocalGer);
       };
-      $("btnClearEscalaGer").onclick = async ()=>{ await clearEscala(); };
       show("gerente");
     } else {
       renderEmployee();
       maybeSetupEscalaUI();
-      renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
-      renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
+      renderEscalaViewer();
       show("funcionario");
     }
 
@@ -1773,11 +1762,8 @@
 
     $("weekKeyLabel").innerText = currentWeekKey;
     $("weekKeyLabelGer").innerText = currentWeekKey;
-    $("weekKeyLabelGerPrev").innerText = prevWeekKey;
     $("weekKeyLabelEscala").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaPrev").innerText = prevWeekKey;
     $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaGerPrev").innerText = prevWeekKey;
 
     await ensureEmployeesConfig();
     renderEmployeesUI();
@@ -1785,7 +1771,6 @@
     await ensureScoresDoc();
     updateTopBar();
 
-    // Templates: ensure + realtime
     await ensureGlobalTemplatesDoc();
     renderGlobalTplDropdown();
 
@@ -1799,7 +1784,6 @@
       renderGlobalTplDropdown();
     });
 
-    // employees realtime
     onSnapshot(cfgAppRef(), (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
@@ -1829,7 +1813,6 @@
       renderRanking();
     });
 
-    // categories
     const catsSnap = await getDoc(cfgCatsRef());
     if (!catsSnap.exists()){
       await setDoc(cfgCatsRef(), { data: defaultData, updatedAt: serverTimestamp() }, { merge:false });
@@ -1848,7 +1831,6 @@
       }
     });
 
-    // scores realtime
     onSnapshot(scoresRef(), (snap)=>{
       scoresDoc = snap.data() || {};
       if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
@@ -1862,36 +1844,45 @@
       updateTopBar();
     });
 
-    // ✅✅ tarefas por semana (atual e anterior)
-    const tasksCol = collection(db,"stores",STORE_ID,"tasks");
-    const tasksQWeek = query(tasksCol, where("weekKey","==",currentWeekKey), orderBy("createdAt","desc"), limit(1500));
-    const tasksQPrev = query(tasksCol, where("weekKey","==",prevWeekKey), orderBy("createdAt","desc"), limit(1500));
+    // ✅✅✅ AQUI ESTÁ A CORREÇÃO DO ÍNDICE:
+    // NÃO USAR where(weekKey) + orderBy(createdAt)
+    // Busca tudo por createdAt e filtra no JS
+    const TASKS_LIMIT = 2500;
+    const MISSING_LIMIT = 2500;
 
-    onSnapshot(tasksQWeek, (qs)=>{
-      tasksDone = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+    const tasksQ = query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(TASKS_LIMIT));
+    onSnapshot(tasksQ, (qs)=>{
+      tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+
+      const wk = normalizeWeekKeyLoose(currentWeekKey);
+      tasksDone = tasksAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
+
       if (currentUser === "GERENTE") renderManager();
       if (currentUser && currentUser !== "GERENTE") renderEmployee();
-    });
-    onSnapshot(tasksQPrev, (qs)=>{
-      tasksPrevWeek = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-      if (currentUser === "GERENTE") renderManager();
+
+      // Se não aparecer semana passada no gerente, isso aqui ajuda a diagnosticar:
+      if (currentUser === "GERENTE" && tasksAll.length > 0 && tasksDone.length === 0){
+        const samples = [...new Set(tasksAll.slice(0,50).map(t=>String(t.weekKey||"").trim()).filter(Boolean))].slice(0,8);
+        if (samples.length) warnManager("Nenhuma tarefa encontrada nesta semana. Exemplos de weekKey existentes: " + samples.join(" | "));
+      }
+    }, (err)=>{
+      console.error("Erro snapshot tasks:", err);
+      warnManager("Erro ao carregar tasks (veja o console).");
     });
 
-    // ✅✅ faltas por semana (atual e anterior)
-    const missCol = collection(db,"stores",STORE_ID,"missing");
-    const missQWeek = query(missCol, where("weekKey","==",currentWeekKey), orderBy("createdAt","desc"), limit(1500));
-    const missQPrev = query(missCol, where("weekKey","==",prevWeekKey), orderBy("createdAt","desc"), limit(1500));
+    const missQ = query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(MISSING_LIMIT));
+    onSnapshot(missQ, (qs)=>{
+      missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
 
-    onSnapshot(missQWeek, (qs)=>{
-      missingReports = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+      const wk = normalizeWeekKeyLoose(currentWeekKey);
+      missingReports = missingAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
+
       if (currentUser === "GERENTE") renderManager();
-    });
-    onSnapshot(missQPrev, (qs)=>{
-      missingPrevWeek = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-      if (currentUser === "GERENTE") renderManager();
+    }, (err)=>{
+      console.error("Erro snapshot missing:", err);
+      warnManager("Erro ao carregar missing (veja o console).");
     });
 
-    // global week doc (semana atual)
     onSnapshot(globalRef(currentWeekKey), (snap)=>{
       if (!snap.exists()) globalTask = null;
       else globalTask = { id: snap.id, ...snap.data() };
@@ -1900,15 +1891,11 @@
       if (currentUser && currentUser !== "GERENTE") renderEmployee();
     });
 
-    // escala semana atual
     onSnapshot(escalaRef(currentWeekKey), (snap)=>{
       if (!snap.exists()) escala = null;
       else escala = { id: snap.id, ...snap.data() };
 
-      renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
-      if (currentUser && currentUser !== "GERENTE"){
-        renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
-      }
+      renderEscalaViewer();
 
       if (currentUser === "GERENTE"){
         escalaLocalGer = renderEscalaEditor("escalaEditorGer");
@@ -1918,23 +1905,11 @@
       }
     });
 
-    // escala semana anterior (viewer)
-    onSnapshot(escalaRef(prevWeekKey), (snap)=>{
-      if (!snap.exists()) escalaPrev = null;
-      else escalaPrev = { id: snap.id, ...snap.data() };
-
-      renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
-      renderEscalaViewerInto("escalaViewerGerPrev", escalaPrev, null);
-    });
-
-    // primeira render
-    renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
-    renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
+    renderEscalaViewer();
     renderRanking();
     updateTopBar();
   }
 
-  // ===== Start =====
   await cloudInit();
 
   const ses = getSession();
@@ -1948,7 +1923,6 @@
         if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
         await saveEscala(escalaLocalGer);
       };
-      $("btnClearEscalaGer").onclick = async ()=>{ await clearEscala(); };
       show("gerente");
     } else {
       if (!isEmployeeActive(currentUser)){
@@ -1958,8 +1932,7 @@
       } else {
         renderEmployee();
         maybeSetupEscalaUI();
-        renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
-        renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
+        renderEscalaViewer();
         show("funcionario");
       }
     }
