@@ -7,6 +7,7 @@
 
   <meta name="theme-color" content="#2563eb" />
 
+  <!-- Ícone (favicon) em SVG (ALVO) -->
   <link id="appIcon" rel="icon" type="image/svg+xml" href="" />
   <link id="appAppleIcon" rel="apple-touch-icon" href="" />
   <link id="appManifest" rel="manifest" href="" />
@@ -16,6 +17,7 @@
 
 <body class="bg-gray-100 min-h-screen p-4">
 
+<!-- TOP BAR -->
 <header class="max-w-4xl mx-auto mb-4">
   <div class="bg-white rounded-xl shadow p-4 flex items-center justify-between gap-3">
     <div class="min-w-0 flex items-center gap-3">
@@ -43,10 +45,22 @@
   </div>
 </header>
 
+<!-- LOGIN -->
 <section id="login" class="max-w-3xl mx-auto bg-white p-4 rounded-xl shadow">
   <h2 class="text-lg font-semibold mb-3">Entrar</h2>
 
-  <div class="grid md:grid-cols-3 gap-3">
+  <div class="grid md:grid-cols-4 gap-3">
+    <div class="md:col-span-1">
+      <label class="text-sm text-gray-700">Loja</label>
+      <select id="storeSelect" class="w-full border p-2 rounded">
+        <option value="loja_principal">Loja Principal</option>
+        <option value="loja_bogados">Bogados</option>
+      </select>
+      <p class="text-xs text-gray-500 mt-1">
+        Cada loja é um sistema separado (dados separados).
+      </p>
+    </div>
+
     <div class="md:col-span-1">
       <label class="text-sm text-gray-700">Usuário</label>
       <select id="userSelect" class="w-full border p-2 rounded">
@@ -78,32 +92,33 @@
   </div>
 </section>
 
+<!-- FUNCIONÁRIO -->
 <section id="funcionario" class="hidden max-w-3xl mx-auto">
 
-  <!-- ✅✅✅ PESQUISA DE PREÇOS (FUNCIONÁRIO) -->
+  <!-- PESQUISA DE PREÇOS (TOPO) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
-        <h2 class="text-lg font-semibold">Consulta de preços</h2>
-        <p class="text-xs text-gray-500">Pesquise um item cadastrado (nome ou parte do nome).</p>
+        <h2 class="text-lg font-semibold">Consulta de Preços</h2>
+        <p class="text-xs text-gray-500">Digite o nome do produto para ver o valor.</p>
       </div>
-      <button id="btnTogglePriceEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+      <button id="btnToggleCatalogEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
         Minimizar
       </button>
     </div>
 
-    <div id="priceEmpContent" class="mt-3">
+    <div id="catalogEmpContent" class="mt-3">
       <div class="flex gap-2">
-        <input id="priceSearchEmp" class="flex-1 border rounded p-2" placeholder="Ex: coca, heineken, pão..." />
-        <button id="btnClearPriceEmp" class="bg-gray-900 hover:bg-black text-white px-3 py-2 rounded">
+        <input id="catalogSearchEmp" class="flex-1 border rounded p-2" placeholder="Ex: Coca 2L, Heineken..." />
+        <button id="btnClearSearchEmp" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
           Limpar
         </button>
       </div>
-      <div id="priceResultsEmp" class="mt-3 space-y-2 text-sm"></div>
+      <div id="catalogResultsEmp" class="mt-3 text-sm space-y-2"></div>
     </div>
   </div>
-  <!-- ✅✅✅ /PESQUISA DE PREÇOS (FUNCIONÁRIO) -->
 
+  <!-- Escala -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -124,11 +139,12 @@
     <div id="escalaEmpContent" class="mt-3">
       <div id="escalaViewer" class="text-sm space-y-2"></div>
 
+      <!-- Editor (só Claudia e Gerente) -->
       <div id="escalaEditorWrap" class="hidden mt-4 border-t pt-4">
         <div class="flex items-center justify-between">
           <div class="font-semibold text-sm">Editar escala</div>
-          <div class="flex gap-2">
-            <button id="btnClearEscala" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+          <div class="flex items-center gap-2">
+            <button id="btnClearEscalaEmp" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
               Limpar escala
             </button>
             <button id="btnSaveEscala" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
@@ -144,6 +160,7 @@
     </div>
   </div>
 
+  <!-- topo usuário -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
@@ -172,22 +189,86 @@
     </div>
   </div>
 
+  <!-- Tarefas (renderizado via JS) -->
   <div id="tasks" class="space-y-4"></div>
+
+  <!-- Semana anterior -->
+  <div class="bg-white p-4 rounded-xl shadow mt-4">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h3 class="font-semibold">Tarefas concluídas (semana anterior)</h3>
+        <p class="text-xs text-gray-500">Semana: <span id="prevWeekLabelEmp">-</span></p>
+      </div>
+      <button id="btnTogglePrevEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+        Minimizar
+      </button>
+    </div>
+    <div id="prevEmpContent" class="mt-3">
+      <div id="prevEmpList" class="text-sm space-y-2"></div>
+    </div>
+  </div>
 </section>
 
+<!-- GERENTE -->
 <section id="gerente" class="hidden max-w-4xl mx-auto">
+
+  <!-- PESQUISA DE PREÇOS (GERENTE) -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h2 class="text-lg font-semibold">Consulta de Preços</h2>
+        <p class="text-xs text-gray-500">Pesquisar / cadastrar / atualizar / excluir itens.</p>
+      </div>
+      <button id="btnToggleCatalogGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+        Minimizar
+      </button>
+    </div>
+
+    <div id="catalogGerContent" class="mt-3">
+      <div class="flex gap-2">
+        <input id="catalogSearchGer" class="flex-1 border rounded p-2" placeholder="Ex: Coca 2L, Heineken..." />
+        <button id="btnClearSearchGer" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+          Limpar
+        </button>
+      </div>
+
+      <div id="catalogResultsGer" class="mt-3 text-sm space-y-2"></div>
+
+      <!-- Gestão (somente gerente e Claudia) -->
+      <div id="catalogManageWrap" class="hidden mt-4 border-t pt-4">
+        <div class="font-semibold text-sm mb-2">Cadastrar / Atualizar preço</div>
+        <div class="grid md:grid-cols-3 gap-2">
+          <input id="catalogItemName" class="border p-2 rounded md:col-span-2" placeholder="Nome do produto (ex: Coca-Cola 2L)" />
+          <input id="catalogItemPrice" class="border p-2 rounded" inputmode="decimal" placeholder="Preço (ex: 9.99)" />
+        </div>
+        <div class="flex gap-2 mt-2">
+          <button id="btnCatalogSave" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded">
+            Salvar
+          </button>
+          <button id="btnCatalogDeleteByName" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
+            Excluir pelo nome
+          </button>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">
+          Dica: “Salvar” atualiza automaticamente se o nome já existir (sem criar duplicado).
+        </p>
+      </div>
+    </div>
+  </div>
+
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
         <h2 class="text-xl font-semibold">Painel do Gerente</h2>
         <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelGer">-</span></p>
+        <p class="text-xs text-gray-500">Loja: <span id="storeLabelGer">-</span></p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button id="btnResetWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
           Zerar semana (tudo)
         </button>
-        <button id="btnResetStars" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
-          Zerar estrelas do mês
+        <button id="btnResetStars" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded">
+          Zerar estrelas (mês atual)
         </button>
         <button id="btnExport" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded">
           Exportar CSV
@@ -197,33 +278,9 @@
         </button>
       </div>
     </div>
-    <div id="managerWarn" class="hidden mt-3 text-xs bg-yellow-50 border border-yellow-200 text-yellow-900 rounded p-2"></div>
   </div>
 
-  <!-- ✅✅✅ PESQUISA DE PREÇOS (GERENTE) -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h3 class="font-semibold">Consulta de preços</h3>
-        <p class="text-xs text-gray-500">Pesquise um item cadastrado (nome ou parte do nome).</p>
-      </div>
-      <button id="btnTogglePriceGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-        Minimizar
-      </button>
-    </div>
-
-    <div id="priceGerContent" class="mt-3">
-      <div class="flex gap-2">
-        <input id="priceSearchGer" class="flex-1 border rounded p-2" placeholder="Ex: coca, heineken, pão..." />
-        <button id="btnClearPriceGer" class="bg-gray-900 hover:bg-black text-white px-3 py-2 rounded">
-          Limpar
-        </button>
-      </div>
-      <div id="priceResultsGer" class="mt-3 space-y-2 text-sm"></div>
-    </div>
-  </div>
-  <!-- ✅✅✅ /PESQUISA DE PREÇOS (GERENTE) -->
-
+  <!-- Ranking mensal -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -240,11 +297,11 @@
     </div>
   </div>
 
+  <!-- GLOBAL templates -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <h3 class="font-semibold mb-2">Tarefas GLOBAIS salvas (Templates)</h3>
     <p class="text-xs text-gray-500 mb-3">
-      Crie templates de GLOBAL e depois publique.
-      Quem concluir primeiro “trava” e some dos demais.
+      Crie templates e publique GLOBAIS desta semana. (As GLOBAIS aparecem para os funcionários.)
     </p>
 
     <div class="grid md:grid-cols-4 gap-2">
@@ -260,7 +317,7 @@
     </div>
 
     <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold mb-2">Status GLOBAL desta semana</div>
+      <div class="text-sm font-semibold">Status GLOBAL desta semana</div>
       <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
     </div>
 
@@ -279,6 +336,7 @@
     </div>
   </div>
 
+  <!-- Escala -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between">
       <div>
@@ -306,28 +364,57 @@
     </div>
   </div>
 
+  <!-- tarefas / faltas + ações de limpeza -->
   <div class="grid md:grid-cols-2 gap-4">
     <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
-      <div class="flex gap-2 mb-3">
-        <button id="btnDeleteAllTasksWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-          Excluir TODAS tarefas (semana)
-        </button>
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <h3 class="font-semibold">Tarefas concluídas (semana)</h3>
+        <div class="flex gap-2">
+          <button id="btnDeleteAllTasksWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+            Excluir tudo
+          </button>
+        </div>
       </div>
       <div id="gerTasks" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
     </div>
 
     <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Itens em falta</h3>
-      <div class="flex gap-2 mb-3">
-        <button id="btnDeleteAllMissingWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-          Excluir TODAS faltas (semana)
-        </button>
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <h3 class="font-semibold">Itens em falta</h3>
+        <div class="flex gap-2">
+          <button id="btnDeleteAllMissingWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+            Excluir tudo
+          </button>
+        </div>
       </div>
       <div id="gerMissing" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
     </div>
   </div>
 
+  <!-- Semana anterior (gerente) -->
+  <div class="bg-white p-4 rounded-xl shadow mt-4">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h3 class="font-semibold">Semana anterior</h3>
+        <p class="text-xs text-gray-500">Semana: <span id="prevWeekLabelGer">-</span></p>
+      </div>
+      <button id="btnTogglePrevGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+        Minimizar
+      </button>
+    </div>
+    <div id="prevGerContent" class="mt-3 grid md:grid-cols-2 gap-4">
+      <div class="border rounded p-3 bg-gray-50">
+        <div class="font-semibold mb-2">Tarefas (semana anterior)</div>
+        <div id="prevTasksGer" class="text-sm space-y-2 max-h-[45vh] overflow-auto"></div>
+      </div>
+      <div class="border rounded p-3 bg-gray-50">
+        <div class="font-semibold mb-2">Faltas (semana anterior)</div>
+        <div id="prevMissingGer" class="text-sm space-y-2 max-h-[45vh] overflow-auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FUNCIONÁRIOS -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Funcionários (Ativar / Bloquear)</h3>
     <p class="text-xs text-gray-500 mb-3">
@@ -347,6 +434,7 @@
     <div id="employeeTable" class="mt-3 space-y-2"></div>
   </div>
 
+  <!-- CATEGORIAS: ADD/UPDATE -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Adicionar / Atualizar categoria (individual)</h3>
     <div class="grid md:grid-cols-4 gap-2">
@@ -357,8 +445,12 @@
     <button id="btnAddCategory" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded w-full">
       Adicionar / Atualizar categoria
     </button>
+    <p class="text-xs text-gray-500 mt-2">
+      Observação: categorias aqui são checklist com Qtd (número) para cada item.
+    </p>
   </div>
 
+  <!-- PINS -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">PINs</h3>
     <div class="grid md:grid-cols-3 gap-2 mt-2">
@@ -373,73 +465,9 @@
       PIN mestre inicial do gerente: <b>1234</b> só se o gerente ainda não tiver PIN criado.
     </p>
   </div>
-
-  <!-- ✅✅✅ CADASTRO DE PREÇOS (Somente GERENTE e CLAUDIA) -->
-  <div class="bg-white p-4 rounded-xl shadow mt-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h3 class="font-semibold">Cadastro de mercadorias e preços</h3>
-        <p class="text-xs text-gray-500">Apenas <b>GERENTE</b> e <b>Claudia</b> podem cadastrar/editar.</p>
-      </div>
-      <button id="btnTogglePriceAdmin" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-        Minimizar
-      </button>
-    </div>
-
-    <div id="priceAdminContent" class="mt-3">
-      <div id="priceAdminLock" class="hidden text-sm bg-yellow-50 border border-yellow-200 text-yellow-900 rounded p-2">
-        Sem permissão para cadastrar preços.
-      </div>
-
-      <div id="priceAdminForm" class="space-y-3">
-        <div class="grid md:grid-cols-3 gap-2">
-          <input id="priceItemName" class="border p-2 rounded md:col-span-2" placeholder="Nome do item (ex: Coca 2L)" />
-          <input id="priceItemValue" class="border p-2 rounded" placeholder="Preço (ex: 9,99)" inputmode="decimal" />
-        </div>
-        <div class="flex gap-2">
-          <button id="btnSavePriceItem" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded">
-            Salvar / Atualizar
-          </button>
-          <button id="btnClearPriceForm" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-            Limpar
-          </button>
-        </div>
-
-        <div class="border-t pt-3">
-          <div class="flex items-center justify-between gap-2">
-            <div class="font-semibold text-sm">Itens cadastrados</div>
-            <button id="btnDeleteAllPrices" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-              Excluir TODOS os preços
-            </button>
-          </div>
-          <div id="priceListAdmin" class="mt-3 space-y-2 text-sm max-h-[45vh] overflow-auto"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- ✅✅✅ /CADASTRO DE PREÇOS -->
 </section>
 
 <script type="module">
-  // =========================
-  // ✅ ANTI-CACHE (PWA / SW)
-  // =========================
-  const BUILD_ID = "2026-02-04-price-search-1";
-  console.log("BUILD_ID", BUILD_ID);
-
-  try {
-    if ("serviceWorker" in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      for (const r of regs) await r.unregister();
-    }
-    if ("caches" in window) {
-      const keys = await caches.keys();
-      for (const k of keys) await caches.delete(k);
-    }
-  } catch (e) {
-    console.warn("Anti-cache falhou (não é crítico):", e);
-  }
-
   // ====== PWA: Manifest + Icon ======
   const TARGET_SVG = `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -455,17 +483,10 @@
     <circle cx="256" cy="256" r="110" fill="none" stroke="#1d4ed8" stroke-width="28"/>
     <circle cx="256" cy="256" r="52" fill="#1d4ed8"/>
   </svg>`.trim();
-
-  function svgDataUrl(svg){
-    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-  }
-
+  const svgDataUrl = (svg) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   const iconUrl = svgDataUrl(TARGET_SVG);
-  const $icon = document.getElementById("appIcon");
-  const $apple = document.getElementById("appAppleIcon");
-  if ($icon) $icon.href = iconUrl;
-  if ($apple) $apple.href = iconUrl;
-
+  document.getElementById("appIcon").href = iconUrl;
+  document.getElementById("appAppleIcon").href = iconUrl;
   const manifest = {
     name: "Missoes",
     short_name: "Missoes",
@@ -479,9 +500,7 @@
     ]
   };
   const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-  const manifestUrl = URL.createObjectURL(manifestBlob);
-  const $m = document.getElementById("appManifest");
-  if ($m) $m.href = manifestUrl;
+  document.getElementById("appManifest").href = URL.createObjectURL(manifestBlob);
 
   // ====== Firebase ======
   const firebaseConfig = {
@@ -493,86 +512,234 @@
     appId: "1:198254465545:web:dce028792e2c2c57161ed8"
   };
 
-  const STORE_ID = "loja_principal";
-  const SESSION_KEY = "mdl_session_v1";
+  const STORES = {
+    loja_principal: {
+      label: "Loja Principal",
+      managerUser: "GERENTE",
+      defaultEmployees: ["Sandra","Thauane","Ingrid","Claudia","DADA"].map(n => ({ name:n, active:true })),
+      defaultCategories: {
+        Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
+        Thauane: {
+          "Ambev (Segunda)": [
+            "Cracudinha (cascos vazios completos)","Guarana Antarctica fora da geladeira","Sukita fora da geladeira",
+            "Guaraviton","Gatorade","Suco Tang - Laranja","Suco Tang - Morango","Suco Tang - Guarana","Suco Tang - Uva",
+            "Suco Tang - Limao","Suco Tang - Maracuja","Guaravita","Agua com gas 500ml","Agua com gas 1,5L",
+            "Agua sem gas 500ml","Agua sem gas 1,5L","Corona long","Stella long"
+          ],
+          "Coca-Cola (Retornaveis e Packs)": [
+            "Retornavel vazia completa","KS vazia completa","Packs completos de Coca-Cola 2L","Pack completo de Fanta Uva",
+            "Pack completo de Fanta Laranja","Guarana latinha (Coca)","Garrafinha de Coca 200ml","Garrafinha de Fanta 200ml"
+          ]
+        },
+        Ingrid: {
+          "Jardim America": ["Antarctica latao","Brahma latao","Imperio latao","Heineken latao","Heineken long"],
+          "Fotos (Check)": [
+            "Foto de todas as estantes arrumadas e abastecidas","Foto dos biscoitos","Foto das reservas",
+            "Foto dos doces","Foto do freezer com barras de chocolate"
+          ]
+        },
+        Claudia: {
+          "Sadia (Segunda)": ["Mortadela comum","Mortadela defumada","Presunto","Calabresa","Salsicha","Hamburguer"],
+          "Queijos": ["Queijo prato","Queijo mussarela","Queijo minas","Minas padrao"]
+        },
+        DADA: { "Mineirinho (Terca)": ["Mineirinho 2L","Mineirinho 350ml"] }
+      }
+    },
+    loja_bogados: {
+      label: "Bogados",
+      managerUser: "BOGADOS - GERENTE",
+      defaultEmployees: [{ name:"bogados", active:true }],
+      defaultCategories: {}
+    }
+  };
+
+  const SESSION_KEY = "mdl_session_v2";
   const MASTER_MANAGER_PIN = "1234";
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
     getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc,
     onSnapshot, query, orderBy, limit, serverTimestamp, increment,
-    deleteDoc, getDocs, writeBatch, where, runTransaction
+    deleteDoc, getDocs, writeBatch, where
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
   const $ = (id) => document.getElementById(id);
-  function toast(msg){ alert(msg); }
-  function warnManager(msg){
-    const box = $("managerWarn");
-    if (!box) return;
-    if (!msg){
-      box.classList.add("hidden");
-      box.innerText = "";
-      return;
-    }
-    box.classList.remove("hidden");
-    box.innerText = msg;
+  const toast = (msg) => alert(msg);
+  const clone = (obj) => JSON.parse(JSON.stringify(obj));
+  const normalizeName = (name)=> String(name||"").trim().replace(/\s+/g," ");
+  const normalizeCat  = (name)=> String(name||"").trim().replace(/\s+/g," ");
+  const nowHuman = ()=> new Date().toLocaleString();
+  const isValidPin = (p)=> /^[0-9]{4}$/.test(String(p||""));
+
+  // ✅ blindagem: evita “Cannot read properties of null”
+  function on(id, evt, fn){
+    const el = $(id);
+    if (!el) { console.warn("Elemento não encontrado:", id); return; }
+    el.addEventListener(evt, fn);
   }
 
-  function show(section){
-    ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
-    $(section).classList.remove("hidden");
-    updateTopBar();
-  }
-  function isValidPin(p){ return /^[0-9]{4}$/.test(String(p || "")); }
-  function nowHuman(){ return new Date().toLocaleString(); }
-  function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
-  function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
-  function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
-
-  function normalizeWeekKeyLoose(wk){
-    const s = String(wk || "").trim();
-    const m = s.match(/^(\d{4})-W(\d{1,2})$/i);
-    if (!m) return s;
-    const y = m[1];
-    const w = String(Number(m[2])).padStart(2,"0");
-    return `${y}-W${w}`;
-  }
-
-  // ====== State ======
-  let data = {};
-  let scoresDoc = {};
-  let tasksAll = [];
-  let missingAll = [];
-  let tasksDone = [];
-  let missingReports = [];
+  let currentStoreId = "loja_principal";
   let currentUser = "";
   let currentWeekKey = "";
+  let prevWeekKey = "";
+
   let employees = [];
+  let data = {};
+  let scoresDoc = {};
+  let tasksAll = [], missingAll = [], tasksDone = [], missingReports = [], tasksPrev = [], missingPrev = [];
   let globalTask = null;
   let escala = null;
 
-  let globalTemplates = [];
-  let escalaLocalEmployee = null;
-  let escalaLocalGer = null;
+  // ===== CATALOGO DE PREÇOS =====
+  let catalogItems = []; // [{id,name,nameLower,price,updatedAtHuman}]
+  function catalogColRef(){
+    return collection(db, "stores", currentStoreId, "catalog");
+  }
+  function canManageCatalog(){
+    if (currentUser === managerName()) return true;
+    if (currentStoreId === "loja_principal" && currentUser === "Claudia") return true;
+    return false;
+  }
+  function toBRL(val){
+    const n = Number(val);
+    if (!Number.isFinite(n)) return "-";
+    return n.toLocaleString("pt-BR",{ style:"currency", currency:"BRL" });
+  }
+  function parsePrice(raw){
+    const s = String(raw||"").trim().replace(/\./g,"").replace(",",".");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+  function findCatalogByNameLower(nameLower){
+    return catalogItems.find(x => x.nameLower === nameLower) || null;
+  }
+  function renderCatalogResults(targetId, q){
+    const wrap = $(targetId);
+    if (!wrap) return;
 
-  // ✅✅✅ PREÇOS (NOVO)
-  let priceItems = []; // [{id,name,price,updatedAtHuman,updatedBy}]
-  const pricesCol = () => collection(db,"stores",STORE_ID,"prices");
+    if (!catalogItems.length){
+      wrap.innerHTML = `<div class="text-gray-500">Catálogo vazio. Cadastre itens no painel do gerente.</div>`;
+      return;
+    }
 
-  // ===== Refs =====
-  const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
-  const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
-  const cfgGlobalTplRef = () => doc(db,"stores",STORE_ID,"config","global_templates");
-  const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
-  const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
-  const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
-  const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
-  const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
+    const term = String(q||"").trim().toLowerCase();
+    const rows = !term
+      ? catalogItems.slice(0, 50)
+      : catalogItems.filter(x =>
+          x.nameLower.includes(term) || x.name.toLowerCase().includes(term)
+        ).slice(0, 50);
 
-  // ===== Top bar =====
+    if (!rows.length){
+      wrap.innerHTML = `<div class="text-gray-500">Nenhum item encontrado.</div>`;
+      return;
+    }
+
+    const manage = canManageCatalog() && targetId === "catalogResultsGer";
+    wrap.innerHTML = "";
+
+    rows.forEach(it=>{
+      const div = document.createElement("div");
+      div.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
+
+      const left = document.createElement("div");
+      left.innerHTML = `
+        <div class="font-semibold">${it.name}</div>
+        <div class="text-xs text-gray-600">${toBRL(it.price)} ${it.updatedAtHuman ? "• " + it.updatedAtHuman : ""}</div>
+      `;
+
+      const right = document.createElement("div");
+      right.className = "flex items-center gap-2";
+
+      if (manage){
+        const btnUse = document.createElement("button");
+        btnUse.className = "bg-gray-900 hover:bg-black text-white px-3 py-2 rounded text-xs";
+        btnUse.innerText = "Editar";
+        btnUse.onclick = ()=>{
+          $("catalogItemName").value = it.name;
+          $("catalogItemPrice").value = String(it.price).replace(".",",");
+          $("catalogItemName").focus();
+        };
+
+        const btnDel = document.createElement("button");
+        btnDel.className = "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs";
+        btnDel.innerText = "Excluir";
+        btnDel.onclick = async ()=>{
+          if (!confirm(`Excluir "${it.name}"?`)) return;
+          try{
+            await deleteDoc(doc(db,"stores",currentStoreId,"catalog",it.id));
+            toast("Item excluído.");
+          } catch(e){
+            console.error(e);
+            toast("Erro ao excluir item.");
+          }
+        };
+
+        right.appendChild(btnUse);
+        right.appendChild(btnDel);
+      }
+
+      div.appendChild(left);
+      div.appendChild(right);
+      wrap.appendChild(div);
+    });
+  }
+
+  async function upsertCatalogItem(name, price){
+    name = normalizeCat(name);
+    if (!name) throw new Error("Nome do item vazio.");
+    const nameLower = name.toLowerCase();
+    if (!Number.isFinite(price)) throw new Error("Preço inválido.");
+
+    const existing = findCatalogByNameLower(nameLower);
+    if (existing){
+      await updateDoc(doc(db,"stores",currentStoreId,"catalog",existing.id), {
+        name,
+        nameLower,
+        price,
+        updatedAt: serverTimestamp(),
+        updatedAtHuman: nowHuman(),
+        updatedBy: currentUser
+      });
+      return { updated:true };
+    } else {
+      await addDoc(collection(db,"stores",currentStoreId,"catalog"), {
+        name,
+        nameLower,
+        price,
+        createdAt: serverTimestamp(),
+        createdAtHuman: nowHuman(),
+        updatedAt: serverTimestamp(),
+        updatedAtHuman: nowHuman(),
+        updatedBy: currentUser
+      });
+      return { created:true };
+    }
+  }
+
+  async function deleteCatalogByName(name){
+    name = normalizeCat(name);
+    const nameLower = name.toLowerCase();
+    const existing = findCatalogByNameLower(nameLower);
+    if (!existing) throw new Error("Item não encontrado pelo nome.");
+    await deleteDoc(doc(db,"stores",currentStoreId,"catalog",existing.id));
+  }
+
+  // ===== Store helpers =====
+  const cfgCatsRef = () => doc(db,"stores",currentStoreId,"config","categories");
+  const cfgAppRef  = () => doc(db,"stores",currentStoreId,"config","app");
+  const cfgGlobalTplRef = () => doc(db,"stores",currentStoreId,"config","global_templates");
+  const scoresRef  = () => doc(db,"stores",currentStoreId,"state","scores");
+  const metaRef    = () => doc(db,"stores",currentStoreId,"meta","app");
+  const userRef    = (user) => doc(db,"stores",currentStoreId,"users",user);
+  const escalaRef  = (wk) => doc(db,"stores",currentStoreId,"state","escala_"+wk);
+  const globalRef  = (wk) => doc(db,"stores",currentStoreId,"state","global_"+wk);
+
+  function storeCfg(){ return STORES[currentStoreId] || STORES.loja_principal; }
+  function managerName(){ return storeCfg().managerUser; }
+
   function monthKey(date){
     const y = date.getFullYear();
     const m = String(date.getMonth()+1).padStart(2,"0");
@@ -583,6 +750,7 @@
     const ms = scoresDoc?.monthScores?.[mk] || {};
     return Number(ms?.[user] || 0);
   }
+
   function updateTopBar(){
     const topTitle = $("topTitle");
     const topSubtitle = $("topSubtitle");
@@ -596,8 +764,8 @@
       return;
     }
 
-    if (currentUser === "GERENTE"){
-      topTitle.innerText = "Gerente";
+    if (currentUser === managerName()){
+      topTitle.innerText = currentUser;
       topSubtitle.innerText = "Painel administrativo";
       pointsBox.classList.add("hidden");
       pointsBox.classList.remove("flex");
@@ -605,21 +773,19 @@
     }
 
     topTitle.innerText = currentUser;
-    topSubtitle.innerText = "Acompanhe suas tarefas";
+    topSubtitle.innerText = storeCfg().label;
     const pts = getMonthPoints(currentUser);
     $("monthPointsTop").innerText = pts;
     pointsBox.classList.remove("hidden");
     pointsBox.classList.add("flex");
   }
 
-  // ===== SHA-256 =====
   async function sha256(str){
     const enc = new TextEncoder().encode(str);
     const buf = await crypto.subtle.digest("SHA-256", enc);
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
   }
 
-  // ===== Semana ISO =====
   function weekKey(date){
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -627,6 +793,18 @@
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     return d.getUTCFullYear() + "-W" + String(weekNo).padStart(2,"0");
+  }
+  function prevWeekFromKey(wk){
+    const [y, w] = wk.split("-W");
+    const year = Number(y);
+    const week = Number(w);
+    const simple = new Date(Date.UTC(year,0,1));
+    const dayOfWeek = simple.getUTCDay() || 7;
+    const isoWeekStart = new Date(simple);
+    isoWeekStart.setUTCDate(simple.getUTCDate() + (week - 1) * 7 + (1 - dayOfWeek));
+    const prev = new Date(isoWeekStart);
+    prev.setUTCDate(prev.getUTCDate() - 7);
+    return weekKey(prev);
   }
 
   async function ensureWeekKey(){
@@ -637,6 +815,7 @@
     if (!snap.exists()){
       await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
       currentWeekKey = wk;
+      prevWeekKey = prevWeekFromKey(wk);
       return;
     }
 
@@ -644,32 +823,43 @@
     if (today.getDay() === 1 && saved !== wk){
       await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
       currentWeekKey = wk;
+      prevWeekKey = prevWeekFromKey(wk);
       return;
     }
     currentWeekKey = saved;
+    prevWeekKey = prevWeekFromKey(saved);
   }
 
-  // ===== Sessão =====
-  function saveSession(user){ localStorage.setItem(SESSION_KEY, JSON.stringify({ user, at: Date.now() })); }
+  function saveSession(storeId, user){
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ storeId, user, at: Date.now() }));
+  }
   function clearSession(){ localStorage.removeItem(SESSION_KEY); }
   function getSession(){
     try{
       const raw = localStorage.getItem(SESSION_KEY);
       if (!raw) return null;
       const obj = JSON.parse(raw);
-      return obj && obj.user ? obj : null;
+      return obj && obj.user && obj.storeId ? obj : null;
     } catch(e){ return null; }
   }
 
-  // ===== Funcionários =====
-  const defaultEmployeesLegacy = ["Sandra","Thauane","Ingrid","Claudia","DADA"];
-  const defaultEmployees = defaultEmployeesLegacy.map(n => ({ name: n, active: true }));
+  function show(section){
+    ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
+    $(section).classList.remove("hidden");
+    updateTopBar();
+  }
+
+  function userBelongsToStore(user){
+    if (user === managerName()) return true;
+    return employees.some(e => e.name === user);
+  }
 
   function isEmployeeActive(name){
     const n = normalizeName(name);
     const e = employees.find(x => x.name === n);
     return !!(e && e.active);
   }
+
   function activeNames(){
     return employees.filter(e=>e.active).map(e=>e.name).sort((a,b)=>a.localeCompare(b));
   }
@@ -679,31 +869,24 @@
 
   async function ensureEmployeesConfig(){
     const snap = await getDoc(cfgAppRef());
+    const defaults = storeCfg().defaultEmployees;
 
     if (!snap.exists()){
-      await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
-      employees = clone(defaultEmployees);
+      await setDoc(cfgAppRef(), { employees: defaults, updatedAt: serverTimestamp() }, { merge:true });
+      employees = clone(defaults);
       return;
     }
 
     const raw = snap.data().employees;
-
-    if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "string"){
-      const migrated = raw.map(n => ({ name: normalizeName(n), active: true })).filter(x=>x.name);
-      await setDoc(cfgAppRef(), { employees: migrated, updatedAt: serverTimestamp() }, { merge:true });
-      employees = migrated;
-      return;
-    }
-
     if (!Array.isArray(raw) || raw.length === 0){
-      await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
-      employees = clone(defaultEmployees);
+      await setDoc(cfgAppRef(), { employees: defaults, updatedAt: serverTimestamp() }, { merge:true });
+      employees = clone(defaults);
       return;
     }
 
     employees = raw
       .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name);
+      .filter(x => x.name && x.name !== managerName());
 
     const seen = new Set();
     employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
@@ -712,7 +895,7 @@
   async function setEmployees(next){
     const cleaned = next
       .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name && x.name.toUpperCase() !== "GERENTE");
+      .filter(x => x.name && x.name !== managerName());
 
     const seen = new Set();
     const unique = cleaned.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
@@ -723,35 +906,39 @@
   async function addEmployee(name){
     name = normalizeName(name);
     if (!name) return toast("Digite um nome.");
-    if (name.toUpperCase() === "GERENTE") return toast("Nome inválido.");
+    if (name === managerName()) return toast("Nome inválido.");
     if (employees.some(e => e.name === name)) return toast("Esse funcionário já existe.");
-
     const next = employees.concat([{ name, active: true }]);
     await setEmployees(next);
-
-    const newCats = clone(data || {});
-    if (!newCats[name]) newCats[name] = {};
-    await setDoc(cfgCatsRef(), { data: newCats, updatedAt: serverTimestamp() }, { merge:false });
     toast("Funcionário adicionado (ativo).");
+  }
+
+  async function toggleEmployee(name, active){
+    name = normalizeName(name);
+    const next = employees.map(e => e.name === name ? ({ ...e, active: !!active }) : e);
+    await setEmployees(next);
+  }
+
+  function fillSelect(selectEl, values, includeManager=false, placeholder=null){
+    if (!selectEl) return;
+    const prev = selectEl.value;
+    selectEl.innerHTML = "";
+    if (placeholder !== null) selectEl.appendChild(new Option(placeholder, ""));
+    if (includeManager) selectEl.appendChild(new Option(managerName(), managerName()));
+    values.forEach(v => selectEl.appendChild(new Option(v, v)));
+    if (prev && Array.from(selectEl.options).some(o=>o.value===prev)) selectEl.value = prev;
   }
 
   function renderEmployeesUI(){
     const loginSel = $("userSelect");
     loginSel.innerHTML = "";
     loginSel.appendChild(new Option("Selecione", ""));
-    loginSel.appendChild(new Option("Gerente", "GERENTE"));
+    loginSel.appendChild(new Option("Gerente", managerName()));
     activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
 
     const namesAll = allNames();
-    const addUser = $("addUser");
-    const pinUser = $("pinUser");
-
-    addUser.innerHTML = "";
-    namesAll.forEach(n => addUser.appendChild(new Option(n,n)));
-
-    pinUser.innerHTML = "";
-    pinUser.appendChild(new Option("GERENTE", "GERENTE"));
-    namesAll.forEach(n => pinUser.appendChild(new Option(n,n));
+    fillSelect($("addUser"), namesAll, false, null);
+    fillSelect($("pinUser"), namesAll, true, null);
 
     renderEmployeeTable();
   }
@@ -761,72 +948,42 @@
     if (!wrap) return;
     wrap.innerHTML = "";
 
-    const ordered = employees.slice().sort((a,b)=>a.name.localeCompare(b.name));
-    if (!ordered.length){
-      wrap.innerHTML = `<div class="text-sm text-gray-500">Sem funcionários.</div>`;
+    const rows = (employees || []).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    if (!rows.length){
+      wrap.innerHTML = `<div class="text-sm text-gray-500">Sem funcionários cadastrados.</div>`;
       return;
     }
 
-    ordered.forEach((e)=>{
-      const row = document.createElement("div");
-      row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
+    rows.forEach(e=>{
+      const div = document.createElement("div");
+      div.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
 
       const left = document.createElement("div");
-      left.innerHTML = `<div class="font-semibold">${e.name}</div><div class="text-xs text-gray-600">${e.active ? "Ativo" : "Bloqueado"}</div>`;
+      left.innerHTML = `<div class="font-semibold">${e.name}</div><div class="text-xs text-gray-500">${e.active ? "Ativo" : "Bloqueado"}</div>`;
 
       const btn = document.createElement("button");
       btn.className = e.active
         ? "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm"
         : "bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm";
       btn.innerText = e.active ? "Bloquear" : "Ativar";
+
       btn.onclick = async ()=>{
-        if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-        const next = employees.map(x => x.name===e.name ? ({...x, active: !x.active}) : x);
-        await setEmployees(next);
+        if (currentUser !== managerName()) return toast("Apenas o gerente.");
+        await toggleEmployee(e.name, !e.active);
       };
 
-      row.appendChild(left);
-      row.appendChild(btn);
-      wrap.appendChild(row);
+      div.appendChild(left);
+      div.appendChild(btn);
+      wrap.appendChild(div);
     });
   }
 
-  // ===== Categorias base =====
-  const defaultData = {
-    Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
-    Thauane: {
-      "Ambev (Segunda)": [
-        "Cracudinha (cascos vazios completos)","Guarana Antarctica fora da geladeira","Sukita fora da geladeira",
-        "Guaraviton","Gatorade","Suco Tang - Laranja","Suco Tang - Morango","Suco Tang - Guarana","Suco Tang - Uva",
-        "Suco Tang - Limao","Suco Tang - Maracuja","Guaravita","Agua com gas 500ml","Agua com gas 1,5L",
-        "Agua sem gas 500ml","Agua sem gas 1,5L","Corona long","Stella long"
-      ],
-      "Coca-Cola (Retornaveis e Packs)": [
-        "Retornavel vazia completa","KS vazia completa","Packs completos de Coca-Cola 2L","Pack completo de Fanta Uva",
-        "Pack completo de Fanta Laranja","Guarana latinha (Coca)","Garrafinha de Coca 200ml","Garrafinha de Fanta 200ml"
-      ]
-    },
-    Ingrid: {
-      "Jardim America": ["Antarctica latao","Brahma latao","Imperio latao","Heineken latao","Heineken long"],
-      "Fotos (Check)": [
-        "Foto de todas as estantes arrumadas e abastecidas","Foto dos biscoitos","Foto das reservas",
-        "Foto dos doces","Foto do freezer com barras de chocolate"
-      ]
-    },
-    Claudia: {
-      "Sadia (Segunda)": ["Mortadela comum","Mortadela defumada","Presunto","Calabresa","Salsicha","Hamburguer"],
-      "Queijos": ["Queijo prato","Queijo mussarela","Queijo minas","Minas padrao"]
-    },
-    DADA: { "Mineirinho (Terca)": ["Mineirinho 2L","Mineirinho 350ml"] }
-  };
-
-  // ===== PIN =====
   async function ensureUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (snap.exists()) return { created:false };
     await setDoc(userRef(user), {
       user,
-      role: (user === "GERENTE") ? "manager" : "employee",
+      role: (user === managerName()) ? "manager" : "employee",
       pinHash: await sha256(pin),
       createdAt: serverTimestamp()
     }, { merge:true });
@@ -836,7 +993,7 @@
   async function verifyUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (!snap.exists()){
-      if (user === "GERENTE" && pin === MASTER_MANAGER_PIN){
+      if (user === managerName() && pin === MASTER_MANAGER_PIN){
         await ensureUserPin(user, pin);
         return { ok:true, usedMaster:true };
       }
@@ -846,7 +1003,6 @@
     return { ok: (await sha256(pin)) === pinHash, noUser:false };
   }
 
-  // ===== Scores (MENSAL) =====
   async function ensureScoresDoc(){
     const sSnap = await getDoc(scoresRef());
     if (!sSnap.exists()){
@@ -866,282 +1022,567 @@
     });
   }
 
-  async function resetStarsThisMonth(){
+  async function resetMonthlyStars(){
     const mk = monthKey(new Date());
-    const active = activeNames();
-    const updates = { updatedAt: serverTimestamp() };
-    active.forEach(u => updates["monthScores."+mk+"."+u] = 0);
-    await updateDoc(scoresRef(), updates);
+    if (!confirm(`Zerar estrelas do mês ${mk}?`)) return;
+    await setDoc(scoresRef(), {
+      monthScores: { ...(scoresDoc.monthScores || {}), [mk]: {} },
+      updatedAt: serverTimestamp()
+    }, { merge:false });
+    toast("Estrelas zeradas (mês atual).");
   }
 
-  // ============================
-  // ✅✅✅ PREÇOS: FUNÇÕES
-  // ============================
-  function canManagePrices(){
-    return currentUser === "GERENTE" || currentUser === "Claudia";
-  }
-
-  function parseBRL(str){
-    const s = String(str||"").trim();
-    if (!s) return null;
-    const cleaned = s.replace(/\./g,"").replace(",",".").replace(/[^\d.]/g,"");
-    const n = Number(cleaned);
-    if (!Number.isFinite(n)) return null;
-    return Math.round(n * 100) / 100;
-  }
-
-  function fmtBRL(n){
-    const v = Number(n);
-    if (!Number.isFinite(v)) return "-";
-    return v.toLocaleString("pt-BR",{ style:"currency", currency:"BRL" });
-  }
-
-  function normalizeItemKey(name){
-    return normalizeName(name).toLowerCase();
-  }
-
-  function renderPriceResults(targetId, queryText){
-    const wrap = $(targetId);
-    if (!wrap) return;
-
-    const q = String(queryText||"").trim().toLowerCase();
-    if (!q){
-      wrap.innerHTML = `<div class="text-gray-500">Digite para pesquisar.</div>`;
-      return;
-    }
-
-    const hits = (priceItems||[])
-      .filter(x => normalizeItemKey(x.name).includes(q))
-      .sort((a,b)=>a.name.localeCompare(b.name))
-      .slice(0, 50);
-
-    if (!hits.length){
-      wrap.innerHTML = `<div class="text-gray-500">Nenhum item encontrado.</div>`;
-      return;
-    }
-
-    wrap.innerHTML = "";
-    hits.forEach((it)=>{
-      const row = document.createElement("div");
-      row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
-      row.innerHTML = `
-        <div class="min-w-0">
-          <div class="font-semibold truncate">${it.name}</div>
-          <div class="text-xs text-gray-500">Atualizado por ${it.updatedBy || "-"} • ${it.updatedAtHuman || "-"}</div>
-        </div>
-        <div class="font-bold">${fmtBRL(it.price)}</div>
-      `;
-      wrap.appendChild(row);
-    });
-  }
-
-  function renderPriceAdminList(){
-    const wrap = $("priceListAdmin");
-    if (!wrap) return;
-
-    wrap.innerHTML = "";
-    const ordered = (priceItems||[]).slice().sort((a,b)=>a.name.localeCompare(b.name));
-
-    if (!ordered.length){
-      wrap.innerHTML = `<div class="text-gray-500">Nenhum preço cadastrado.</div>`;
-      return;
-    }
-
-    ordered.forEach((it)=>{
-      const row = document.createElement("div");
-      row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
-
-      const left = document.createElement("div");
-      left.className = "min-w-0";
-      left.innerHTML = `
-        <div class="font-semibold truncate">${it.name}</div>
-        <div class="text-xs text-gray-500">Atualizado por ${it.updatedBy || "-"} • ${it.updatedAtHuman || "-"}</div>
-      `;
-
-      const right = document.createElement("div");
-      right.className = "flex items-center gap-2";
-
-      const price = document.createElement("div");
-      price.className = "font-bold";
-      price.innerText = fmtBRL(it.price);
-
-      const btnEdit = document.createElement("button");
-      btnEdit.className = "bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs";
-      btnEdit.innerText = "Editar";
-      btnEdit.onclick = ()=>{
-        $("priceItemName").value = it.name;
-        $("priceItemValue").value = String(it.price).replace(".",",");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      };
-
-      const btnDel = document.createElement("button");
-      btnDel.className = "bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs";
-      btnDel.innerText = "Excluir";
-      btnDel.onclick = async ()=>{
-        if (!canManagePrices()) return toast("Sem permissão.");
-        if (!confirm(`Excluir "${it.name}"?`)) return;
-        try{
-          await deleteDoc(doc(db,"stores",STORE_ID,"prices", it.id));
-          toast("Preço excluído.");
-        }catch(e){
-          console.error(e);
-          toast("Erro ao excluir.");
-        }
-      };
-
-      right.appendChild(price);
-      right.appendChild(btnEdit);
-      right.appendChild(btnDel);
-
-      row.appendChild(left);
-      row.appendChild(right);
-      wrap.appendChild(row);
-    });
-  }
-
-  function setupPriceUI(){
-    // Collapses
-    setupCollapse("btnTogglePriceEmp","priceEmpContent");
-    setupCollapse("btnTogglePriceGer","priceGerContent");
-    setupCollapse("btnTogglePriceAdmin","priceAdminContent");
-
-    // Search events
-    $("priceSearchEmp")?.addEventListener("input", (e)=> renderPriceResults("priceResultsEmp", e.target.value));
-    $("priceSearchGer")?.addEventListener("input", (e)=> renderPriceResults("priceResultsGer", e.target.value));
-
-    $("btnClearPriceEmp")?.addEventListener("click", ()=>{
-      $("priceSearchEmp").value = "";
-      renderPriceResults("priceResultsEmp", "");
-    });
-    $("btnClearPriceGer")?.addEventListener("click", ()=>{
-      $("priceSearchGer").value = "";
-      renderPriceResults("priceResultsGer", "");
-    });
-
-    // Admin form
-    $("btnClearPriceForm")?.addEventListener("click", ()=>{
-      $("priceItemName").value = "";
-      $("priceItemValue").value = "";
-    });
-
-    $("btnSavePriceItem")?.addEventListener("click", async ()=>{
-      if (!canManagePrices()) return toast("Sem permissão.");
-      const name = normalizeName($("priceItemName").value);
-      const price = parseBRL($("priceItemValue").value);
-      if (!name) return toast("Digite o nome do item.");
-      if (price == null) return toast("Digite um preço válido (ex: 9,99).");
-
-      // evita lixo: usa docId determinístico por nome normalizado
-      const id = "p_" + normalizeItemKey(name).replace(/[^a-z0-9]+/g,"_").slice(0,80);
-      try{
-        await setDoc(doc(db,"stores",STORE_ID,"prices", id), {
-          name,
-          price,
-          updatedAt: serverTimestamp(),
-          updatedAtHuman: nowHuman(),
-          updatedBy: currentUser
-        }, { merge:true });
-
-        toast("Preço salvo.");
-        $("priceItemName").value = "";
-        $("priceItemValue").value = "";
-      }catch(e){
-        console.error(e);
-        toast("Erro ao salvar preço.");
-      }
-    });
-
-    $("btnDeleteAllPrices")?.addEventListener("click", async ()=>{
-      if (!canManagePrices()) return toast("Sem permissão.");
-      if (!confirm("Excluir TODOS os preços cadastrados?")) return;
-
-      try{
-        const snap = await getDocs(query(pricesCol(), limit(450)));
-        if (snap.empty) return toast("Não há preços.");
-        let batch = writeBatch(db);
-        let c = 0;
-        for (const d of snap.docs){
-          batch.delete(d.ref);
-          c++;
-          if (c % 450 === 0){
-            await batch.commit();
-            batch = writeBatch(db);
-          }
-        }
-        await batch.commit();
-        toast("Todos os preços foram excluídos.");
-      }catch(e){
-        console.error(e);
-        toast("Erro ao excluir todos.");
-      }
-    });
-
-    // Lock visibility admin
-    const lock = $("priceAdminLock");
-    const form = $("priceAdminForm");
-    if (lock && form){
-      if (canManagePrices()){
-        lock.classList.add("hidden");
-        form.classList.remove("hidden");
-      } else {
-        lock.classList.remove("hidden");
-        form.classList.add("hidden");
-      }
-    }
-  }
-
-  // ============================
-  // (o restante do seu código original continua aqui)
-  // ============================
-
-  // ... (mantenha TODO o resto do seu JS original abaixo)
-
-  // ===== util collapse (já existia) =====
   function setupCollapse(btnId, contentId){
     const btn = $(btnId);
     const content = $(contentId);
     if (!btn || !content) return;
-
     btn.addEventListener("click", ()=>{
       const hidden = content.classList.toggle("hidden");
       btn.innerText = hidden ? "Expandir" : "Minimizar";
     });
   }
 
-  // ⚠️ IMPORTANTE:
-  // Aqui você cola o RESTO do seu JS original (do seu código atual) a partir de:
-  //  - setupCollapse("btnToggleEscalaEmp"...)
-  //  - e tudo o resto (global, escala, ranking, tasks, missing, login, cloudInit etc.)
-  //
-  // Eu já deixei as funções e UI de preços prontas.
-  //
-  // ✅ Só faltou 1 coisa: ligar o snapshot da collection "prices" dentro do cloudInit.
-  //
-  // Então, dentro do seu cloudInit(), ADICIONE este bloco:
-
-  async function __pricesSnapshotInit(){
-    const qPrices = query(pricesCol(), orderBy("name","asc"), limit(2500));
-    onSnapshot(qPrices, (qs)=>{
-      priceItems = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-
-      // atualiza resultados se já estiver digitando
-      if ($("priceSearchEmp")) renderPriceResults("priceResultsEmp", $("priceSearchEmp").value);
-      if ($("priceSearchGer")) renderPriceResults("priceResultsGer", $("priceSearchGer").value);
-
-      // admin list
-      renderPriceAdminList();
-    }, (err)=>{
-      console.error("Erro snapshot prices:", err);
-    });
+  // ====== ✅ RENDER TAREFAS (CORREÇÃO PRINCIPAL) ======
+  function esc(v){
+    return String(v ?? "").replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[m]));
   }
 
-  // ✅ E no final do cloudInit(), depois dos outros onSnapshot, chame:
-  // await __pricesSnapshotInit();
-  //
-  // ✅ E no final do seu script, depois de carregar a tela, chame:
-  // setupPriceUI();
+  function renderEmpTasks(){
+    const wrap = $("tasks");
+    if (!wrap) return;
 
+    const mine = tasksDone.filter(t => t.user === currentUser);
+    const global = tasksDone.filter(t => t.user === "__GLOBAL__"); // se você usa global assim
+
+    const blocks = [];
+
+    if (global.length){
+      blocks.push(`<div class="bg-white p-4 rounded-xl shadow">
+        <div class="font-semibold mb-2">Tarefas GLOBAIS (semana)</div>
+        <div class="text-sm space-y-2">
+          ${global.map(t => `<div class="border rounded p-2 bg-gray-50">
+            <div class="font-semibold">${esc(t.categoria || "GLOBAL")}</div>
+            <div class="text-xs text-gray-600">${esc(t.when || "")}</div>
+          </div>`).join("")}
+        </div>
+      </div>`);
+    }
+
+    blocks.push(`<div class="bg-white p-4 rounded-xl shadow">
+      <div class="font-semibold mb-2">Minhas tarefas concluídas (semana)</div>
+      ${mine.length ? `
+        <div class="text-sm space-y-2">
+          ${mine.map(t => `<div class="border rounded p-2 bg-gray-50">
+            <div class="font-semibold">${esc(t.categoria || "Sem categoria")}</div>
+            <div class="text-xs text-gray-600">${esc(t.when || "")}</div>
+          </div>`).join("")}
+        </div>
+      ` : `<div class="text-sm text-gray-500">Nenhuma tarefa concluída nesta semana.</div>`}
+    </div>`);
+
+    wrap.innerHTML = blocks.join("");
+  }
+
+  function renderGerTasks(){
+    const wrap = $("gerTasks");
+    if (!wrap) return;
+
+    if (!tasksDone.length){
+      wrap.innerHTML = `<div class="text-sm text-gray-500">Nenhuma tarefa concluída nesta semana.</div>`;
+      return;
+    }
+
+    wrap.innerHTML = tasksDone.map(t => `
+      <div class="border rounded p-2 bg-gray-50">
+        <div class="flex items-center justify-between gap-2">
+          <div class="font-semibold">${esc(t.user || "-")} • ${esc(t.categoria || "-")}</div>
+          <div class="text-xs text-gray-600">${esc(t.when || "")}</div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function renderPrevEmp(){
+    const wrap = $("prevEmpList");
+    if (!wrap) return;
+
+    const minePrev = tasksPrev.filter(t => t.user === currentUser);
+    wrap.innerHTML = minePrev.length
+      ? minePrev.map(t => `<div class="border rounded p-2 bg-gray-50">
+          <div class="font-semibold">${esc(t.categoria || "-")}</div>
+          <div class="text-xs text-gray-600">${esc(t.when || "")}</div>
+        </div>`).join("")
+      : `<div class="text-sm text-gray-500">Sem tarefas na semana anterior.</div>`;
+  }
+
+  function renderPrevGer(){
+    const wrapT = $("prevTasksGer");
+    if (!wrapT) return;
+
+    wrapT.innerHTML = tasksPrev.length
+      ? tasksPrev.map(t => `<div class="border rounded p-2 bg-gray-50">
+          <div class="font-semibold">${esc(t.user || "-")} • ${esc(t.categoria || "-")}</div>
+          <div class="text-xs text-gray-600">${esc(t.when || "")}</div>
+        </div>`).join("")
+      : `<div class="text-sm text-gray-500">Sem tarefas na semana anterior.</div>`;
+  }
+
+  // ===== CSV =====
+  function csvCell(v){
+    const s = String(v == null ? "" : v);
+    if (/[\n\r,"]/g.test(s)) return '"' + s.replaceAll('"', '""') + '"';
+    return s;
+  }
+
+  // ===== Delete by week (sem índice composto) =====
+  async function deleteByWeek(colName, wk){
+    const colRef = collection(db, "stores", currentStoreId, colName);
+    const q = query(colRef, where("weekKey","==",wk), limit(450));
+    const snap = await getDocs(q);
+    if (snap.empty) return;
+
+    let batch = writeBatch(db);
+    let count = 0;
+    for (const d of snap.docs){
+      batch.delete(d.ref);
+      count++;
+      if (count % 450 === 0){
+        await batch.commit();
+        batch = writeBatch(db);
+      }
+    }
+    await batch.commit();
+    if (snap.docs.length === 450) await deleteByWeek(colName, wk);
+  }
+
+  // ===== LOGOUT =====
+  function doLogout(){
+    currentUser = "";
+    clearSession();
+    show("login");
+  }
+  on("btnLogout1","click", doLogout);
+  on("btnLogout2","click", doLogout);
+
+  // ===== COLLAPSE =====
+  setupCollapse("btnToggleCatalogEmp","catalogEmpContent");
+  setupCollapse("btnToggleCatalogGer","catalogGerContent");
+  setupCollapse("btnToggleEscalaEmp","escalaEmpContent");
+  setupCollapse("btnToggleEscalaGer","escalaGerContent");
+  setupCollapse("btnToggleRanking","rankingContent");
+  setupCollapse("btnTogglePrevEmp","prevEmpContent");
+  setupCollapse("btnTogglePrevGer","prevGerContent");
+
+  // ===== Catalog Search Wiring =====
+  function wireCatalogSearch(){
+    const empInput = $("catalogSearchEmp");
+    const gerInput = $("catalogSearchGer");
+
+    if (empInput){
+      empInput.oninput = ()=> renderCatalogResults("catalogResultsEmp", empInput.value);
+      const c = $("btnClearSearchEmp");
+      if (c) c.onclick = ()=> { empInput.value=""; renderCatalogResults("catalogResultsEmp",""); empInput.focus(); };
+    }
+    if (gerInput){
+      gerInput.oninput = ()=> renderCatalogResults("catalogResultsGer", gerInput.value);
+      const c = $("btnClearSearchGer");
+      if (c) c.onclick = ()=> { gerInput.value=""; renderCatalogResults("catalogResultsGer",""); gerInput.focus(); };
+    }
+
+    const wrap = $("catalogManageWrap");
+    if (wrap){
+      if (canManageCatalog()) wrap.classList.remove("hidden");
+      else wrap.classList.add("hidden");
+    }
+  }
+
+  // ===== Missing =====
+  on("btnMissing","click", ()=> $("missingBox")?.classList.toggle("hidden"));
+  on("missingSave","click", async ()=>{
+    const raw = $("missingInput")?.value?.trim() || "";
+    if (!raw) return toast("Digite o item em falta.");
+
+    await addDoc(collection(db,"stores",currentStoreId,"missing"), {
+      user: currentUser,
+      item: raw,
+      when: nowHuman(),
+      weekKey: currentWeekKey,
+      createdAt: serverTimestamp()
+    });
+
+    $("missingInput").value = "";
+    $("missingBox").classList.add("hidden");
+    toast("Registrado!");
+  });
+
+  // ===== Catalog Manage Buttons =====
+  on("btnCatalogSave","click", async ()=>{
+    if (!canManageCatalog()) return toast("Sem permissão.");
+    const name = $("catalogItemName")?.value || "";
+    const priceRaw = $("catalogItemPrice")?.value || "";
+    const price = parsePrice(priceRaw);
+
+    try{
+      await upsertCatalogItem(name, price);
+      toast("Salvo!");
+      $("catalogItemName").value = "";
+      $("catalogItemPrice").value = "";
+      $("catalogItemName").focus();
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao salvar."));
+    }
+  });
+
+  on("btnCatalogDeleteByName","click", async ()=>{
+    if (!canManageCatalog()) return toast("Sem permissão.");
+    const name = $("catalogItemName")?.value || "";
+    const n = normalizeCat(name);
+    if (!n) return toast("Digite o nome do item para excluir.");
+    if (!confirm(`Excluir "${n}"?`)) return;
+
+    try{
+      await deleteCatalogByName(n);
+      toast("Item excluído.");
+      $("catalogItemName").value = "";
+      $("catalogItemPrice").value = "";
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao excluir."));
+    }
+  });
+
+  // ===== Buttons =====
+  on("btnAddEmployee","click", async ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    const name = $("newEmployeeName")?.value || "";
+    $("newEmployeeName").value = "";
+    try{ await addEmployee(name); }catch(e){ console.error(e); toast("Erro ao adicionar funcionário."); }
+  });
+
+  on("btnRefreshEmployees","click", ()=>{
+    renderEmployeesUI();
+    toast("Lista recarregada.");
+  });
+
+  on("btnAddCategory","click", async ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    const u = $("addUser")?.value || "";
+    const cat = normalizeCat($("categoriaNome")?.value || "");
+    const items = ($("itensCategoria")?.value || "").trim();
+    if (!u) return toast("Selecione o funcionário.");
+    if (!cat) return toast("Informe o nome da categoria");
+
+    const newData = clone(data || {});
+    if (!newData[u]) newData[u] = {};
+    newData[u][cat] = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
+
+    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
+    $("categoriaNome").value = "";
+    $("itensCategoria").value = "";
+    toast("Categoria atualizada.");
+  });
+
+  on("btnSetPin","click", async ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    const u = $("pinUser")?.value || "";
+    const p = ($("pinNew")?.value || "").trim();
+    if (!u) return toast("Selecione o usuário.");
+    if (!isValidPin(p)) return toast("Novo PIN precisa ter 4 dígitos.");
+
+    await setDoc(userRef(u), {
+      user: u,
+      role: (u === managerName()) ? "manager" : "employee",
+      pinHash: await sha256(p),
+      updatedAt: serverTimestamp()
+    }, { merge:true });
+
+    $("pinNew").value = "";
+    toast("PIN definido.");
+  });
+
+  on("btnExport","click", ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente exporta.");
+
+    const header = ["tipo","usuario","categoria","quando","detalhes","weekKey","loja"];
+    let csv = header.join(",") + "\n";
+
+    tasksDone.forEach((r)=>{
+      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {}), r.weekKey, currentStoreId].map(csvCell).join(",") + "\n";
+    });
+    missingReports.forEach((r)=>{
+      csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item }), r.weekKey, currentStoreId].map(csvCell).join(",") + "\n";
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "relatorio_" + currentWeekKey + "_" + currentStoreId + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  on("btnResetWeek","click", async ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
+
+    try{
+      await deleteByWeek("tasks", currentWeekKey);
+      await deleteByWeek("missing", currentWeekKey);
+      try{ await deleteDoc(doc(db,"stores",currentStoreId,"state","global_"+currentWeekKey)); }catch(e){}
+      try{ await deleteDoc(doc(db,"stores",currentStoreId,"state","escala_"+currentWeekKey)); }catch(e){}
+      toast("Semana zerada.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao zerar semana.");
+    }
+  });
+
+  on("btnResetStars","click", ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    resetMonthlyStars();
+  });
+
+  on("btnDeleteAllTasksWeek","click", async ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    if (!confirm("Excluir TODAS as tarefas concluídas da semana atual?")) return;
+    try{
+      await deleteByWeek("tasks", currentWeekKey);
+      toast("Tarefas da semana excluídas.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir tarefas.");
+    }
+  });
+
+  on("btnDeleteAllMissingWeek","click", async ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    if (!confirm("Excluir TODOS os itens em falta da semana atual?")) return;
+    try{
+      await deleteByWeek("missing", currentWeekKey);
+      toast("Faltas da semana excluídas.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir faltas.");
+    }
+  });
+
+  // ===== Login =====
+  on("storeSelect","change", async ()=>{
+    if (currentUser) return;
+    currentStoreId = $("storeSelect").value;
+    await cloudInit(false);
+  });
+
+  on("btnLogin","click", async ()=>{
+    const u = $("userSelect")?.value || "";
+    const p = $("pin")?.value || "";
+
+    if (!u) return toast("Selecione o usuário.");
+    if (!isValidPin(p)) return toast("PIN precisa ter 4 dígitos.");
+    if (!userBelongsToStore(u)) return toast("Usuário não pertence a esta loja.");
+
+    if (u !== managerName() && !isEmployeeActive(u)){
+      return toast("Usuário bloqueado. Fale com o gerente.");
+    }
+
+    const check = await verifyUserPin(u, p);
+    if (check.noUser){
+      await ensureUserPin(u, p);
+      toast("PIN criado! Você já está logado.");
+      doLogin(u);
+      return;
+    }
+    if (!check.ok) return toast("PIN incorreto.");
+    doLogin(u);
+  });
+
+  function doLogin(u){
+    currentUser = u;
+    $("pin").value = "";
+    saveSession(currentStoreId, u);
+
+    $("weekKeyLabel").innerText = currentWeekKey;
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    $("prevWeekLabelEmp").innerText = prevWeekKey;
+    $("userName").innerText = currentUser;
+
+    $("weekKeyLabelGer").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+    $("prevWeekLabelGer").innerText = prevWeekKey;
+    $("storeLabelGer").innerText = storeCfg().label;
+
+    wireCatalogSearch();
+
+    if (u === managerName()){
+      show("gerente");
+      renderGerTasks();
+      renderPrevGer();
+    } else {
+      show("funcionario");
+      renderEmpTasks();
+      renderPrevEmp();
+    }
+    updateTopBar();
+
+    renderCatalogResults("catalogResultsEmp", $("catalogSearchEmp")?.value || "");
+    renderCatalogResults("catalogResultsGer", $("catalogSearchGer")?.value || "");
+  }
+
+  // ====== LISTENERS / INIT ======
+  let unsubscribers = [];
+  function clearListeners(){
+    unsubscribers.forEach(fn=>{ try{ fn && fn(); }catch(e){} });
+    unsubscribers = [];
+  }
+
+  async function cloudInit(tryRestoreSession=true){
+    clearListeners();
+
+    await ensureWeekKey();
+    await ensureEmployeesConfig();
+    renderEmployeesUI();
+    await ensureScoresDoc();
+
+    updateTopBar();
+
+    // Categories: só cria padrão na loja principal (bogados sem lixo)
+    const catsSnap = await getDoc(cfgCatsRef());
+    if (!catsSnap.exists()){
+      if (currentStoreId === "loja_principal"){
+        await setDoc(cfgCatsRef(), { data: storeCfg().defaultCategories, updatedAt: serverTimestamp() }, { merge:false });
+        data = clone(storeCfg().defaultCategories);
+      } else {
+        data = {};
+      }
+    } else {
+      const remote = catsSnap.data().data;
+      data = (remote && typeof remote === "object") ? remote : {};
+    }
+
+    // Employees realtime
+    unsubscribers.push(onSnapshot(cfgAppRef(), (snap)=>{
+      if (!snap.exists()) return;
+      const raw = snap.data().employees;
+      employees = (Array.isArray(raw) ? raw : [])
+        .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
+        .filter(x => x.name && x.name !== managerName());
+      const seen = new Set();
+      employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
+
+      renderEmployeesUI();
+
+      if (currentUser && currentUser !== managerName() && !isEmployeeActive(currentUser)){
+        clearSession();
+        currentUser = "";
+        toast("Usuário bloqueado. Faça login novamente.");
+        show("login");
+      }
+    }));
+
+    // Categories realtime
+    unsubscribers.push(onSnapshot(cfgCatsRef(), (snap)=>{
+      if (!snap.exists()){ data = {}; return; }
+      const remote = snap.data().data;
+      data = (remote && typeof remote === "object") ? remote : {};
+    }));
+
+    // Scores realtime
+    unsubscribers.push(onSnapshot(scoresRef(), (snap)=>{
+      scoresDoc = snap.data() || {};
+      if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
+      if (currentUser && currentUser !== managerName()){
+        const pts = getMonthPoints(currentUser);
+        $("monthPointsInline").innerText = pts;
+        $("monthPointsTop").innerText = pts;
+      }
+      updateTopBar();
+    }));
+
+    // ✅ Tasks realtime + render
+    unsubscribers.push(onSnapshot(
+      query(collection(db,"stores",currentStoreId,"tasks"), orderBy("createdAt","desc"), limit(900)),
+      (qs)=>{
+        tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+        tasksDone = tasksAll.filter(x=>x.weekKey === currentWeekKey);
+        tasksPrev = tasksAll.filter(x=>x.weekKey === prevWeekKey);
+
+        if (currentUser && currentUser !== managerName()){
+          renderEmpTasks();
+          renderPrevEmp();
+        }
+        if (currentUser === managerName()){
+          renderGerTasks();
+          renderPrevGer();
+        }
+      }
+    ));
+
+    // Missing realtime
+    unsubscribers.push(onSnapshot(
+      query(collection(db,"stores",currentStoreId,"missing"), orderBy("createdAt","desc"), limit(900)),
+      (qs)=>{
+        missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+        missingReports = missingAll.filter(x=>x.weekKey === currentWeekKey);
+        missingPrev = missingAll.filter(x=>x.weekKey === prevWeekKey);
+        // (se você tem render de faltas, pode adicionar aqui depois)
+      }
+    ));
+
+    // Catalog realtime
+    unsubscribers.push(onSnapshot(
+      query(catalogColRef(), orderBy("nameLower"), limit(1000)),
+      (qs)=>{
+        catalogItems = qs.docs.map(d => ({ id:d.id, ...d.data() }))
+          .filter(x => x && x.name && x.nameLower)
+          .map(x => ({ ...x, price: Number(x.price||0) }))
+          .sort((a,b)=> String(a.nameLower).localeCompare(String(b.nameLower)));
+
+        renderCatalogResults("catalogResultsEmp", $("catalogSearchEmp")?.value || "");
+        renderCatalogResults("catalogResultsGer", $("catalogSearchGer")?.value || "");
+      }
+    ));
+
+    wireCatalogSearch();
+
+    if (tryRestoreSession){
+      const ses = getSession();
+      if (ses && ses.user && ses.storeId){
+        currentStoreId = ses.storeId;
+        $("storeSelect").value = currentStoreId;
+        await cloudInit(false);
+
+        currentUser = ses.user;
+        if (!userBelongsToStore(currentUser)){
+          clearSession();
+          currentUser = "";
+          show("login");
+          return;
+        }
+        if (currentUser !== managerName() && !isEmployeeActive(currentUser)){
+          clearSession();
+          currentUser = "";
+          show("login");
+          return;
+        }
+        doLogin(currentUser);
+      } else {
+        show("login");
+      }
+    } else {
+      show("login");
+    }
+  }
+
+  // Start
+  await cloudInit(true);
+
+  console.log("BUILD OK");
 </script>
 
 </body>
 </html>
+
