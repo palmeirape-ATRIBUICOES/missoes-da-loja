@@ -187,24 +187,46 @@
     </div>
   </div>
 
-  <!-- GLOBAL -->
+  <!-- GLOBAL: publicar por template + criar templates -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <h3 class="font-semibold mb-2">Criar categoria GLOBAL (para todos)</h3>
+    <h3 class="font-semibold mb-2">Tarefas GLOBAIS salvas (Templates)</h3>
     <p class="text-xs text-gray-500 mb-3">
-      Ela aparece para todos os usuários ativos. Quem concluir primeiro, “trava” e some dos demais.
+      Crie templates de GLOBAL e depois publique a GLOBAL da semana escolhendo no dropdown.
+      Quem concluir primeiro “trava” e some dos demais.
     </p>
 
     <div class="grid md:grid-cols-4 gap-2">
-      <input id="globalCatName" class="border p-2 rounded md:col-span-2" placeholder="Nome (ex: Conferir geladeira)" />
-      <input id="globalCatItems" class="border p-2 rounded md:col-span-2" placeholder="Itens separados por vírgula (ex: Coca, Guaraná...)" />
+      <select id="globalTplSelect" class="border p-2 rounded md:col-span-2">
+        <option value="">Carregando templates...</option>
+      </select>
+      <button id="btnPublishGlobalFromTpl" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
+        Publicar GLOBAL (semana)
+      </button>
+      <button id="btnDeleteTpl" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded">
+        Excluir template
+      </button>
     </div>
-    <button id="btnCreateGlobal" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded w-full">
-      Criar GLOBAL
-    </button>
 
     <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold mb-2">GLOBAL nesta semana</div>
+      <div class="text-sm font-semibold mb-2">Status GLOBAL desta semana</div>
       <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
+    </div>
+
+    <div class="mt-4 border-t pt-4">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold text-sm">Criar novo template GLOBAL</div>
+        <button id="btnSaveTpl" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
+          Salvar template
+        </button>
+      </div>
+
+      <div class="grid md:grid-cols-4 gap-2 mt-2">
+        <input id="tplName" class="border p-2 rounded md:col-span-2" placeholder="Nome do template (ex: Conferir geladeira)" />
+        <input id="tplItems" class="border p-2 rounded md:col-span-2" placeholder="Itens separados por vírgula (ex: Coca, Guaraná...)" />
+      </div>
+      <p class="text-xs text-gray-500 mt-2">
+        Dica: se quiser “só checklist sem números”, mesmo assim use Qtd e coloque 0 quando for o caso.
+      </p>
     </div>
   </div>
 
@@ -246,7 +268,7 @@
     </div>
   </div>
 
-  <!-- apagar tarefas por funcionário -->
+  <!-- APAGAR TAREFAS POR FUNCIONÁRIO (SEMANA) -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Apagar tarefas por funcionário (semana)</h3>
     <div class="grid md:grid-cols-3 gap-2">
@@ -390,31 +412,33 @@
   function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
   function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
 
-  // ====== Data/State ======
+  // ====== State ======
   let data = {};
-  let scoresDoc = {};     // {monthScores: { 'YYYY-MM': {user: n}} }
+  let scoresDoc = {};
   let tasksDone = [];
   let missingReports = [];
   let currentUser = "";
   let currentWeekKey = "";
-  let employees = [];     // [{name, active}]
-  let globalTask = null;  // doc state/global_week
-  let escala = null;      // doc state/escala_week
+  let employees = [];
+  let globalTask = null;
+  let escala = null;
 
-  // Editor locals
+  // Templates globais
+  let globalTemplates = []; // [{id,name,items,createdAtHuman}]
   let escalaLocalEmployee = null;
   let escalaLocalGer = null;
 
   // ===== Refs =====
   const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
   const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
+  const cfgGlobalTplRef = () => doc(db,"stores",STORE_ID,"config","global_templates");
   const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
   const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
   const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
   const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
 
-  // ===== Top bar (novo) =====
+  // ===== Top bar =====
   function monthKey(date){
     const y = date.getFullYear();
     const m = String(date.getMonth()+1).padStart(2,"0");
@@ -461,7 +485,7 @@
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
   }
 
-  // ===== Semana ISO (reset segunda) =====
+  // ===== Semana ISO =====
   function weekKey(date){
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -605,41 +629,6 @@
     fillSelect($("editUser"), namesAll, false, null);
     fillSelect($("pinUser"), namesAll, true, null);
     fillSelect($("delTasksUser"), namesAll.filter(n=>n.toUpperCase()!=="GERENTE"), false, "Selecione um funcionário...");
-
-    const wrap = $("employeeTable");
-    if (!wrap) return;
-    wrap.innerHTML = "";
-    employees.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach((e)=>{
-      const row = document.createElement("div");
-      row.className = "flex items-center justify-between gap-2 border rounded p-2 bg-gray-50";
-      const badge = e.active
-        ? "<span class='text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-800'>ATIVO</span>"
-        : "<span class='text-xs px-2 py-1 rounded bg-red-100 text-red-800'>BLOQUEADO</span>";
-      row.innerHTML = `
-        <div class="flex items-center gap-2">
-          <div class="font-semibold text-sm">${e.name}</div>
-          ${badge}
-        </div>
-        <div class="flex gap-2">
-          <button class="btnToggle px-3 py-1 rounded text-xs ${e.active ? "bg-red-600 hover:bg-red-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}"
-            data-name="${encodeURIComponent(e.name)}" data-active="${e.active ? "1" : "0"}">
-            ${e.active ? "Bloquear" : "Ativar"}
-          </button>
-        </div>
-      `;
-      wrap.appendChild(row);
-    });
-
-    wrap.querySelectorAll(".btnToggle").forEach(btn=>{
-      btn.addEventListener("click", async ()=>{
-        const name = decodeURIComponent(btn.getAttribute("data-name") || "");
-        const isActive = btn.getAttribute("data-active") === "1";
-        const action = isActive ? "bloquear" : "ativar";
-        if (!confirm(`Deseja ${action} "${name}"?`)) return;
-        await toggleEmployee(name, !isActive);
-        toast(`Funcionário ${action}do.`);
-      });
-    });
   }
 
   // ===== Categorias base =====
@@ -738,22 +727,30 @@
     });
   }
 
-  // ===== GLOBAL =====
+  // ===== GLOBAL (semana) =====
   function getGlobalStatusText(){
-    if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL criada nesta semana.";
+    if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL publicada nesta semana.";
     if (globalTask.status === "completed") return `GLOBAL concluída por ${globalTask.completedBy} em ${globalTask.completedAtHuman || ""}`;
     if (globalTask.status === "open") return `GLOBAL pendente: ${globalTask.name || "(sem nome)"} (aguardando conclusão)`;
     return "GLOBAL: estado desconhecido.";
   }
 
-  async function createGlobalTask(name, itemsArr){
+  async function publishGlobalTaskFromTemplate(tpl){
+    // impede publicar se já existe GLOBAL aberta/fechada na semana
     const ref = globalRef(currentWeekKey);
+    const snap = await getDoc(ref);
+    if (snap.exists()){
+      const g = snap.data();
+      if (g?.exists) throw new Error("Já existe GLOBAL nesta semana.");
+    }
+
     await setDoc(ref, {
       exists: true,
       weekKey: currentWeekKey,
       status: "open",
-      name,
-      items: itemsArr,
+      name: tpl.name,
+      items: tpl.items || [],
+      templateId: tpl.id || "",
       createdAt: serverTimestamp(),
       createdAtHuman: nowHuman()
     }, { merge:false });
@@ -785,6 +782,61 @@
     });
 
     await bumpMonthlyScore(user, 10);
+  }
+
+  // ===== GLOBAL TEMPLATES =====
+  function sanitizeItemsFromInput(raw){
+    return raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : [];
+  }
+
+  function renderGlobalTplDropdown(){
+    const sel = $("globalTplSelect");
+    if (!sel) return;
+    const prev = sel.value;
+
+    sel.innerHTML = "";
+    sel.appendChild(new Option("Selecione um template...", ""));
+    const ordered = (globalTemplates || []).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    ordered.forEach(t => sel.appendChild(new Option(t.name, t.id)));
+
+    if (prev && ordered.some(t=>t.id===prev)) sel.value = prev;
+  }
+
+  async function ensureGlobalTemplatesDoc(){
+    const snap = await getDoc(cfgGlobalTplRef());
+    if (!snap.exists()){
+      // cria vazio (você vai salvando)
+      await setDoc(cfgGlobalTplRef(), { templates: [], updatedAt: serverTimestamp() }, { merge:true });
+      globalTemplates = [];
+      return;
+    }
+    const raw = snap.data().templates;
+    globalTemplates = Array.isArray(raw) ? raw : [];
+  }
+
+  async function saveGlobalTemplate(name, items){
+    name = normalizeCat(name);
+    if (!name) throw new Error("Nome do template vazio.");
+    if (!Array.isArray(items) || items.length === 0) throw new Error("Template precisa ter itens.");
+
+    const id = "tpl_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8);
+    const next = (globalTemplates || []).concat([{
+      id,
+      name,
+      items,
+      createdAtHuman: nowHuman()
+    }]);
+
+    await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
+  }
+
+  async function deleteGlobalTemplateById(id){
+    const next = (globalTemplates || []).filter(t=>t.id !== id);
+    await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
+  }
+
+  function findTemplateById(id){
+    return (globalTemplates || []).find(t=>t.id === id);
   }
 
   // ===== ESCALA =====
@@ -971,21 +1023,18 @@
       };
 
       const sync = () => {
-        // salva no modelo
         day.manha[0] = normalizeName(m1.value);
         day.manha[1] = normalizeName(m2.value);
         day.tarde[0] = normalizeName(t1.value);
         day.tarde[1] = normalizeName(t2.value);
         day.folga[0] = normalizeName(f1.value);
 
-        // filtra
         setSelectOptions(m1, availableFor(m1.value), m1.value);
         setSelectOptions(m2, availableFor(m2.value), m2.value);
         setSelectOptions(t1, availableFor(t1.value), t1.value);
         setSelectOptions(t2, availableFor(t2.value), t2.value);
         setSelectOptions(f1, availableFor(f1.value), f1.value);
 
-        // re-salva
         day.manha[0] = normalizeName(m1.value);
         day.manha[1] = normalizeName(m2.value);
         day.tarde[0] = normalizeName(t1.value);
@@ -993,7 +1042,6 @@
         day.folga[0] = normalizeName(f1.value);
       };
 
-      // pulo de cursor
       const jumpTo = (nextSel) => setTimeout(() => nextSel?.focus?.(), 0);
 
       m1.addEventListener("change", ()=>{ sync(); jumpTo(m2); });
@@ -1036,7 +1084,7 @@
     const list = $("rankingList");
     list.innerHTML = "";
 
-    const active = activeNames(); // só ativos no ranking
+    const active = activeNames();
     const ms = scoresDoc?.monthScores?.[mk] || {};
 
     const rows = active.map(name => ({
@@ -1292,7 +1340,6 @@
 
     if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
 
-    // ranking
     renderRanking();
 
     // tarefas
@@ -1365,7 +1412,7 @@
     }
   }
 
-  // ===== Colapsar (Escala/Ranking) =====
+  // ===== Colapsar =====
   function setupCollapse(btnId, contentId){
     const btn = $(btnId);
     const content = $(contentId);
@@ -1390,7 +1437,7 @@
     $("editCatName").value = "";
     $("editItemsArea").value = "";
   }
-  $("editUser").addEventListener("change", refreshCategoryEditorLists);
+  $("editUser")?.addEventListener("change", refreshCategoryEditorLists);
 
   // ===== Missing =====
   $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
@@ -1411,21 +1458,59 @@
     toast("Registrado!");
   });
 
-  // ===== Global create =====
-  $("btnCreateGlobal").addEventListener("click", async ()=>{
+  // ===== GLOBAL TEMPLATES UI =====
+  $("btnSaveTpl").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    const name = normalizeCat($("globalCatName").value);
-    const items = $("globalCatItems").value.trim();
-    if (!name) return toast("Digite o nome da GLOBAL.");
-    const arr = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
-    if (!arr.length) return toast("Informe pelo menos 1 item.");
-    await createGlobalTask(name, arr);
-    $("globalCatName").value = "";
-    $("globalCatItems").value = "";
-    toast("GLOBAL criada.");
+    const name = normalizeCat($("tplName").value);
+    const items = sanitizeItemsFromInput($("tplItems").value.trim());
+    if (!name) return toast("Digite o nome do template.");
+    if (!items.length) return toast("Digite pelo menos 1 item.");
+    try{
+      await saveGlobalTemplate(name, items);
+      $("tplName").value = "";
+      $("tplItems").value = "";
+      toast("Template salvo.");
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao salvar template."));
+    }
   });
 
-  // ===== Apagar tarefas por funcionário =====
+  $("btnDeleteTpl").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const id = $("globalTplSelect").value;
+    if (!id) return toast("Selecione um template.");
+    const tpl = findTemplateById(id);
+    if (!tpl) return toast("Template não encontrado.");
+    if (!confirm(`Excluir template "${tpl.name}"?`)) return;
+    try{
+      await deleteGlobalTemplateById(id);
+      toast("Template excluído.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir template.");
+    }
+  });
+
+  $("btnPublishGlobalFromTpl").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const id = $("globalTplSelect").value;
+    if (!id) return toast("Selecione um template.");
+    const tpl = findTemplateById(id);
+    if (!tpl) return toast("Template não encontrado.");
+
+    if (!confirm(`Publicar GLOBAL desta semana usando "${tpl.name}"?`)) return;
+
+    try{
+      await publishGlobalTaskFromTemplate(tpl);
+      toast("GLOBAL publicada para esta semana.");
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao publicar GLOBAL."));
+    }
+  });
+
+  // ===== Apagar tarefas por funcionário (semana) =====
   $("btnLoadUserTasks").addEventListener("click", ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
     const u = $("delTasksUser").value;
@@ -1501,7 +1586,7 @@
     }
   });
 
-  // ===== Funcionários add =====
+  // ===== Funcionários add / toggle =====
   $("btnAddEmployee").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
     const name = $("newEmployeeName").value;
@@ -1699,6 +1784,11 @@
     if (snap.docs.length === 450) await deleteByWeek(colName, wk);
   }
 
+  // ===== Collapses =====
+  setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
+  setupCollapse("btnToggleEscalaGer", "escalaGerContent");
+  setupCollapse("btnToggleRanking", "rankingContent");
+
   // ===== Login / Logout =====
   $("btnLogout1").addEventListener("click", doLogout);
   $("btnLogout2").addEventListener("click", doLogout);
@@ -1769,13 +1859,22 @@
     await ensureScoresDoc();
     updateTopBar();
 
-    // collapse handlers
-    setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
-    setupCollapse("btnToggleEscalaGer", "escalaGerContent");
-    setupCollapse("btnToggleRanking", "rankingContent");
+    // Templates: ensure + realtime
+    await ensureGlobalTemplatesDoc();
+    renderGlobalTplDropdown();
+
+    onSnapshot(cfgGlobalTplRef(), (snap)=>{
+      if (!snap.exists()){
+        globalTemplates = [];
+      } else {
+        const raw = snap.data().templates;
+        globalTemplates = Array.isArray(raw) ? raw : [];
+      }
+      renderGlobalTplDropdown();
+    });
 
     // employees realtime
-    onSnapshot(cfgAppRef(), async (snap)=>{
+    onSnapshot(cfgAppRef(), (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
 
@@ -1787,6 +1886,12 @@
       employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
 
       renderEmployeesUI();
+      if (currentUser && currentUser !== "GERENTE" && !isEmployeeActive(currentUser)){
+        clearSession();
+        currentUser = "";
+        toast("Usuário bloqueado. Faça login novamente.");
+        show("login");
+      }
 
       if (currentUser === "GERENTE"){
         escalaLocalGer = renderEscalaEditor("escalaEditorGer");
@@ -1795,13 +1900,6 @@
       }
 
       renderRanking();
-
-      if (currentUser && currentUser !== "GERENTE" && !isEmployeeActive(currentUser)){
-        clearSession();
-        currentUser = "";
-        toast("Usuário bloqueado. Faça login novamente.");
-        show("login");
-      }
     });
 
     // categories
@@ -1838,7 +1936,7 @@
     });
 
     // tasks
-    const tasksQ = query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(700));
+    const tasksQ = query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(900));
     onSnapshot(tasksQ, (qs)=>{
       const all = qs.docs.map(d => ({ id:d.id, ...d.data() }));
       tasksDone = all.filter(x=>x.weekKey === currentWeekKey);
@@ -1847,14 +1945,14 @@
     });
 
     // missing
-    const missQ = query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(700));
+    const missQ = query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(900));
     onSnapshot(missQ, (qs)=>{
       const all = qs.docs.map(d => ({ id:d.id, ...d.data() }));
       missingReports = all.filter(x=>x.weekKey === currentWeekKey);
       if (currentUser === "GERENTE") renderManager();
     });
 
-    // global doc
+    // global week doc
     onSnapshot(globalRef(currentWeekKey), (snap)=>{
       if (!snap.exists()) globalTask = null;
       else globalTask = { id: snap.id, ...snap.data() };
@@ -1863,7 +1961,7 @@
       if (currentUser && currentUser !== "GERENTE") renderEmployee();
     });
 
-    // escala doc
+    // escala week doc
     onSnapshot(escalaRef(currentWeekKey), (snap)=>{
       if (!snap.exists()) escala = null;
       else escala = { id: snap.id, ...snap.data() };
