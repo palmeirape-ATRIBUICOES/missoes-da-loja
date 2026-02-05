@@ -95,29 +95,6 @@
 <!-- FUNCIONÁRIO -->
 <section id="funcionario" class="hidden max-w-3xl mx-auto">
 
-  <!-- PESQUISA DE PREÇOS (TOPO) -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h2 class="text-lg font-semibold">Consulta de Preços</h2>
-        <p class="text-xs text-gray-500">Digite o nome do produto para ver o valor.</p>
-      </div>
-      <button id="btnToggleCatalogEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-        Minimizar
-      </button>
-    </div>
-
-    <div id="catalogEmpContent" class="mt-3">
-      <div class="flex gap-2">
-        <input id="catalogSearchEmp" class="flex-1 border rounded p-2" placeholder="Ex: Coca 2L, Heineken..." />
-        <button id="btnClearSearchEmp" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-          Limpar
-        </button>
-      </div>
-      <div id="catalogResultsEmp" class="mt-3 text-sm space-y-2"></div>
-    </div>
-  </div>
-
   <!-- Escala -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
@@ -211,51 +188,6 @@
 
 <!-- GERENTE -->
 <section id="gerente" class="hidden max-w-4xl mx-auto">
-
-  <!-- PESQUISA DE PREÇOS (GERENTE) -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h2 class="text-lg font-semibold">Consulta de Preços</h2>
-        <p class="text-xs text-gray-500">Pesquisar / cadastrar / atualizar / excluir itens.</p>
-      </div>
-      <button id="btnToggleCatalogGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-        Minimizar
-      </button>
-    </div>
-
-    <div id="catalogGerContent" class="mt-3">
-      <div class="flex gap-2">
-        <input id="catalogSearchGer" class="flex-1 border rounded p-2" placeholder="Ex: Coca 2L, Heineken..." />
-        <button id="btnClearSearchGer" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-          Limpar
-        </button>
-      </div>
-
-      <div id="catalogResultsGer" class="mt-3 text-sm space-y-2"></div>
-
-      <!-- Gestão (somente gerente e Claudia) -->
-      <div id="catalogManageWrap" class="hidden mt-4 border-t pt-4">
-        <div class="font-semibold text-sm mb-2">Cadastrar / Atualizar preço</div>
-        <div class="grid md:grid-cols-3 gap-2">
-          <input id="catalogItemName" class="border p-2 rounded md:col-span-2" placeholder="Nome do produto (ex: Coca-Cola 2L)" />
-          <input id="catalogItemPrice" class="border p-2 rounded" inputmode="decimal" placeholder="Preço (ex: 9.99)" />
-        </div>
-        <div class="flex gap-2 mt-2">
-          <button id="btnCatalogSave" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded">
-            Salvar
-          </button>
-          <button id="btnCatalogDeleteByName" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
-            Excluir pelo nome
-          </button>
-        </div>
-        <p class="text-xs text-gray-500 mt-2">
-          Dica: “Salvar” atualiza automaticamente se o nome já existir (sem criar duplicado).
-        </p>
-      </div>
-    </div>
-  </div>
-
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
@@ -317,7 +249,7 @@
     </div>
 
     <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold">Status GLOBAL desta semana</div>
+      <div class="text-sm font-semibold mb-2">Status GLOBAL desta semana</div>
       <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
     </div>
 
@@ -468,7 +400,7 @@
 </section>
 
 <script type="module">
-  // ====== PWA: Manifest + Icon ======
+  // ====== PWA: Manifest + Icon gerados automaticamente (logo ALVO) ======
   const TARGET_SVG = `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
     <defs>
@@ -483,10 +415,16 @@
     <circle cx="256" cy="256" r="110" fill="none" stroke="#1d4ed8" stroke-width="28"/>
     <circle cx="256" cy="256" r="52" fill="#1d4ed8"/>
   </svg>`.trim();
-  const svgDataUrl = (svg) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+
+  function svgDataUrl(svg){
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  }
   const iconUrl = svgDataUrl(TARGET_SVG);
-  document.getElementById("appIcon").href = iconUrl;
-  document.getElementById("appAppleIcon").href = iconUrl;
+  const $icon = document.getElementById("appIcon");
+  const $apple = document.getElementById("appAppleIcon");
+  if ($icon) $icon.href = iconUrl;
+  if ($apple) $apple.href = iconUrl;
+
   const manifest = {
     name: "Missoes",
     short_name: "Missoes",
@@ -500,7 +438,9 @@
     ]
   };
   const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-  document.getElementById("appManifest").href = URL.createObjectURL(manifestBlob);
+  const manifestUrl = URL.createObjectURL(manifestBlob);
+  const $m = document.getElementById("appManifest");
+  if ($m) $m.href = manifestUrl;
 
   // ====== Firebase ======
   const firebaseConfig = {
@@ -512,11 +452,14 @@
     appId: "1:198254465545:web:dce028792e2c2c57161ed8"
   };
 
+  // ====== Multi-loja (separado, sem “lixo”) ======
   const STORES = {
     loja_principal: {
       label: "Loja Principal",
       managerUser: "GERENTE",
+      // lista inicial (pode mudar no painel do gerente)
       defaultEmployees: ["Sandra","Thauane","Ingrid","Claudia","DADA"].map(n => ({ name:n, active:true })),
+      // categorias iniciais (somente para a loja principal)
       defaultCategories: {
         Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
         Thauane: {
@@ -545,15 +488,18 @@
         DADA: { "Mineirinho (Terca)": ["Mineirinho 2L","Mineirinho 350ml"] }
       }
     },
+
     loja_bogados: {
       label: "Bogados",
       managerUser: "BOGADOS - GERENTE",
+      // SOMENTE 1 funcionário + gerente (isolado)
       defaultEmployees: [{ name:"bogados", active:true }],
-      defaultCategories: {}
+      // SEM categorias iniciais (evita “lixo” no banco)
+      defaultCategories: {} // <-- aqui já remove “Rotina (Bogados)” e não cria nada sozinho
     }
   };
 
-  const SESSION_KEY = "mdl_session_v2";
+  const SESSION_KEY = "mdl_session_v2"; // store + user
   const MASTER_MANAGER_PIN = "1234";
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -567,155 +513,45 @@
   const db = getFirestore(app);
 
   const $ = (id) => document.getElementById(id);
-  const toast = (msg) => alert(msg);
-  const clone = (obj) => JSON.parse(JSON.stringify(obj));
-  const normalizeName = (name)=> String(name||"").trim().replace(/\s+/g," ");
-  const normalizeCat  = (name)=> String(name||"").trim().replace(/\s+/g," ");
-  const nowHuman = ()=> new Date().toLocaleString();
-  const isValidPin = (p)=> /^[0-9]{4}$/.test(String(p||""));
+  function toast(msg){ alert(msg); }
+  function show(section){
+    ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
+    $(section).classList.remove("hidden");
+    updateTopBar();
+  }
+  function isValidPin(p){ return /^[0-9]{4}$/.test(String(p || "")); }
+  function nowHuman(){ return new Date().toLocaleString(); }
+  function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+  function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
+  function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
 
+  // ====== State ======
   let currentStoreId = "loja_principal";
+  let data = {};
+  let scoresDoc = {};
+  let tasksAll = [];        // até 900 mais recentes
+  let missingAll = [];      // até 900 mais recentes
+  let tasksDone = [];       // filtrado semana atual
+  let missingReports = [];  // filtrado semana atual
+  let tasksPrev = [];       // semana anterior
+  let missingPrev = [];     // semana anterior
+
   let currentUser = "";
   let currentWeekKey = "";
   let prevWeekKey = "";
-
   let employees = [];
-  let data = {};
-  let scoresDoc = {};
-  let tasksAll = [], missingAll = [], tasksDone = [], missingReports = [], tasksPrev = [], missingPrev = [];
   let globalTask = null;
   let escala = null;
 
-  // ===== CATALOGO DE PREÇOS (NOVO) =====
-  let catalogItems = []; // [{id,name,nameLower,price,updatedAtHuman}]
-  function catalogColRef(){
-    return collection(db, "stores", currentStoreId, "catalog");
-  }
-  function canManageCatalog(){
-    if (currentUser === managerName()) return true;
-    if (currentStoreId === "loja_principal" && currentUser === "Claudia") return true;
-    return false;
-  }
-  function toBRL(val){
-    const n = Number(val);
-    if (!Number.isFinite(n)) return "-";
-    return n.toLocaleString("pt-BR",{ style:"currency", currency:"BRL" });
-  }
-  function parsePrice(raw){
-    const s = String(raw||"").trim().replace(/\./g,"").replace(",",".");
-    const n = Number(s);
-    return Number.isFinite(n) ? n : NaN;
-  }
-  function findCatalogByNameLower(nameLower){
-    return catalogItems.find(x => x.nameLower === nameLower) || null;
-  }
-  function renderCatalogResults(targetId, q){
-    const wrap = $(targetId);
-    if (!wrap) return;
-    const term = String(q||"").trim().toLowerCase();
+  // Templates globais
+  let globalTemplates = [];
+  let escalaLocalEmployee = null;
+  let escalaLocalGer = null;
 
-    const rows = !term
-      ? catalogItems.slice(0, 50)
-      : catalogItems.filter(x =>
-          x.nameLower.includes(term) || x.name.toLowerCase().includes(term)
-        ).slice(0, 50);
+  function storeCfg(){ return STORES[currentStoreId] || STORES.loja_principal; }
+  function managerName(){ return storeCfg().managerUser; }
 
-    if (!rows.length){
-      wrap.innerHTML = `<div class="text-gray-500">Nenhum item encontrado.</div>`;
-      return;
-    }
-
-    const manage = canManageCatalog() && targetId === "catalogResultsGer";
-
-    wrap.innerHTML = "";
-    rows.forEach(it=>{
-      const div = document.createElement("div");
-      div.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
-
-      const left = document.createElement("div");
-      left.innerHTML = `
-        <div class="font-semibold">${it.name}</div>
-        <div class="text-xs text-gray-600">${toBRL(it.price)} ${it.updatedAtHuman ? "• " + it.updatedAtHuman : ""}</div>
-      `;
-
-      const right = document.createElement("div");
-      right.className = "flex items-center gap-2";
-
-      if (manage){
-        const btnUse = document.createElement("button");
-        btnUse.className = "bg-gray-900 hover:bg-black text-white px-3 py-2 rounded text-xs";
-        btnUse.innerText = "Editar";
-        btnUse.onclick = ()=>{
-          $("catalogItemName").value = it.name;
-          $("catalogItemPrice").value = String(it.price).replace(".",",");
-          $("catalogItemName").focus();
-        };
-
-        const btnDel = document.createElement("button");
-        btnDel.className = "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs";
-        btnDel.innerText = "Excluir";
-        btnDel.onclick = async ()=>{
-          if (!confirm(`Excluir "${it.name}"?`)) return;
-          try{
-            await deleteDoc(doc(db,"stores",currentStoreId,"catalog",it.id));
-            toast("Item excluído.");
-          } catch(e){
-            console.error(e);
-            toast("Erro ao excluir item.");
-          }
-        };
-
-        right.appendChild(btnUse);
-        right.appendChild(btnDel);
-      }
-
-      div.appendChild(left);
-      div.appendChild(right);
-      wrap.appendChild(div);
-    });
-  }
-
-  async function upsertCatalogItem(name, price){
-    name = normalizeCat(name);
-    if (!name) throw new Error("Nome do item vazio.");
-    const nameLower = name.toLowerCase();
-    if (!Number.isFinite(price)) throw new Error("Preço inválido.");
-
-    const existing = findCatalogByNameLower(nameLower);
-    if (existing){
-      await updateDoc(doc(db,"stores",currentStoreId,"catalog",existing.id), {
-        name,
-        nameLower,
-        price,
-        updatedAt: serverTimestamp(),
-        updatedAtHuman: nowHuman(),
-        updatedBy: currentUser
-      });
-      return { updated:true };
-    } else {
-      await addDoc(collection(db,"stores",currentStoreId,"catalog"), {
-        name,
-        nameLower,
-        price,
-        createdAt: serverTimestamp(),
-        createdAtHuman: nowHuman(),
-        updatedAt: serverTimestamp(),
-        updatedAtHuman: nowHuman(),
-        updatedBy: currentUser
-      });
-      return { created:true };
-    }
-  }
-
-  async function deleteCatalogByName(name){
-    name = normalizeCat(name);
-    const nameLower = name.toLowerCase();
-    const existing = findCatalogByNameLower(nameLower);
-    if (!existing) throw new Error("Item não encontrado pelo nome.");
-    await deleteDoc(doc(db,"stores",currentStoreId,"catalog",existing.id));
-  }
-
-  // ===== Store helpers =====
+  // ===== Refs (por loja) =====
   const cfgCatsRef = () => doc(db,"stores",currentStoreId,"config","categories");
   const cfgAppRef  = () => doc(db,"stores",currentStoreId,"config","app");
   const cfgGlobalTplRef = () => doc(db,"stores",currentStoreId,"config","global_templates");
@@ -725,9 +561,7 @@
   const escalaRef  = (wk) => doc(db,"stores",currentStoreId,"state","escala_"+wk);
   const globalRef  = (wk) => doc(db,"stores",currentStoreId,"state","global_"+wk);
 
-  function storeCfg(){ return STORES[currentStoreId] || STORES.loja_principal; }
-  function managerName(){ return storeCfg().managerUser; }
-
+  // ===== Top bar =====
   function monthKey(date){
     const y = date.getFullYear();
     const m = String(date.getMonth()+1).padStart(2,"0");
@@ -738,7 +572,6 @@
     const ms = scoresDoc?.monthScores?.[mk] || {};
     return Number(ms?.[user] || 0);
   }
-
   function updateTopBar(){
     const topTitle = $("topTitle");
     const topSubtitle = $("topSubtitle");
@@ -768,12 +601,14 @@
     pointsBox.classList.add("flex");
   }
 
+  // ===== SHA-256 =====
   async function sha256(str){
     const enc = new TextEncoder().encode(str);
     const buf = await crypto.subtle.digest("SHA-256", enc);
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
   }
 
+  // ===== Semana ISO =====
   function weekKey(date){
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -783,13 +618,15 @@
     return d.getUTCFullYear() + "-W" + String(weekNo).padStart(2,"0");
   }
   function prevWeekFromKey(wk){
+    // wk = "2026-W05" -> volta 7 dias
     const [y, w] = wk.split("-W");
     const year = Number(y);
     const week = Number(w);
+    // pega uma data aproximada da semana (quinta)
     const simple = new Date(Date.UTC(year,0,1));
     const dayOfWeek = simple.getUTCDay() || 7;
     const isoWeekStart = new Date(simple);
-    isoWeekStart.setUTCDate(simple.getUTCDate() + (week - 1) * 7 + (1 - dayOfWeek));
+    isoWeekStart.setUTCDate(simple.getUTCDate() + (week - 1) * 7 + (1 - dayOfWeek)); // segunda
     const prev = new Date(isoWeekStart);
     prev.setUTCDate(prev.getUTCDate() - 7);
     return weekKey(prev);
@@ -818,6 +655,7 @@
     prevWeekKey = prevWeekFromKey(saved);
   }
 
+  // ===== Sessão =====
   function saveSession(storeId, user){
     localStorage.setItem(SESSION_KEY, JSON.stringify({ storeId, user, at: Date.now() }));
   }
@@ -831,23 +669,12 @@
     } catch(e){ return null; }
   }
 
-  function show(section){
-    ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
-    $(section).classList.remove("hidden");
-    updateTopBar();
-  }
-
-  function userBelongsToStore(user){
-    if (user === managerName()) return true;
-    return employees.some(e => e.name === user);
-  }
-
+  // ===== Funcionários =====
   function isEmployeeActive(name){
     const n = normalizeName(name);
     const e = employees.find(x => x.name === n);
     return !!(e && e.active);
   }
-
   function activeNames(){
     return employees.filter(e=>e.active).map(e=>e.name).sort((a,b)=>a.localeCompare(b));
   }
@@ -860,12 +687,14 @@
     const defaults = storeCfg().defaultEmployees;
 
     if (!snap.exists()){
+      // Cria só a config de funcionários (limpo)
       await setDoc(cfgAppRef(), { employees: defaults, updatedAt: serverTimestamp() }, { merge:true });
       employees = clone(defaults);
       return;
     }
 
     const raw = snap.data().employees;
+
     if (!Array.isArray(raw) || raw.length === 0){
       await setDoc(cfgAppRef(), { employees: defaults, updatedAt: serverTimestamp() }, { merge:true });
       employees = clone(defaults);
@@ -896,8 +725,11 @@
     if (!name) return toast("Digite um nome.");
     if (name === managerName()) return toast("Nome inválido.");
     if (employees.some(e => e.name === name)) return toast("Esse funcionário já existe.");
+
     const next = employees.concat([{ name, active: true }]);
     await setEmployees(next);
+
+    // Evita “lixo”: NÃO cria categorias vazias automaticamente.
     toast("Funcionário adicionado (ativo).");
   }
 
@@ -921,7 +753,11 @@
     const loginSel = $("userSelect");
     loginSel.innerHTML = "";
     loginSel.appendChild(new Option("Selecione", ""));
+
+    // Gerente sempre visível
     loginSel.appendChild(new Option("Gerente", managerName()));
+
+    // Só funcionários ativos DAQUELA LOJA
     activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
 
     const namesAll = allNames();
@@ -966,6 +802,12 @@
     });
   }
 
+  // ===== PIN =====
+  function userBelongsToStore(user){
+    if (user === managerName()) return true;
+    return employees.some(e => e.name === user);
+  }
+
   async function ensureUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (snap.exists()) return { created:false };
@@ -991,6 +833,11 @@
     return { ok: (await sha256(pin)) === pinHash, noUser:false };
   }
 
+  function isCategoryDoneThisWeek(user, cat){
+    return tasksDone.some(t => t.user === user && t.categoria === cat && t.weekKey === currentWeekKey);
+  }
+
+  // ===== Scores (MENSAL) =====
   async function ensureScoresDoc(){
     const sSnap = await getDoc(scoresRef());
     if (!sSnap.exists()){
@@ -1020,10 +867,773 @@
     toast("Estrelas zeradas (mês atual).");
   }
 
+  // ===== GLOBAL (semana) =====
+  function getGlobalStatusText(){
+    if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL publicada nesta semana.";
+    if (globalTask.status === "completed") return `GLOBAL concluída por ${globalTask.completedBy} em ${globalTask.completedAtHuman || ""}`;
+    if (globalTask.status === "open") return `GLOBAL pendente: ${globalTask.name || "(sem nome)"} (aguardando conclusão)`;
+    return "GLOBAL: estado desconhecido.";
+  }
+
+  async function publishGlobalTaskFromTemplate(tpl){
+    const ref = globalRef(currentWeekKey);
+    const snap = await getDoc(ref);
+    if (snap.exists()){
+      const g = snap.data();
+      if (g?.exists) throw new Error("Já existe GLOBAL nesta semana.");
+    }
+
+    await setDoc(ref, {
+      exists: true,
+      weekKey: currentWeekKey,
+      status: "open",
+      name: tpl.name,
+      items: tpl.items || [],
+      templateId: tpl.id || "",
+      createdAt: serverTimestamp(),
+      createdAtHuman: nowHuman()
+    }, { merge:false });
+  }
+
+  async function completeGlobalTaskAsFirst(user, itensQtd){
+    const ref = globalRef(currentWeekKey);
+    await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(ref);
+      if (!snap.exists()) throw new Error("GLOBAL não existe.");
+      const g = snap.data();
+      if (!g.exists || g.status !== "open") throw new Error("GLOBAL já foi concluída.");
+      tx.update(ref, {
+        status: "completed",
+        completedBy: user,
+        completedAt: serverTimestamp(),
+        completedAtHuman: nowHuman()
+      });
+    });
+
+    await addDoc(collection(db,"stores",currentStoreId,"tasks"), {
+      user,
+      categoria: "[GLOBAL] " + (globalTask?.name || "GLOBAL"),
+      itens: itensQtd || {},
+      when: nowHuman(),
+      weekKey: currentWeekKey,
+      createdAt: serverTimestamp()
+    });
+
+    await bumpMonthlyScore(user, 10);
+  }
+
+  // ===== GLOBAL TEMPLATES =====
+  function sanitizeItemsFromInput(raw){
+    return raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : [];
+  }
+
+  function renderGlobalTplDropdown(){
+    const sel = $("globalTplSelect");
+    if (!sel) return;
+    const prev = sel.value;
+
+    sel.innerHTML = "";
+    sel.appendChild(new Option("Selecione um template...", ""));
+    const ordered = (globalTemplates || []).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    ordered.forEach(t => sel.appendChild(new Option(t.name, t.id)));
+
+    if (prev && ordered.some(t=>t.id===prev)) sel.value = prev;
+  }
+
+  async function ensureGlobalTemplatesDoc(){
+    const snap = await getDoc(cfgGlobalTplRef());
+    if (!snap.exists()){
+      await setDoc(cfgGlobalTplRef(), { templates: [], updatedAt: serverTimestamp() }, { merge:true });
+      globalTemplates = [];
+      return;
+    }
+    const raw = snap.data().templates;
+    globalTemplates = Array.isArray(raw) ? raw : [];
+  }
+
+  async function saveGlobalTemplate(name, items){
+    name = normalizeCat(name);
+    if (!name) throw new Error("Nome do template vazio.");
+    if (!Array.isArray(items) || items.length === 0) throw new Error("Template precisa ter itens.");
+
+    const id = "tpl_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8);
+    const next = (globalTemplates || []).concat([{
+      id,
+      name,
+      items,
+      createdAtHuman: nowHuman()
+    }]);
+
+    await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
+  }
+
+  async function deleteGlobalTemplateById(id){
+    const next = (globalTemplates || []).filter(t=>t.id !== id);
+    await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
+  }
+
+  function findTemplateById(id){
+    return (globalTemplates || []).find(t=>t.id === id);
+  }
+
+  // ===== ESCALA =====
+  const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+
+  function emptyEscala(){
+    const days = {};
+    for (const d of DAYS) days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
+    return { weekKey: currentWeekKey, days };
+  }
+
+  function canEditEscala(){
+    // só na loja principal existe "Claudia" com permissão especial
+    if (currentStoreId === "loja_principal" && currentUser === "Claudia") return true;
+    return currentUser === managerName();
+  }
+
+  function validateEscala(obj){
+    for (const d of DAYS){
+      const day = obj?.days?.[d];
+      if (!day) return `Dia inválido: ${d}`;
+
+      const m1 = normalizeName(day.manha?.[0] || "");
+      const m2 = normalizeName(day.manha?.[1] || "");
+      const t1 = normalizeName(day.tarde?.[0] || "");
+      const t2 = normalizeName(day.tarde?.[1] || "");
+      const f  = normalizeName(day.folga?.[0] || "");
+
+      if (!m1 || !m2) return `${d}: Manhã precisa ter 2 funcionários.`;
+      if (m1 === m2) return `${d}: Manhã não pode repetir o mesmo funcionário.`;
+
+      if (!t1 || !t2) return `${d}: Tarde precisa ter 2 funcionários.`;
+      if (t1 === t2) return `${d}: Tarde não pode repetir o mesmo funcionário.`;
+
+      if (!f) return `${d}: Folga precisa ter 1 funcionário.`;
+
+      const setWork = new Set([m1,m2,t1,t2].filter(Boolean));
+      if (setWork.has(f)) return `${d}: Folga não pode ser alguém que trabalha no mesmo dia.`;
+
+      const setManha = new Set([m1,m2]);
+      if (setManha.has(t1) || setManha.has(t2)) return `${d}: Não é permitido dobrar (mesma pessoa manhã+tarde).`;
+    }
+    return null;
+  }
+
+  async function saveEscala(obj){
+    const err = validateEscala(obj);
+    if (err) return toast(err);
+
+    await setDoc(escalaRef(currentWeekKey), {
+      exists: true,
+      weekKey: currentWeekKey,
+      days: obj.days,
+      updatedAt: serverTimestamp(),
+      updatedAtHuman: nowHuman(),
+      updatedBy: currentUser
+    }, { merge:false });
+
+    toast("Escala salva.");
+  }
+
+  async function clearEscala(){
+    if (!canEditEscala()) return toast("Sem permissão.");
+    if (!confirm("Limpar a escala desta semana?")) return;
+    try{
+      await deleteDoc(escalaRef(currentWeekKey));
+      toast("Escala removida.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao limpar escala.");
+    }
+  }
+
+  function renderEscalaViewer(){
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    const view = $("escalaViewer");
+    view.innerHTML = "";
+
+    const s = escala && escala.exists ? escala : null;
+    if (!s){
+      view.innerHTML = `<div class="text-gray-500">Sem escala cadastrada ainda.</div>`;
+      return;
+    }
+
+    const box = document.createElement("div");
+    box.className = "border rounded p-2 bg-gray-50";
+
+    let html = `<div class="text-xs text-gray-600">Atualizada por <b>${s.updatedBy || "-"}</b> em ${s.updatedAtHuman || "-"}</div>`;
+    html += `<div class="mt-2 space-y-2">`;
+
+    for (const d of DAYS){
+      const day = s.days?.[d] || {};
+      const manha = (day.manha||[]).filter(Boolean).join(" + ") || "-";
+      const tarde = (day.tarde||[]).filter(Boolean).join(" + ") || "-";
+      const folga = (day.folga||[]).filter(Boolean).join(" + ") || "-";
+      html += `
+        <div class="border rounded bg-white p-2">
+          <div class="font-semibold">${d}</div>
+          <div class="text-sm mt-1"><b>Manhã:</b> ${manha}</div>
+          <div class="text-sm"><b>Tarde:</b> ${tarde}</div>
+          <div class="text-sm"><b>Folga:</b> ${folga}</div>
+        </div>
+      `;
+    }
+
+    html += `</div>`;
+    box.innerHTML = html;
+    view.appendChild(box);
+  }
+
+  function buildSelect(options, value){
+    const sel = document.createElement("select");
+    sel.className = "border p-2 rounded w-full";
+    sel.appendChild(new Option("Selecione...", ""));
+    options.forEach(n => sel.appendChild(new Option(n, n)));
+    sel.value = value || "";
+    return sel;
+  }
+
+  function setSelectOptions(selectEl, options, keepValue){
+    const current = keepValue || "";
+    selectEl.innerHTML = "";
+    selectEl.appendChild(new Option("Selecione...", ""));
+    options.forEach(n => selectEl.appendChild(new Option(n, n)));
+    if (current && options.includes(current)) selectEl.value = current;
+    else selectEl.value = "";
+  }
+
+  function renderEscalaEditor(containerId){
+    const container = $(containerId);
+    if (!container) return null;
+
+    container.innerHTML = "";
+    const names = activeNames();
+    const base = (escala && escala.exists) ? escala : emptyEscala();
+    const local = clone(base);
+
+    for (const d of DAYS){
+      const day = local.days[d];
+
+      const row = document.createElement("div");
+      row.className = "border rounded p-3 bg-gray-50";
+
+      const title = document.createElement("div");
+      title.className = "font-semibold mb-2";
+      title.innerText = d;
+
+      const grid = document.createElement("div");
+      grid.className = "grid md:grid-cols-3 gap-2";
+
+      const mWrap = document.createElement("div");
+      mWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Manhã (2)</div>`;
+      const m1 = buildSelect(names, day.manha[0]);
+      const m2 = buildSelect(names, day.manha[1]);
+      mWrap.appendChild(m1);
+      mWrap.appendChild(document.createElement("div")).className = "h-2";
+      mWrap.appendChild(m2);
+
+      const tWrap = document.createElement("div");
+      tWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Tarde (2)</div>`;
+      const t1 = buildSelect(names, day.tarde[0]);
+      const t2 = buildSelect(names, day.tarde[1]);
+      tWrap.appendChild(t1);
+      tWrap.appendChild(document.createElement("div")).className = "h-2";
+      tWrap.appendChild(t2);
+
+      const fWrap = document.createElement("div");
+      fWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Folga (1)</div>`;
+      const f1 = buildSelect(names, day.folga[0]);
+      fWrap.appendChild(f1);
+
+      grid.appendChild(mWrap);
+      grid.appendChild(tWrap);
+      grid.appendChild(fWrap);
+
+      row.appendChild(title);
+      row.appendChild(grid);
+      container.appendChild(row);
+
+      const getPicked = () => {
+        const picked = new Set();
+        [m1.value, m2.value, t1.value, t2.value, f1.value].forEach(v=>{
+          const vv = normalizeName(v || "");
+          if (vv) picked.add(vv);
+        });
+        return picked;
+      };
+
+      const availableFor = (selfValue) => {
+        const picked = getPicked();
+        const me = normalizeName(selfValue || "");
+        if (me) picked.delete(me);
+        return names.filter(n => !picked.has(n));
+      };
+
+      const sync = () => {
+        day.manha[0] = normalizeName(m1.value);
+        day.manha[1] = normalizeName(m2.value);
+        day.tarde[0] = normalizeName(t1.value);
+        day.tarde[1] = normalizeName(t2.value);
+        day.folga[0] = normalizeName(f1.value);
+
+        setSelectOptions(m1, availableFor(m1.value), m1.value);
+        setSelectOptions(m2, availableFor(m2.value), m2.value);
+        setSelectOptions(t1, availableFor(t1.value), t1.value);
+        setSelectOptions(t2, availableFor(t2.value), t2.value);
+        setSelectOptions(f1, availableFor(f1.value), f1.value);
+
+        day.manha[0] = normalizeName(m1.value);
+        day.manha[1] = normalizeName(m2.value);
+        day.tarde[0] = normalizeName(t1.value);
+        day.tarde[1] = normalizeName(t2.value);
+        day.folga[0] = normalizeName(f1.value);
+      };
+
+      const jumpTo = (nextSel) => setTimeout(() => nextSel?.focus?.(), 0);
+
+      m1.addEventListener("change", ()=>{ sync(); jumpTo(m2); });
+      m2.addEventListener("change", ()=>{ sync(); jumpTo(t1); });
+      t1.addEventListener("change", ()=>{ sync(); jumpTo(t2); });
+      t2.addEventListener("change", ()=>{ sync(); jumpTo(f1); });
+      f1.addEventListener("change", ()=>{ sync(); });
+
+      sync();
+    }
+
+    return local;
+  }
+
+  function maybeSetupEscalaUI(){
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+
+    const can = canEditEscala();
+    $("escalaPermLabel").innerText = can ? "Você pode editar" : "Somente leitura";
+
+    const editorWrap = $("escalaEditorWrap");
+    if (can){
+      editorWrap.classList.remove("hidden");
+      escalaLocalEmployee = renderEscalaEditor("escalaEditor");
+      $("btnSaveEscala").onclick = async ()=>{
+        if (!escalaLocalEmployee) escalaLocalEmployee = renderEscalaEditor("escalaEditor");
+        await saveEscala(escalaLocalEmployee);
+      };
+      $("btnClearEscalaEmp").onclick = clearEscala;
+    } else {
+      editorWrap.classList.add("hidden");
+      escalaLocalEmployee = null;
+    }
+  }
+
+  // ===== Ranking mensal (gerente) =====
+  function renderRanking(){
+    const mk = monthKey(new Date());
+    $("monthKeyLabelGer").innerText = mk;
+
+    const list = $("rankingList");
+    list.innerHTML = "";
+
+    const active = activeNames();
+    const ms = scoresDoc?.monthScores?.[mk] || {};
+
+    const rows = active.map(name => ({
+      name,
+      pts: Number(ms?.[name] || 0)
+    })).sort((a,b)=>{
+      if (b.pts !== a.pts) return b.pts - a.pts;
+      return a.name.localeCompare(b.name);
+    });
+
+    if (!rows.length){
+      list.innerHTML = `<div class="text-gray-500">Sem funcionários ativos.</div>`;
+      return;
+    }
+
+    rows.forEach((r, idx)=>{
+      const div = document.createElement("div");
+      div.className = "border rounded p-2 bg-gray-50 flex items-center justify-between";
+      div.innerHTML = `
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-full bg-white border flex items-center justify-center text-xs font-bold">${idx+1}</div>
+          <div class="font-semibold">${r.name}</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 17.27l5.18 3.04-1.39-5.99 4.64-4.02-6.12-.53L12 4l-2.31 5.77-6.12.53 4.64 4.02-1.39 5.99L12 17.27z"/>
+          </svg>
+          <div class="font-bold text-lg">${r.pts}</div>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  // ===== Semana anterior render =====
+  function renderPrevEmployee(){
+    $("prevWeekLabelEmp").innerText = prevWeekKey;
+    const list = $("prevEmpList");
+    list.innerHTML = "";
+
+    const mine = tasksPrev.filter(t=>t.user === currentUser).slice(0, 120);
+
+    if (!mine.length){
+      list.innerHTML = `<div class="text-gray-500">Nenhuma tarefa sua na semana anterior.</div>`;
+      return;
+    }
+
+    mine.forEach(r=>{
+      const div = document.createElement("div");
+      div.className = "border rounded p-2 bg-gray-50";
+      div.innerHTML = `
+        <div class="font-semibold">${r.categoria}</div>
+        <div class="text-xs text-gray-600">${r.when || ""}</div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function renderPrevManager(){
+    $("prevWeekLabelGer").innerText = prevWeekKey;
+
+    const t = $("prevTasksGer");
+    const m = $("prevMissingGer");
+    t.innerHTML = "";
+    m.innerHTML = "";
+
+    const orderedT = tasksPrev.slice(0, 250);
+    const orderedM = missingPrev.slice(0, 250);
+
+    if (!orderedT.length){
+      t.innerHTML = `<div class="text-gray-500">Sem tarefas na semana anterior.</div>`;
+    } else {
+      orderedT.forEach(r=>{
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 bg-white";
+        div.innerHTML = `
+          <div class="font-semibold">${r.user} - ${r.categoria}</div>
+          <div class="text-xs text-gray-600">${r.when || ""}</div>
+        `;
+        t.appendChild(div);
+      });
+    }
+
+    if (!orderedM.length){
+      m.innerHTML = `<div class="text-gray-500">Sem faltas na semana anterior.</div>`;
+    } else {
+      orderedM.forEach(r=>{
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 bg-white";
+        div.innerHTML = `
+          <div class="font-semibold">${r.user}</div>
+          <div class="text-xs text-gray-600">${r.when || ""}</div>
+          <div class="text-sm mt-1">${r.item}</div>
+        `;
+        m.appendChild(div);
+      });
+    }
+  }
+
+  // ===== Render funcionário =====
+  function renderEmployee(){
+    if (!isEmployeeActive(currentUser)){
+      clearSession();
+      currentUser = "";
+      show("login");
+      return;
+    }
+
+    $("userName").innerText = currentUser;
+    $("weekKeyLabel").innerText = currentWeekKey;
+
+    const mp = getMonthPoints(currentUser);
+    $("monthPointsInline").innerText = mp;
+    $("monthPointsTop").innerText = mp;
+    updateTopBar();
+
+    const container = $("tasks");
+    container.innerHTML = "";
+
+    // GLOBAL open
+    if (globalTask && globalTask.exists && globalTask.status === "open"){
+      const card = document.createElement("div");
+      card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
+
+      const title = document.createElement("div");
+      title.className = "flex items-center justify-between gap-2";
+      title.innerHTML = `<h3 class="font-semibold">[GLOBAL] ${globalTask.name || "Tarefa Global"}</h3><span class="text-xs text-gray-500">+10 (primeiro que concluir)</span>`;
+      card.appendChild(title);
+
+      const body = document.createElement("div");
+      body.className = "mt-3 space-y-2";
+
+      const itens = Array.isArray(globalTask.items) ? globalTask.items : [];
+      itens.forEach((item)=>{
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between gap-2";
+        row.innerHTML =
+          "<span class='text-sm text-gray-800'>" + item + "</span>" +
+          "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
+        body.appendChild(row);
+      });
+
+      const warn = document.createElement("p");
+      warn.className = "text-xs text-gray-500 mt-2";
+      warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
+      body.appendChild(warn);
+
+      const btn = document.createElement("button");
+      btn.className = "mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded";
+      btn.innerText = "Concluir GLOBAL";
+
+      btn.addEventListener("click", async ()=>{
+        const itensQtd = {};
+        const inputs = Array.from(body.querySelectorAll("input[type=number]"));
+        for (const inp of inputs){
+          const name = decodeURIComponent(inp.getAttribute("data-item"));
+          if (inp.value === ""){
+            toast("Preencha todos os itens. Se for zero, digite 0.");
+            inp.focus();
+            return;
+          }
+          const val = Number(inp.value);
+          itensQtd[name] = Number.isFinite(val) ? val : 0;
+        }
+
+        btn.disabled = true;
+        btn.classList.add("opacity-50");
+        btn.innerText = "Tentando concluir...";
+
+        try{
+          await completeGlobalTaskAsFirst(currentUser, itensQtd);
+          toast("Você concluiu a GLOBAL primeiro!");
+        } catch(e){
+          console.error(e);
+          toast("GLOBAL já foi concluída por outra pessoa.");
+        } finally {
+          btn.disabled = true;
+          btn.innerText = "Encerrada";
+        }
+      });
+
+      card.appendChild(body);
+      card.appendChild(btn);
+      container.appendChild(card);
+    }
+
+    // categorias pessoais
+    const cats = data[currentUser] || {};
+    const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
+    if (!catNames.length){
+      const box = document.createElement("div");
+      box.className = "bg-white p-4 rounded-xl shadow text-gray-600";
+      box.innerText = "Sem categorias para este usuário.";
+      container.appendChild(box);
+    } else {
+      catNames.forEach((cat)=>{
+        const card = document.createElement("div");
+        card.className = "bg-white p-4 rounded-xl shadow";
+
+        const done = isCategoryDoneThisWeek(currentUser, cat);
+
+        const title = document.createElement("div");
+        title.className = "flex items-center justify-between gap-2";
+        title.innerHTML = "<h3 class='font-semibold'>" + cat + "</h3><span class='text-xs text-gray-500'>+10</span>";
+        card.appendChild(title);
+
+        const body = document.createElement("div");
+        body.className = "mt-3 space-y-2";
+
+        const itens = cats[cat] || [];
+        itens.forEach((item)=>{
+          const row = document.createElement("div");
+          row.className = "flex items-center justify-between gap-2";
+          row.innerHTML =
+            "<span class='text-sm text-gray-800'>" + item + "</span>" +
+            "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
+          body.appendChild(row);
+        });
+
+        const warn = document.createElement("p");
+        warn.className = "text-xs text-gray-500 mt-2";
+        warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
+        body.appendChild(warn);
+
+        const btn = document.createElement("button");
+        btn.className = "mt-4 w-full bg-green-600 hover:bg-green-700 text-white p-2 rounded";
+        btn.innerText = done ? "Concluído (semana)" : "Concluir";
+        btn.disabled = done;
+        if (done) btn.classList.add("opacity-50");
+
+        btn.addEventListener("click", async ()=>{
+          if (btn.disabled) return;
+
+          const itensQtd = {};
+          const inputs = Array.from(body.querySelectorAll("input[type=number]"));
+          for (const inp of inputs){
+            const name = decodeURIComponent(inp.getAttribute("data-item"));
+            if (inp.value === ""){
+              toast("Preencha todos os itens. Se for zero, digite 0.");
+              inp.focus();
+              return;
+            }
+            const val = Number(inp.value);
+            itensQtd[name] = Number.isFinite(val) ? val : 0;
+          }
+
+          if (isCategoryDoneThisWeek(currentUser, cat)){
+            toast("Essa categoria já foi concluída nesta semana.");
+            renderEmployee();
+            return;
+          }
+
+          btn.disabled = true;
+          btn.classList.add("opacity-50");
+          btn.innerText = "Salvando...";
+
+          try{
+            await addDoc(collection(db,"stores",currentStoreId,"tasks"), {
+              user: currentUser,
+              categoria: cat,
+              itens: itensQtd,
+              when: nowHuman(),
+              weekKey: currentWeekKey,
+              createdAt: serverTimestamp()
+            });
+
+            await bumpMonthlyScore(currentUser, 10);
+
+            btn.innerText = "Concluído";
+            toast("Concluído!");
+          } catch(e){
+            console.error(e);
+            toast("Erro ao salvar. Verifique a internet e tente novamente.");
+            btn.disabled = false;
+            btn.classList.remove("opacity-50");
+            btn.innerText = "Concluir";
+          }
+        });
+
+        card.appendChild(body);
+        card.appendChild(btn);
+        container.appendChild(card);
+      });
+    }
+
+    renderPrevEmployee();
+  }
+
+  // ===== Render gerente =====
+  function renderManager(){
+    $("weekKeyLabelGer").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+    $("storeLabelGer").innerText = storeCfg().label;
+
+    if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
+
+    renderRanking();
+    renderPrevManager();
+
+    // tarefas semana
+    const t = $("gerTasks");
+    t.innerHTML = "";
+
+    if (!tasksDone.length){
+      t.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa nesta semana.</p>";
+    } else {
+      tasksDone.slice(0, 300).forEach((r)=>{
+        const itensObj = r.itens || {};
+        const itensKeys = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
+        const hasItens = itensKeys.length > 0;
+
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 bg-gray-50";
+
+        let html = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="font-semibold">${r.user} - ${r.categoria}</div>
+              <div class="text-xs text-gray-600">${(r.when || "")}</div>
+            </div>
+            <button data-del="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs shrink-0">
+              Excluir
+            </button>
+          </div>
+        `;
+
+        if (hasItens){
+          html += `<div class="mt-2 bg-white rounded p-2 border">`;
+          itensKeys.forEach((k)=>{
+            const q = itensObj[k];
+            html += `
+              <div class="flex items-center justify-between gap-2 border-b last:border-b-0 py-1">
+                <div class="text-sm text-gray-800">${k}</div>
+                <div class="text-sm font-semibold">Qtd ${q}</div>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+
+        div.innerHTML = html;
+        t.appendChild(div);
+
+        div.querySelector("[data-del]")?.addEventListener("click", async (ev)=>{
+          if (currentUser !== managerName()) return toast("Apenas o gerente.");
+          const id = ev.currentTarget.getAttribute("data-del");
+          if (!confirm("Excluir esta tarefa concluída?")) return;
+          try{
+            await deleteDoc(doc(db,"stores",currentStoreId,"tasks",id));
+            toast("Tarefa excluída.");
+          } catch(e){
+            console.error(e);
+            toast("Erro ao excluir tarefa.");
+          }
+        });
+      });
+    }
+
+    // faltas semana
+    const m = $("gerMissing");
+    m.innerHTML = "";
+
+    if (!missingReports.length){
+      m.innerHTML = "<p class='text-gray-500'>Nenhuma falta nesta semana.</p>";
+    } else {
+      missingReports.slice(0, 250).forEach((r)=>{
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 bg-gray-50";
+        div.innerHTML =
+          `<div class="flex items-start justify-between gap-2">
+             <div>
+               <div class='font-semibold'>${r.user}</div>
+               <div class='text-xs text-gray-600'>${(r.when || "")}</div>
+               <div class='text-sm mt-1'>${r.item}</div>
+             </div>
+             <button data-del="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs shrink-0">Excluir</button>
+           </div>`;
+        m.appendChild(div);
+
+        div.querySelector("[data-del]")?.addEventListener("click", async (ev)=>{
+          if (currentUser !== managerName()) return toast("Apenas o gerente.");
+          const id = ev.currentTarget.getAttribute("data-del");
+          if (!confirm("Excluir este item em falta?")) return;
+          try{
+            await deleteDoc(doc(db,"stores",currentStoreId,"missing",id));
+            toast("Falta excluída.");
+          } catch(e){
+            console.error(e);
+            toast("Erro ao excluir falta.");
+          }
+        });
+      });
+    }
+  }
+
+  // ===== Colapsar =====
   function setupCollapse(btnId, contentId){
     const btn = $(btnId);
     const content = $(contentId);
     if (!btn || !content) return;
+
     btn.addEventListener("click", ()=>{
       const hidden = content.classList.toggle("hidden");
       btn.innerText = hidden ? "Expandir" : "Minimizar";
@@ -1049,112 +1659,59 @@
     toast("Registrado!");
   });
 
-  // ===== CSV =====
-  function csvCell(v){
-    const s = String(v == null ? "" : v);
-    if (/[\n\r,"]/g.test(s)) return '"' + s.replaceAll('"', '""') + '"';
-    return s;
-  }
-
-  // ===== Delete by week (sem índice composto) =====
-  async function deleteByWeek(colName, wk){
-    const colRef = collection(db, "stores", currentStoreId, colName);
-    const q = query(colRef, where("weekKey","==",wk), limit(450));
-    const snap = await getDocs(q);
-    if (snap.empty) return;
-
-    let batch = writeBatch(db);
-    let count = 0;
-    for (const d of snap.docs){
-      batch.delete(d.ref);
-      count++;
-      if (count % 450 === 0){
-        await batch.commit();
-        batch = writeBatch(db);
-      }
-    }
-    await batch.commit();
-    if (snap.docs.length === 450) await deleteByWeek(colName, wk);
-  }
-
-  // ===== LOGOUT =====
-  function doLogout(){
-    currentUser = "";
-    clearSession();
-    show("login");
-  }
-  $("btnLogout1").addEventListener("click", doLogout);
-  $("btnLogout2").addEventListener("click", doLogout);
-
-  // ===== COLLAPSE =====
-  setupCollapse("btnToggleCatalogEmp","catalogEmpContent");
-  setupCollapse("btnToggleCatalogGer","catalogGerContent");
-  setupCollapse("btnToggleEscalaEmp","escalaEmpContent");
-  setupCollapse("btnToggleEscalaGer","escalaGerContent");
-  setupCollapse("btnToggleRanking","rankingContent");
-  setupCollapse("btnTogglePrevEmp","prevEmpContent");
-  setupCollapse("btnTogglePrevGer","prevGerContent");
-
-  // ===== Catalog Search Wiring =====
-  function wireCatalogSearch(){
-    const empInput = $("catalogSearchEmp");
-    const gerInput = $("catalogSearchGer");
-
-    if (empInput){
-      empInput.oninput = ()=> renderCatalogResults("catalogResultsEmp", empInput.value);
-      $("btnClearSearchEmp").onclick = ()=> { empInput.value=""; renderCatalogResults("catalogResultsEmp",""); empInput.focus(); };
-    }
-    if (gerInput){
-      gerInput.oninput = ()=> renderCatalogResults("catalogResultsGer", gerInput.value);
-      $("btnClearSearchGer").onclick = ()=> { gerInput.value=""; renderCatalogResults("catalogResultsGer",""); gerInput.focus(); };
-    }
-
-    // show/hide manage area
-    const wrap = $("catalogManageWrap");
-    if (wrap){
-      if (canManageCatalog()) wrap.classList.remove("hidden");
-      else wrap.classList.add("hidden");
-    }
-  }
-
-  // ===== Catalog Manage Buttons =====
-  $("btnCatalogSave").addEventListener("click", async ()=>{
-    if (!canManageCatalog()) return toast("Sem permissão.");
-    const name = $("catalogItemName").value;
-    const priceRaw = $("catalogItemPrice").value;
-    const price = parsePrice(priceRaw);
-
+  // ===== GLOBAL TEMPLATES UI =====
+  $("btnSaveTpl").addEventListener("click", async ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    const name = normalizeCat($("tplName").value);
+    const items = sanitizeItemsFromInput($("tplItems").value.trim());
+    if (!name) return toast("Digite o nome do template.");
+    if (!items.length) return toast("Digite pelo menos 1 item.");
     try{
-      await upsertCatalogItem(name, price);
-      toast("Salvo!");
-      $("catalogItemName").value = "";
-      $("catalogItemPrice").value = "";
-      $("catalogItemName").focus();
+      await saveGlobalTemplate(name, items);
+      $("tplName").value = "";
+      $("tplItems").value = "";
+      toast("Template salvo.");
     } catch(e){
       console.error(e);
-      toast(String(e?.message || "Erro ao salvar."));
+      toast(String(e?.message || "Erro ao salvar template."));
     }
   });
 
-  $("btnCatalogDeleteByName").addEventListener("click", async ()=>{
-    if (!canManageCatalog()) return toast("Sem permissão.");
-    const name = $("catalogItemName").value;
-    const n = normalizeCat(name);
-    if (!n) return toast("Digite o nome do item para excluir.");
-    if (!confirm(`Excluir "${n}"?`)) return;
-
+  $("btnDeleteTpl").addEventListener("click", async ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    const id = $("globalTplSelect").value;
+    if (!id) return toast("Selecione um template.");
+    const tpl = findTemplateById(id);
+    if (!tpl) return toast("Template não encontrado.");
+    if (!confirm(`Excluir template "${tpl.name}"?`)) return;
     try{
-      await deleteCatalogByName(n);
-      toast("Item excluído.");
-      $("catalogItemName").value = "";
-      $("catalogItemPrice").value = "";
+      await deleteGlobalTemplateById(id);
+      toast("Template excluído.");
     } catch(e){
       console.error(e);
-      toast(String(e?.message || "Erro ao excluir."));
+      toast("Erro ao excluir template.");
     }
   });
 
-  // ===== Buttons =====
+  $("btnPublishGlobalFromTpl").addEventListener("click", async ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    const id = $("globalTplSelect").value;
+    if (!id) return toast("Selecione um template.");
+    const tpl = findTemplateById(id);
+    if (!tpl) return toast("Template não encontrado.");
+
+    if (!confirm(`Publicar GLOBAL desta semana usando "${tpl.name}"?`)) return;
+
+    try{
+      await publishGlobalTaskFromTemplate(tpl);
+      toast("GLOBAL publicada para esta semana.");
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao publicar GLOBAL."));
+    }
+  });
+
+  // ===== Funcionários add / toggle =====
   $("btnAddEmployee").addEventListener("click", async ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente.");
     const name = $("newEmployeeName").value;
@@ -1167,6 +1724,7 @@
     toast("Lista recarregada.");
   });
 
+  // ===== Categories individual buttons =====
   $("btnAddCategory").addEventListener("click", async ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente.");
     const u = $("addUser").value;
@@ -1175,6 +1733,7 @@
     if (!u) return toast("Selecione o funcionário.");
     if (!cat) return toast("Informe o nome da categoria");
 
+    // Evita “lixo”: só escreve categories quando realmente precisa (aqui sim).
     const newData = clone(data || {});
     if (!newData[u]) newData[u] = {};
     newData[u][cat] = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
@@ -1185,6 +1744,7 @@
     toast("Categoria atualizada.");
   });
 
+  // ===== PIN reset =====
   $("btnSetPin").addEventListener("click", async ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente.");
     const u = $("pinUser").value;
@@ -1203,6 +1763,7 @@
     toast("PIN definido.");
   });
 
+  // ===== Export CSV =====
   $("btnExport").addEventListener("click", ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente exporta.");
 
@@ -1225,6 +1786,13 @@
     document.body.removeChild(a);
   });
 
+  function csvCell(v){
+    const s = String(v == null ? "" : v);
+    if (/[\n\r,"]/g.test(s)) return '"' + s.replaceAll('"', '""') + '"';
+    return s;
+  }
+
+  // ===== Reset / deletes =====
   $("btnResetWeek").addEventListener("click", async ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente.");
     if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
@@ -1232,8 +1800,10 @@
     try{
       await deleteByWeek("tasks", currentWeekKey);
       await deleteByWeek("missing", currentWeekKey);
-      try{ await deleteDoc(doc(db,"stores",currentStoreId,"state","global_"+currentWeekKey)); }catch(e){}
-      try{ await deleteDoc(doc(db,"stores",currentStoreId,"state","escala_"+currentWeekKey)); }catch(e){}
+
+      try{ await deleteDoc(globalRef(currentWeekKey)); }catch(e){}
+      try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
+
       toast("Semana zerada.");
     } catch(e){
       console.error(e);
@@ -1270,11 +1840,46 @@
     }
   });
 
-  // ===== Login =====
+  async function deleteByWeek(colName, wk){
+    const colRef = collection(db, "stores", currentStoreId, colName);
+    // Sem orderBy para evitar índice composto
+    const q = query(colRef, where("weekKey","==",wk), limit(450));
+    const snap = await getDocs(q);
+    if (snap.empty) return;
+
+    let batch = writeBatch(db);
+    let count = 0;
+    for (const d of snap.docs){
+      batch.delete(d.ref);
+      count++;
+      if (count % 450 === 0){
+        await batch.commit();
+        batch = writeBatch(db);
+      }
+    }
+    await batch.commit();
+    if (snap.docs.length === 450) await deleteByWeek(colName, wk);
+  }
+
+  // ===== Collapses =====
+  setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
+  setupCollapse("btnToggleEscalaGer", "escalaGerContent");
+  setupCollapse("btnToggleRanking", "rankingContent");
+  setupCollapse("btnTogglePrevEmp", "prevEmpContent");
+  setupCollapse("btnTogglePrevGer", "prevGerContent");
+
+  // ===== Login / Logout =====
+  $("btnLogout1").addEventListener("click", doLogout);
+  $("btnLogout2").addEventListener("click", doLogout);
+
+  $("btnClearEscalaGer").addEventListener("click", clearEscala);
+
+  // ===== Loja select (no login) =====
   $("storeSelect").addEventListener("change", async ()=>{
+    // troca loja só na tela de login (para evitar bagunçar sessão)
     if (currentUser) return;
     currentStoreId = $("storeSelect").value;
-    await cloudInit(false);
+    await cloudInit(false); // sem auto-login
   });
 
   $("btnLogin").addEventListener("click", async ()=>{
@@ -1283,6 +1888,8 @@
 
     if (!u) return toast("Selecione o usuário.");
     if (!isValidPin(p)) return toast("PIN precisa ter 4 dígitos.");
+
+    // Segurança: impede logar com usuário que não pertence à loja
     if (!userBelongsToStore(u)) return toast("Usuário não pertence a esta loja.");
 
     if (u !== managerName() && !isEmployeeActive(u)){
@@ -1305,21 +1912,31 @@
     $("pin").value = "";
     saveSession(currentStoreId, u);
 
-    wireCatalogSearch(); // atualiza permissões e busca
-
     if (u === managerName()){
+      renderManager();
+      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      $("btnSaveEscalaGer").onclick = async ()=>{
+        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+        await saveEscala(escalaLocalGer);
+      };
       show("gerente");
     } else {
+      renderEmployee();
+      maybeSetupEscalaUI();
+      renderEscalaViewer();
       show("funcionario");
     }
-    updateTopBar();
 
-    // Re-render inicial catálogo
-    renderCatalogResults("catalogResultsEmp", $("catalogSearchEmp")?.value || "");
-    renderCatalogResults("catalogResultsGer", $("catalogSearchGer")?.value || "");
+    updateTopBar();
   }
 
-  // ====== LISTENERS / INIT ======
+  function doLogout(){
+    currentUser = "";
+    clearSession();
+    show("login");
+  }
+
+  // ===== Cloud init (por loja) =====
   let unsubscribers = [];
   function clearListeners(){
     unsubscribers.forEach(fn=>{ try{ fn && fn(); }catch(e){} });
@@ -1330,33 +1947,41 @@
     clearListeners();
 
     await ensureWeekKey();
+
+    $("weekKeyLabel").innerText = currentWeekKey;
+    $("weekKeyLabelGer").innerText = currentWeekKey;
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+
     await ensureEmployeesConfig();
     renderEmployeesUI();
-    await ensureScoresDoc();
 
+    await ensureScoresDoc();
     updateTopBar();
 
-    // Categories: só cria padrão na loja principal (bogados sem lixo)
-    const catsSnap = await getDoc(cfgCatsRef());
-    if (!catsSnap.exists()){
-      if (currentStoreId === "loja_principal"){
-        await setDoc(cfgCatsRef(), { data: storeCfg().defaultCategories, updatedAt: serverTimestamp() }, { merge:false });
-        data = clone(storeCfg().defaultCategories);
-      } else {
-        data = {};
-      }
-    } else {
-      const remote = catsSnap.data().data;
-      data = (remote && typeof remote === "object") ? remote : {};
-    }
+    await ensureGlobalTemplatesDoc();
+    renderGlobalTplDropdown();
 
-    // Employees realtime
+    // Templates realtime
+    unsubscribers.push(onSnapshot(cfgGlobalTplRef(), (snap)=>{
+      if (!snap.exists()){
+        globalTemplates = [];
+      } else {
+        const raw = snap.data().templates;
+        globalTemplates = Array.isArray(raw) ? raw : [];
+      }
+      renderGlobalTplDropdown();
+    }));
+
+    // employees realtime
     unsubscribers.push(onSnapshot(cfgAppRef(), (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
+
       employees = (Array.isArray(raw) ? raw : [])
         .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
         .filter(x => x.name && x.name !== managerName());
+
       const seen = new Set();
       employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
 
@@ -1368,97 +1993,164 @@
         toast("Usuário bloqueado. Faça login novamente.");
         show("login");
       }
+
+      if (currentUser === managerName()){
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      } else if (currentUser){
+        maybeSetupEscalaUI();
+      }
+
+      renderRanking();
     }));
 
-    // Categories realtime
-    unsubscribers.push(onSnapshot(cfgCatsRef(), (snap)=>{
-      if (!snap.exists()){ data = {}; return; }
-      const remote = snap.data().data;
+    // categories (evita lixo: NÃO cria automaticamente em Bogados)
+    const catsSnap = await getDoc(cfgCatsRef());
+    if (!catsSnap.exists()){
+      if (currentStoreId === "loja_principal"){
+        // só a loja principal recebe categorias padrão
+        await setDoc(cfgCatsRef(), { data: storeCfg().defaultCategories, updatedAt: serverTimestamp() }, { merge:false });
+        data = clone(storeCfg().defaultCategories);
+      } else {
+        // Bogados: não cria doc aqui. Mantém vazio em memória.
+        data = {};
+      }
+    } else {
+      const remote = catsSnap.data().data;
       data = (remote && typeof remote === "object") ? remote : {};
+    }
+
+    // realtime categories (só se doc existir)
+    unsubscribers.push(onSnapshot(cfgCatsRef(), (snap)=>{
+      if (!snap.exists()){
+        data = {};
+        if (currentUser && currentUser !== managerName()) renderEmployee();
+        if (currentUser === managerName()) renderManager();
+        return;
+      }
+      const remote = snap.data().data;
+      if (remote && typeof remote === "object"){
+        data = remote;
+        if (currentUser && currentUser !== managerName()) renderEmployee();
+        if (currentUser === managerName()) renderManager();
+      }
     }));
 
-    // Scores realtime
+    // scores realtime
     unsubscribers.push(onSnapshot(scoresRef(), (snap)=>{
       scoresDoc = snap.data() || {};
       if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
+
       if (currentUser && currentUser !== managerName()){
         const pts = getMonthPoints(currentUser);
         $("monthPointsInline").innerText = pts;
         $("monthPointsTop").innerText = pts;
       }
+      renderRanking();
       updateTopBar();
     }));
 
-    // Tasks realtime (sem where+orderBy)
-    unsubscribers.push(onSnapshot(
-      query(collection(db,"stores",currentStoreId,"tasks"), orderBy("createdAt","desc"), limit(900)),
-      (qs)=>{
-        tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-        tasksDone = tasksAll.filter(x=>x.weekKey === currentWeekKey);
-        tasksPrev = tasksAll.filter(x=>x.weekKey === prevWeekKey);
+    // tasks (sem where/orderBy combinado => evita índice composto)
+    const tasksQ = query(collection(db,"stores",currentStoreId,"tasks"), orderBy("createdAt","desc"), limit(900));
+    unsubscribers.push(onSnapshot(tasksQ, (qs)=>{
+      tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+      tasksDone = tasksAll.filter(x=>x.weekKey === currentWeekKey);
+      tasksPrev = tasksAll.filter(x=>x.weekKey === prevWeekKey);
+
+      if (currentUser === managerName()) renderManager();
+      if (currentUser && currentUser !== managerName()) renderEmployee();
+    }));
+
+    // missing (sem where/orderBy combinado => evita índice composto)
+    const missQ = query(collection(db,"stores",currentStoreId,"missing"), orderBy("createdAt","desc"), limit(900));
+    unsubscribers.push(onSnapshot(missQ, (qs)=>{
+      missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+      missingReports = missingAll.filter(x=>x.weekKey === currentWeekKey);
+      missingPrev = missingAll.filter(x=>x.weekKey === prevWeekKey);
+
+      if (currentUser === managerName()) renderManager();
+      if (currentUser && currentUser !== managerName()) renderPrevEmployee();
+    }));
+
+    // global week doc
+    unsubscribers.push(onSnapshot(globalRef(currentWeekKey), (snap)=>{
+      if (!snap.exists()) globalTask = null;
+      else globalTask = { id: snap.id, ...snap.data() };
+
+      if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
+      if (currentUser && currentUser !== managerName()) renderEmployee();
+    }));
+
+    // escala week doc
+    unsubscribers.push(onSnapshot(escalaRef(currentWeekKey), (snap)=>{
+      if (!snap.exists()) escala = null;
+      else escala = { id: snap.id, ...snap.data() };
+
+      renderEscalaViewer();
+
+      if (currentUser === managerName()){
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       }
-    ));
-
-    // Missing realtime
-    unsubscribers.push(onSnapshot(
-      query(collection(db,"stores",currentStoreId,"missing"), orderBy("createdAt","desc"), limit(900)),
-      (qs)=>{
-        missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-        missingReports = missingAll.filter(x=>x.weekKey === currentWeekKey);
-        missingPrev = missingAll.filter(x=>x.weekKey === prevWeekKey);
+      if (currentUser && currentUser !== managerName()){
+        maybeSetupEscalaUI();
       }
-    ));
+    }));
 
-    // ===== CATALOGO realtime (NOVO) =====
-    unsubscribers.push(onSnapshot(
-      query(catalogColRef(), orderBy("nameLower"), limit(1000)),
-      (qs)=>{
-        catalogItems = qs.docs.map(d => ({ id:d.id, ...d.data() }))
-          .filter(x => x && x.name && x.nameLower)
-          .map(x => ({ ...x, price: Number(x.price||0) }))
-          .sort((a,b)=> String(a.nameLower).localeCompare(String(b.nameLower)));
+    renderEscalaViewer();
+    renderRanking();
+    updateTopBar();
 
-        // Re-render resultados conforme inputs
-        renderCatalogResults("catalogResultsEmp", $("catalogSearchEmp")?.value || "");
-        renderCatalogResults("catalogResultsGer", $("catalogSearchGer")?.value || "");
-      }
-    ));
-
-    wireCatalogSearch();
-
+    // tentar restaurar sessão
     if (tryRestoreSession){
       const ses = getSession();
       if (ses && ses.user && ses.storeId){
         currentStoreId = ses.storeId;
         $("storeSelect").value = currentStoreId;
-        await cloudInit(false);
+
+        // recarrega tudo na loja da sessão
+        if (ses.storeId !== currentStoreId){
+          await cloudInit(false);
+        }
 
         currentUser = ses.user;
+
         if (!userBelongsToStore(currentUser)){
           clearSession();
           currentUser = "";
           show("login");
           return;
         }
-        if (currentUser !== managerName() && !isEmployeeActive(currentUser)){
-          clearSession();
-          currentUser = "";
-          show("login");
-          return;
+
+        if (currentUser === managerName()){
+          renderManager();
+          escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+          $("btnSaveEscalaGer").onclick = async ()=>{
+            if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+            await saveEscala(escalaLocalGer);
+          };
+          show("gerente");
+        } else {
+          if (!isEmployeeActive(currentUser)){
+            clearSession();
+            currentUser = "";
+            show("login");
+          } else {
+            renderEmployee();
+            maybeSetupEscalaUI();
+            renderEscalaViewer();
+            show("funcionario");
+          }
         }
-        doLogin(currentUser);
       } else {
         show("login");
       }
-    } else {
-      show("login");
     }
   }
 
-  // Start
+  // ===== Start =====
   await cloudInit(true);
 
   console.log("BUILD OK");
+  window.__BUILD_OK__ = true;
 </script>
 
 </body>
