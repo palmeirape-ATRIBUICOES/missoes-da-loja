@@ -7,6 +7,7 @@
 
   <meta name="theme-color" content="#2563eb" />
 
+  <!-- Ícone (favicon) em SVG (ALVO) -->
   <link id="appIcon" rel="icon" type="image/svg+xml" href="" />
   <link id="appAppleIcon" rel="apple-touch-icon" href="" />
   <link id="appManifest" rel="manifest" href="" />
@@ -16,9 +17,11 @@
 
 <body class="bg-gray-100 min-h-screen p-4">
 
+<!-- TOP BAR (dinâmico: login ou usuário) -->
 <header class="max-w-4xl mx-auto mb-4">
   <div class="bg-white rounded-xl shadow p-4 flex items-center justify-between gap-3">
     <div class="min-w-0 flex items-center gap-3">
+      <!-- LOGO (ALVO) -->
       <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-700" viewBox="0 0 24 24" fill="currentColor" aria-label="Logo">
           <path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 .001-16.001A8 8 0 0 1 12 20zm0-14a6 6 0 1 0 .001 12.001A6 6 0 0 0 12 6zm0 10a4 4 0 1 1 .001-8.001A4 4 0 0 1 12 16zm0-6a2 2 0 1 0 .001 4.001A2 2 0 0 0 12 10z"/>
@@ -31,6 +34,7 @@
       </div>
     </div>
 
+    <!-- bloco pontos (só quando logado como funcionário) -->
     <div id="topPointsBox" class="hidden items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 17.27l5.18 3.04-1.39-5.99 4.64-4.02-6.12-.53L12 4l-2.31 5.77-6.12.53 4.64 4.02-1.39 5.99L12 17.27z"/>
@@ -43,6 +47,7 @@
   </div>
 </header>
 
+<!-- LOGIN -->
 <section id="login" class="max-w-3xl mx-auto bg-white p-4 rounded-xl shadow">
   <h2 class="text-lg font-semibold mb-3">Entrar</h2>
 
@@ -78,13 +83,19 @@
   </div>
 </section>
 
+<!-- FUNCIONÁRIO -->
 <section id="funcionario" class="hidden max-w-3xl mx-auto">
 
+  <!-- Escala (visível para todos; editor só Claudia e Gerente) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
         <h2 class="text-lg font-semibold">Escala da Semana</h2>
-        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscala">-</span></p>
+        <p class="text-xs text-gray-500">
+          Semana atual: <span id="weekKeyLabelEscala">-</span>
+          <span class="mx-2 text-gray-300">|</span>
+          Semana anterior: <span id="weekKeyLabelEscalaPrev">-</span>
+        </p>
       </div>
 
       <div class="flex items-center gap-2">
@@ -97,15 +108,32 @@
       </div>
     </div>
 
+    <!-- Conteúdo colapsável -->
     <div id="escalaEmpContent" class="mt-3">
-      <div id="escalaViewer" class="text-sm space-y-2"></div>
+      <!-- Viewer Semana Atual -->
+      <div class="mb-3">
+        <div class="text-xs font-semibold text-gray-700 mb-2">Semana atual</div>
+        <div id="escalaViewer" class="text-sm space-y-2"></div>
+      </div>
 
+      <!-- Viewer Semana Anterior -->
+      <div class="border-t pt-3">
+        <div class="text-xs font-semibold text-gray-700 mb-2">Semana anterior</div>
+        <div id="escalaViewerPrev" class="text-sm space-y-2"></div>
+      </div>
+
+      <!-- Editor (só Claudia e Gerente) -->
       <div id="escalaEditorWrap" class="hidden mt-4 border-t pt-4">
         <div class="flex items-center justify-between">
-          <div class="font-semibold text-sm">Editar escala</div>
-          <button id="btnSaveEscala" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
-            Salvar escala
-          </button>
+          <div class="font-semibold text-sm">Editar escala (semana atual)</div>
+          <div class="flex gap-2">
+            <button id="btnClearEscalaEmp" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+              Limpar escala
+            </button>
+            <button id="btnSaveEscala" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
+              Salvar escala
+            </button>
+          </div>
         </div>
         <p class="text-xs text-gray-500 mt-2">
           Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
@@ -115,6 +143,7 @@
     </div>
   </div>
 
+  <!-- topo usuário -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
@@ -143,15 +172,21 @@
     </div>
   </div>
 
+  <!-- Tarefas (inclui GLOBAL + pessoais) -->
   <div id="tasks" class="space-y-4"></div>
 </section>
 
+<!-- GERENTE -->
 <section id="gerente" class="hidden max-w-4xl mx-auto">
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
         <h2 class="text-xl font-semibold">Painel do Gerente</h2>
-        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelGer">-</span></p>
+        <p class="text-xs text-gray-500">
+          Semana atual: <span id="weekKeyLabelGer">-</span>
+          <span class="mx-2 text-gray-300">|</span>
+          Semana anterior: <span id="weekKeyLabelGerPrev">-</span>
+        </p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button id="btnResetWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
@@ -167,6 +202,7 @@
     </div>
   </div>
 
+  <!-- Ranking mensal (colapsável) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -183,6 +219,7 @@
     </div>
   </div>
 
+  <!-- GLOBAL: publicar por template + criar templates -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <h3 class="font-semibold mb-2">Tarefas GLOBAIS salvas (Templates)</h3>
     <p class="text-xs text-gray-500 mb-3">
@@ -225,15 +262,23 @@
     </div>
   </div>
 
+  <!-- Escala (gerente edita semana atual + visualiza semana anterior) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between">
       <div>
         <h3 class="font-semibold">Escala da Semana</h3>
-        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscalaGer">-</span></p>
+        <p class="text-xs text-gray-500">
+          Atual: <span id="weekKeyLabelEscalaGer">-</span>
+          <span class="mx-2 text-gray-300">|</span>
+          Anterior: <span id="weekKeyLabelEscalaGerPrev">-</span>
+        </p>
       </div>
       <div class="flex items-center gap-2">
         <button id="btnToggleEscalaGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
           Minimizar
+        </button>
+        <button id="btnClearEscalaGer" class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
+          Limpar escala
         </button>
         <button id="btnSaveEscalaGer" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
           Salvar escala
@@ -245,22 +290,40 @@
     </p>
 
     <div id="escalaGerContent" class="mt-3">
+      <div class="text-xs font-semibold text-gray-700 mb-2">Editor (semana atual)</div>
       <div id="escalaEditorGer" class="space-y-3"></div>
+
+      <div class="border-t mt-4 pt-4">
+        <div class="text-xs font-semibold text-gray-700 mb-2">Visualização (semana anterior)</div>
+        <div id="escalaViewerGerPrev" class="text-sm space-y-2"></div>
+      </div>
     </div>
   </div>
 
+  <!-- tarefas e faltas (semana atual + anterior) -->
   <div class="grid md:grid-cols-2 gap-4">
     <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
-      <div id="gerTasks" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
+      <h3 class="font-semibold mb-2">Tarefas concluídas (semana atual)</h3>
+      <div id="gerTasks" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
+
+      <div class="border-t mt-4 pt-4">
+        <h3 class="font-semibold mb-2">Tarefas concluídas (semana anterior)</h3>
+        <div id="gerTasksPrev" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
+      </div>
     </div>
 
     <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Itens em falta</h3>
-      <div id="gerMissing" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
+      <h3 class="font-semibold mb-2">Itens em falta (semana atual)</h3>
+      <div id="gerMissing" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
+
+      <div class="border-t mt-4 pt-4">
+        <h3 class="font-semibold mb-2">Itens em falta (semana anterior)</h3>
+        <div id="gerMissingPrev" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
+      </div>
     </div>
   </div>
 
+  <!-- FUNCIONÁRIOS -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Funcionários (Ativar / Bloquear)</h3>
     <p class="text-xs text-gray-500 mb-3">
@@ -280,6 +343,7 @@
     <div id="employeeTable" class="mt-3 space-y-2"></div>
   </div>
 
+  <!-- CATEGORIAS: ADD/UPDATE -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Adicionar / Atualizar categoria (individual)</h3>
     <div class="grid md:grid-cols-4 gap-2">
@@ -295,6 +359,7 @@
     </p>
   </div>
 
+  <!-- PINS -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">PINs</h3>
     <div class="grid md:grid-cols-3 gap-2 mt-2">
@@ -312,6 +377,7 @@
 </section>
 
 <script type="module">
+  // ====== PWA: Manifest + Icon gerados automaticamente (logo ALVO) ======
   const TARGET_SVG = `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
     <defs>
@@ -355,6 +421,7 @@
   const $m = document.getElementById("appManifest");
   if ($m) $m.href = manifestUrl;
 
+  // ====== Firebase ======
   const firebaseConfig = {
     apiKey: "AIzaSyDsWJ9VVMSIsQNtifkLVnRNnbzU7favF7s",
     authDomain: "missoes-drive.firebaseapp.com",
@@ -394,17 +461,19 @@
   // ====== State ======
   let data = {};
   let scoresDoc = {};
-  let tasksDone = [];          // semana atual
-  let tasksPrevWeek = [];      // semana anterior (opcional)
-  let missingReports = [];     // semana atual
-  let missingPrevWeek = [];    // semana anterior (opcional)
+  let tasksDone = [];
+  let tasksPrevWeek = [];
+  let missingReports = [];
+  let missingPrevWeek = [];
   let currentUser = "";
   let currentWeekKey = "";
   let prevWeekKey = "";
   let employees = [];
   let globalTask = null;
   let escala = null;
+  let escalaPrev = null;
 
+  // Templates globais
   let globalTemplates = [];
   let escalaLocalEmployee = null;
   let escalaLocalGer = null;
@@ -418,27 +487,6 @@
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
   const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
   const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
-
-  // ===== Helpers semana anterior =====
-  function weekKey(date){
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    return d.getUTCFullYear() + "-W" + String(weekNo).padStart(2,"0");
-  }
-  function prevWeekKeyFrom(wk){
-    // wk: YYYY-WNN
-    const [yPart, wPart] = wk.split("-W");
-    let y = Number(yPart);
-    let w = Number(wPart);
-    if (!Number.isFinite(y) || !Number.isFinite(w)) return wk;
-    w = w - 1;
-    if (w >= 1) return `${y}-W${String(w).padStart(2,"0")}`;
-    // fallback simples: se for W01, volta pra W52 do ano anterior (suficiente pro seu uso)
-    return `${y-1}-W52`;
-  }
 
   // ===== Top bar =====
   function monthKey(date){
@@ -487,6 +535,44 @@
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
   }
 
+  // ===== Semana ISO =====
+  function weekKey(date){
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return d.getUTCFullYear() + "-W" + String(weekNo).padStart(2,"0");
+  }
+
+  // ✅ Semana anterior correta por data (evita bug de W01/W52)
+  function prevWeekKeyByDate(currentWk){
+    const [yPart, wPart] = String(currentWk).split("-W");
+    const y = Number(yPart);
+    const w = Number(wPart);
+    if (!Number.isFinite(y) || !Number.isFinite(w)) return currentWk;
+
+    // Pega uma data no meio do ano e calcula a segunda-feira da semana ISO alvo
+    // Estratégia: achar a quinta-feira da semana ISO (define o ano ISO) e voltar para segunda
+    // Aqui usamos uma aproximação robusta:
+    // 1) Começa em 4 de janeiro (sempre na semana 1 ISO)
+    // 2) Vai para a semana desejada somando (w-1)*7 dias
+    // 3) Ajusta para segunda-feira
+    const jan4 = new Date(Date.UTC(y, 0, 4));
+    const jan4Day = jan4.getUTCDay() || 7;
+    const week1Mon = new Date(jan4);
+    week1Mon.setUTCDate(jan4.getUTCDate() - (jan4Day - 1));
+
+    const targetMon = new Date(week1Mon);
+    targetMon.setUTCDate(week1Mon.getUTCDate() + (w - 1) * 7);
+
+    // volta 7 dias para semana anterior
+    const prevMon = new Date(targetMon);
+    prevMon.setUTCDate(targetMon.getUTCDate() - 7);
+
+    return weekKey(new Date(prevMon.getUTCFullYear(), prevMon.getUTCMonth(), prevMon.getUTCDate()));
+  }
+
   async function ensureWeekKey(){
     const snap = await getDoc(metaRef());
     const today = new Date();
@@ -495,7 +581,7 @@
     if (!snap.exists()){
       await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
       currentWeekKey = wk;
-      prevWeekKey = prevWeekKeyFrom(wk);
+      prevWeekKey = prevWeekKeyByDate(wk);
       return;
     }
 
@@ -503,11 +589,11 @@
     if (today.getDay() === 1 && saved !== wk){
       await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
       currentWeekKey = wk;
-      prevWeekKey = prevWeekKeyFrom(wk);
+      prevWeekKey = prevWeekKeyByDate(wk);
       return;
     }
     currentWeekKey = saved;
-    prevWeekKey = prevWeekKeyFrom(saved);
+    prevWeekKey = prevWeekKeyByDate(saved);
   }
 
   // ===== Sessão =====
@@ -616,6 +702,43 @@
     const namesAll = allNames();
     fillSelect($("addUser"), namesAll, false, null);
     fillSelect($("pinUser"), namesAll, true, null);
+
+    renderEmployeeTable();
+  }
+
+  function renderEmployeeTable(){
+    const wrap = $("employeeTable");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+
+    const ordered = employees.slice().sort((a,b)=>a.name.localeCompare(b.name));
+    if (!ordered.length){
+      wrap.innerHTML = `<div class="text-sm text-gray-500">Sem funcionários.</div>`;
+      return;
+    }
+
+    ordered.forEach((e)=>{
+      const row = document.createElement("div");
+      row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
+
+      const left = document.createElement("div");
+      left.innerHTML = `<div class="font-semibold">${e.name}</div><div class="text-xs text-gray-600">${e.active ? "Ativo" : "Bloqueado"}</div>`;
+
+      const btn = document.createElement("button");
+      btn.className = e.active
+        ? "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm"
+        : "bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm";
+      btn.innerText = e.active ? "Bloquear" : "Ativar";
+      btn.onclick = async ()=>{
+        if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+        const next = employees.map(x => x.name===e.name ? ({...x, active: !x.active}) : x);
+        await setEmployees(next);
+      };
+
+      row.appendChild(left);
+      row.appendChild(btn);
+      wrap.appendChild(row);
+    });
   }
 
   // ===== Categorias base =====
@@ -677,7 +800,7 @@
     return tasksDone.some(t => t.user === user && t.categoria === cat && t.weekKey === currentWeekKey);
   }
 
-  // ===== Scores =====
+  // ===== Scores (MENSAL) =====
   async function ensureScoresDoc(){
     const sSnap = await getDoc(scoresRef());
     if (!sSnap.exists()){
@@ -697,7 +820,7 @@
     });
   }
 
-  // ===== GLOBAL =====
+  // ===== GLOBAL (semana) =====
   function getGlobalStatusText(){
     if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL publicada nesta semana.";
     if (globalTask.status === "completed") return `GLOBAL concluída por ${globalTask.completedBy} em ${globalTask.completedAtHuman || ""}`;
@@ -752,10 +875,11 @@
     await bumpMonthlyScore(user, 10);
   }
 
-  // ===== GLOBAL Templates =====
+  // ===== GLOBAL TEMPLATES =====
   function sanitizeItemsFromInput(raw){
     return raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : [];
   }
+
   function renderGlobalTplDropdown(){
     const sel = $("globalTplSelect");
     if (!sel) return;
@@ -768,6 +892,7 @@
 
     if (prev && ordered.some(t=>t.id===prev)) sel.value = prev;
   }
+
   async function ensureGlobalTemplatesDoc(){
     const snap = await getDoc(cfgGlobalTplRef());
     if (!snap.exists()){
@@ -778,6 +903,7 @@
     const raw = snap.data().templates;
     globalTemplates = Array.isArray(raw) ? raw : [];
   }
+
   async function saveGlobalTemplate(name, items){
     name = normalizeCat(name);
     if (!name) throw new Error("Nome do template vazio.");
@@ -793,24 +919,29 @@
 
     await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
   }
+
   async function deleteGlobalTemplateById(id){
     const next = (globalTemplates || []).filter(t=>t.id !== id);
     await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
   }
+
   function findTemplateById(id){
     return (globalTemplates || []).find(t=>t.id === id);
   }
 
   // ===== ESCALA =====
   const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+
   function emptyEscala(){
     const days = {};
     for (const d of DAYS) days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
     return { weekKey: currentWeekKey, days };
   }
+
   function canEditEscala(){
     return currentUser === "GERENTE" || currentUser === "Claudia";
   }
+
   function validateEscala(obj){
     for (const d of DAYS){
       const day = obj?.days?.[d];
@@ -838,6 +969,7 @@
     }
     return null;
   }
+
   async function saveEscala(obj){
     const err = validateEscala(obj);
     if (err) return toast(err);
@@ -853,14 +985,32 @@
 
     toast("Escala salva.");
   }
-  function renderEscalaViewer(){
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
-    const view = $("escalaViewer");
+
+  async function clearEscala(){
+    if (!canEditEscala()) return toast("Sem permissão.");
+    if (!confirm("Limpar a escala da semana atual? (vai ficar tudo em branco)")) return;
+    const obj = emptyEscala();
+    await setDoc(escalaRef(currentWeekKey), {
+      exists: true,
+      weekKey: currentWeekKey,
+      days: obj.days,
+      updatedAt: serverTimestamp(),
+      updatedAtHuman: nowHuman(),
+      updatedBy: currentUser
+    }, { merge:false });
+    toast("Escala limpa.");
+  }
+
+  function renderEscalaViewerInto(elId, escalaObj, labelWeekElId){
+    const view = $(elId);
+    if (!view) return;
     view.innerHTML = "";
 
-    const s = escala && escala.exists ? escala : null;
+    if (labelWeekElId && $(labelWeekElId)) $(labelWeekElId).innerText = escalaObj?.weekKey || "-";
+
+    const s = escalaObj && escalaObj.exists ? escalaObj : null;
     if (!s){
-      view.innerHTML = `<div class="text-gray-500">Sem escala cadastrada ainda.</div>`;
+      view.innerHTML = `<div class="text-gray-500">Sem escala cadastrada.</div>`;
       return;
     }
 
@@ -898,6 +1048,7 @@
     sel.value = value || "";
     return sel;
   }
+
   function setSelectOptions(selectEl, options, keepValue){
     const current = keepValue || "";
     selectEl.innerHTML = "";
@@ -906,6 +1057,7 @@
     if (current && options.includes(current)) selectEl.value = current;
     else selectEl.value = "";
   }
+
   function renderEscalaEditor(containerId){
     const container = $(containerId);
     if (!container) return null;
@@ -1009,6 +1161,7 @@
 
   function maybeSetupEscalaUI(){
     $("weekKeyLabelEscala").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaPrev").innerText = prevWeekKey;
 
     const can = canEditEscala();
     $("escalaPermLabel").innerText = can ? "Você pode editar" : "Somente leitura";
@@ -1021,13 +1174,14 @@
         if (!escalaLocalEmployee) escalaLocalEmployee = renderEscalaEditor("escalaEditor");
         await saveEscala(escalaLocalEmployee);
       };
+      $("btnClearEscalaEmp").onclick = async ()=>{ await clearEscala(); };
     } else {
       editorWrap.classList.add("hidden");
       escalaLocalEmployee = null;
     }
   }
 
-  // ===== Ranking =====
+  // ===== Ranking mensal (gerente) =====
   function renderRanking(){
     const mk = monthKey(new Date());
     $("monthKeyLabelGer").innerText = mk;
@@ -1090,6 +1244,7 @@
     const container = $("tasks");
     container.innerHTML = "";
 
+    // GLOBAL open
     if (globalTask && globalTask.exists && globalTask.status === "open"){
       const card = document.createElement("div");
       card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
@@ -1156,6 +1311,7 @@
       container.appendChild(card);
     }
 
+    // categorias pessoais
     const cats = data[currentUser] || {};
     const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
     if (!catNames.length){
@@ -1257,69 +1413,87 @@
   }
 
   // ===== Render gerente =====
+  function renderTasksList(containerId, rows){
+    const t = $(containerId);
+    if (!t) return;
+    t.innerHTML = "";
+
+    const ordered = (rows || []).slice(0, 400);
+    if (!ordered.length){
+      t.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa.</p>";
+      return;
+    }
+
+    ordered.forEach((r)=>{
+      const itensObj = r.itens || {};
+      const itensKeys = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
+      const hasItens = itensKeys.length > 0;
+
+      const div = document.createElement("div");
+      div.className = "border rounded p-2 bg-gray-50";
+
+      let html = `
+        <div class="font-semibold">${r.user} - ${r.categoria}</div>
+        <div class="text-xs text-gray-600">${(r.when || "")}</div>
+      `;
+
+      if (hasItens){
+        html += `<div class="mt-2 bg-white rounded p-2 border">`;
+        itensKeys.forEach((k)=>{
+          const q = itensObj[k];
+          html += `
+            <div class="flex items-center justify-between gap-2 border-b last:border-b-0 py-1">
+              <div class="text-sm text-gray-800">${k}</div>
+              <div class="text-sm font-semibold">Qtd ${q}</div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+      }
+
+      div.innerHTML = html;
+      t.appendChild(div);
+    });
+  }
+
+  function renderMissingList(containerId, rows){
+    const m = $(containerId);
+    if (!m) return;
+    m.innerHTML = "";
+    const mo = (rows || []).slice(0, 400);
+    if (!mo.length){
+      m.innerHTML = "<p class='text-gray-500'>Nenhuma falta.</p>";
+      return;
+    }
+    mo.forEach((r)=>{
+      const div = document.createElement("div");
+      div.className = "border rounded p-2 bg-gray-50";
+      div.innerHTML =
+        "<div class='font-semibold'>" + r.user + "</div>" +
+        "<div class='text-xs text-gray-600'>" + (r.when || "") + "</div>" +
+        "<div class='text-sm mt-1'>" + r.item + "</div>";
+      m.appendChild(div);
+    });
+  }
+
   function renderManager(){
     $("weekKeyLabelGer").innerText = currentWeekKey;
+    $("weekKeyLabelGerPrev").innerText = prevWeekKey;
     $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGerPrev").innerText = prevWeekKey;
 
     if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
 
     renderRanking();
 
-    const t = $("gerTasks");
-    t.innerHTML = "";
-    const ordered = tasksDone.slice(0, 300);
+    renderTasksList("gerTasks", tasksDone);
+    renderTasksList("gerTasksPrev", tasksPrevWeek);
 
-    if (!ordered.length){
-      t.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa nesta semana.</p>";
-    } else {
-      ordered.forEach((r)=>{
-        const itensObj = r.itens || {};
-        const itensKeys = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
-        const hasItens = itensKeys.length > 0;
+    renderMissingList("gerMissing", missingReports);
+    renderMissingList("gerMissingPrev", missingPrevWeek);
 
-        const div = document.createElement("div");
-        div.className = "border rounded p-2 bg-gray-50";
-
-        let html = `
-          <div class="font-semibold">${r.user} - ${r.categoria}</div>
-          <div class="text-xs text-gray-600">${(r.when || "")}</div>
-        `;
-
-        if (hasItens){
-          html += `<div class="mt-2 bg-white rounded p-2 border">`;
-          itensKeys.forEach((k)=>{
-            const q = itensObj[k];
-            html += `
-              <div class="flex items-center justify-between gap-2 border-b last:border-b-0 py-1">
-                <div class="text-sm text-gray-800">${k}</div>
-                <div class="text-sm font-semibold">Qtd ${q}</div>
-              </div>
-            `;
-          });
-          html += `</div>`;
-        }
-
-        div.innerHTML = html;
-        t.appendChild(div);
-      });
-    }
-
-    const m = $("gerMissing");
-    m.innerHTML = "";
-    const mo = missingReports.slice(0, 250);
-    if (!mo.length){
-      m.innerHTML = "<p class='text-gray-500'>Nenhuma falta nesta semana.</p>";
-    } else {
-      mo.forEach((r)=>{
-        const div = document.createElement("div");
-        div.className = "border rounded p-2 bg-gray-50";
-        div.innerHTML =
-          "<div class='font-semibold'>" + r.user + "</div>" +
-          "<div class='text-xs text-gray-600'>" + (r.when || "") + "</div>" +
-          "<div class='text-sm mt-1'>" + r.item + "</div>";
-        m.appendChild(div);
-      });
-    }
+    // Escala viewers
+    renderEscalaViewerInto("escalaViewerGerPrev", escalaPrev, null);
   }
 
   // ===== Colapsar =====
@@ -1334,6 +1508,7 @@
     });
   }
 
+  // ===== Missing =====
   $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
   $("missingSave").addEventListener("click", async ()=>{
     const raw = $("missingInput").value.trim();
@@ -1352,6 +1527,7 @@
     toast("Registrado!");
   });
 
+  // ===== GLOBAL TEMPLATES UI =====
   $("btnSaveTpl").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
     const name = normalizeCat($("tplName").value);
@@ -1403,6 +1579,7 @@
     }
   });
 
+  // ===== Funcionários add =====
   $("btnAddEmployee").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
     const name = $("newEmployeeName").value;
@@ -1415,6 +1592,7 @@
     toast("Lista recarregada.");
   });
 
+  // ===== Categories individual =====
   $("btnAddCategory").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
     const u = $("addUser").value;
@@ -1433,6 +1611,7 @@
     toast("Categoria atualizada.");
   });
 
+  // ===== PIN reset =====
   $("btnSetPin").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
     const u = $("pinUser").value;
@@ -1451,17 +1630,26 @@
     toast("PIN definido.");
   });
 
+  // ===== Export CSV =====
   $("btnExport").addEventListener("click", ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente exporta.");
 
-    const header = ["tipo","usuario","categoria","quando","detalhes"];
+    const header = ["tipo","usuario","categoria","quando","detalhes","weekKey"];
     let csv = header.join(",") + "\n";
 
+    const addLine = (arr)=>{ csv += arr.map(csvCell).join(",") + "\n"; };
+
     tasksDone.forEach((r)=>{
-      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {})].map(csvCell).join(",") + "\n";
+      addLine(["tarefa_atual", r.user, r.categoria, r.when, JSON.stringify(r.itens || {}), r.weekKey]);
+    });
+    tasksPrevWeek.forEach((r)=>{
+      addLine(["tarefa_anterior", r.user, r.categoria, r.when, JSON.stringify(r.itens || {}), r.weekKey]);
     });
     missingReports.forEach((r)=>{
-      csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item })].map(csvCell).join(",") + "\n";
+      addLine(["falta_atual", r.user, "", r.when, JSON.stringify({ item: r.item }), r.weekKey]);
+    });
+    missingPrevWeek.forEach((r)=>{
+      addLine(["falta_anterior", r.user, "", r.when, JSON.stringify({ item: r.item }), r.weekKey]);
     });
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -1479,6 +1667,7 @@
     return s;
   }
 
+  // ===== Reset semana =====
   $("btnResetWeek").addEventListener("click", async ()=>{
     if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
     if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
@@ -1517,10 +1706,12 @@
     if (snap.docs.length === 450) await deleteByWeek(colName, wk);
   }
 
+  // ===== Collapses =====
   setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
   setupCollapse("btnToggleEscalaGer", "escalaGerContent");
   setupCollapse("btnToggleRanking", "rankingContent");
 
+  // ===== Login / Logout =====
   $("btnLogout1").addEventListener("click", doLogout);
   $("btnLogout2").addEventListener("click", doLogout);
 
@@ -1557,11 +1748,13 @@
         if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
         await saveEscala(escalaLocalGer);
       };
+      $("btnClearEscalaGer").onclick = async ()=>{ await clearEscala(); };
       show("gerente");
     } else {
       renderEmployee();
       maybeSetupEscalaUI();
-      renderEscalaViewer();
+      renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
+      renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
       show("funcionario");
     }
 
@@ -1574,13 +1767,17 @@
     show("login");
   }
 
+  // ===== Cloud init =====
   async function cloudInit(){
     await ensureWeekKey();
 
     $("weekKeyLabel").innerText = currentWeekKey;
     $("weekKeyLabelGer").innerText = currentWeekKey;
+    $("weekKeyLabelGerPrev").innerText = prevWeekKey;
     $("weekKeyLabelEscala").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaPrev").innerText = prevWeekKey;
     $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGerPrev").innerText = prevWeekKey;
 
     await ensureEmployeesConfig();
     renderEmployeesUI();
@@ -1588,6 +1785,7 @@
     await ensureScoresDoc();
     updateTopBar();
 
+    // Templates: ensure + realtime
     await ensureGlobalTemplatesDoc();
     renderGlobalTplDropdown();
 
@@ -1601,6 +1799,7 @@
       renderGlobalTplDropdown();
     });
 
+    // employees realtime
     onSnapshot(cfgAppRef(), (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
@@ -1613,6 +1812,7 @@
       employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
 
       renderEmployeesUI();
+
       if (currentUser && currentUser !== "GERENTE" && !isEmployeeActive(currentUser)){
         clearSession();
         currentUser = "";
@@ -1629,6 +1829,7 @@
       renderRanking();
     });
 
+    // categories
     const catsSnap = await getDoc(cfgCatsRef());
     if (!catsSnap.exists()){
       await setDoc(cfgCatsRef(), { data: defaultData, updatedAt: serverTimestamp() }, { merge:false });
@@ -1643,10 +1844,11 @@
       if (remote && typeof remote === "object"){
         data = remote;
         if (currentUser && currentUser !== "GERENTE") renderEmployee();
-        if (currentUser === "GERENTE") { renderManager(); }
+        if (currentUser === "GERENTE") renderManager();
       }
     });
 
+    // scores realtime
     onSnapshot(scoresRef(), (snap)=>{
       scoresDoc = snap.data() || {};
       if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
@@ -1660,10 +1862,10 @@
       updateTopBar();
     });
 
-    // ✅✅✅ CORREÇÃO PRINCIPAL: tarefas por semana (não some por limite global)
+    // ✅✅ tarefas por semana (atual e anterior)
     const tasksCol = collection(db,"stores",STORE_ID,"tasks");
-    const tasksQWeek = query(tasksCol, where("weekKey","==",currentWeekKey), orderBy("createdAt","desc"), limit(1200));
-    const tasksQPrev = query(tasksCol, where("weekKey","==",prevWeekKey), orderBy("createdAt","desc"), limit(600));
+    const tasksQWeek = query(tasksCol, where("weekKey","==",currentWeekKey), orderBy("createdAt","desc"), limit(1500));
+    const tasksQPrev = query(tasksCol, where("weekKey","==",prevWeekKey), orderBy("createdAt","desc"), limit(1500));
 
     onSnapshot(tasksQWeek, (qs)=>{
       tasksDone = qs.docs.map(d => ({ id:d.id, ...d.data() }));
@@ -1672,13 +1874,13 @@
     });
     onSnapshot(tasksQPrev, (qs)=>{
       tasksPrevWeek = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-      // (se você quiser exibir a semana anterior na tela, já está pronto no estado)
+      if (currentUser === "GERENTE") renderManager();
     });
 
-    // ✅✅✅ CORREÇÃO PRINCIPAL: faltas por semana (não some por limite global)
+    // ✅✅ faltas por semana (atual e anterior)
     const missCol = collection(db,"stores",STORE_ID,"missing");
-    const missQWeek = query(missCol, where("weekKey","==",currentWeekKey), orderBy("createdAt","desc"), limit(1200));
-    const missQPrev = query(missCol, where("weekKey","==",prevWeekKey), orderBy("createdAt","desc"), limit(600));
+    const missQWeek = query(missCol, where("weekKey","==",currentWeekKey), orderBy("createdAt","desc"), limit(1500));
+    const missQPrev = query(missCol, where("weekKey","==",prevWeekKey), orderBy("createdAt","desc"), limit(1500));
 
     onSnapshot(missQWeek, (qs)=>{
       missingReports = qs.docs.map(d => ({ id:d.id, ...d.data() }));
@@ -1686,9 +1888,10 @@
     });
     onSnapshot(missQPrev, (qs)=>{
       missingPrevWeek = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-      // (se quiser exibir semana anterior, já está no estado)
+      if (currentUser === "GERENTE") renderManager();
     });
 
+    // global week doc (semana atual)
     onSnapshot(globalRef(currentWeekKey), (snap)=>{
       if (!snap.exists()) globalTask = null;
       else globalTask = { id: snap.id, ...snap.data() };
@@ -1697,11 +1900,15 @@
       if (currentUser && currentUser !== "GERENTE") renderEmployee();
     });
 
+    // escala semana atual
     onSnapshot(escalaRef(currentWeekKey), (snap)=>{
       if (!snap.exists()) escala = null;
       else escala = { id: snap.id, ...snap.data() };
 
-      renderEscalaViewer();
+      renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
+      if (currentUser && currentUser !== "GERENTE"){
+        renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
+      }
 
       if (currentUser === "GERENTE"){
         escalaLocalGer = renderEscalaEditor("escalaEditorGer");
@@ -1711,11 +1918,23 @@
       }
     });
 
-    renderEscalaViewer();
+    // escala semana anterior (viewer)
+    onSnapshot(escalaRef(prevWeekKey), (snap)=>{
+      if (!snap.exists()) escalaPrev = null;
+      else escalaPrev = { id: snap.id, ...snap.data() };
+
+      renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
+      renderEscalaViewerInto("escalaViewerGerPrev", escalaPrev, null);
+    });
+
+    // primeira render
+    renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
+    renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
     renderRanking();
     updateTopBar();
   }
 
+  // ===== Start =====
   await cloudInit();
 
   const ses = getSession();
@@ -1729,6 +1948,7 @@
         if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
         await saveEscala(escalaLocalGer);
       };
+      $("btnClearEscalaGer").onclick = async ()=>{ await clearEscala(); };
       show("gerente");
     } else {
       if (!isEmployeeActive(currentUser)){
@@ -1738,7 +1958,8 @@
       } else {
         renderEmployee();
         maybeSetupEscalaUI();
-        renderEscalaViewer();
+        renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
+        renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
         show("funcionario");
       }
     }
