@@ -1763,7 +1763,6 @@
   async function cloudInit(){
     await ensureWeekKey();
     await __pricesSnapshotInit();
-    setupPriceUI();
 
     $("weekKeyLabel").innerText = currentWeekKey;
     $("weekKeyLabelGer").innerText = currentWeekKey;
@@ -1910,6 +1909,7 @@
   }
 
   await cloudInit();
+    setupPriceUI();
 
   const ses = getSession();
   if (ses && ses.user){
