@@ -148,24 +148,27 @@
     </div>
   </div>
 
-  <!-- ✅✅✅ CONSULTA DE PREÇOS (FUNCIONÁRIOS: SOMENTE CONSULTA) -->
+  <!-- ✅ CONSULTA DE PREÇOS (FUNCIONÁRIO) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
-        <h3 class="text-lg font-semibold">Consulta de preços</h3>
-        <p class="text-xs text-gray-500">Digite as primeiras letras e selecione o produto.</p>
+        <h3 class="font-semibold">Consulta de Preços</h3>
+        <p class="text-xs text-gray-500">Digite as primeiras letras para buscar</p>
       </div>
-      <span id="pricePermLabelEmp" class="text-xs text-gray-500">Somente consulta</span>
+      <div class="text-xs text-gray-500">
+        <span id="pricePermEmp">Somente consulta</span>
+      </div>
     </div>
 
     <div class="mt-3">
-      <input id="priceSearchEmp" class="w-full border rounded p-2" placeholder="Ex: coca, pão, gelo..." />
-      <div id="priceResultsEmp" class="mt-2 border rounded bg-white overflow-hidden"></div>
-      <div id="priceSelectedEmp" class="mt-3 hidden border rounded p-3 bg-gray-50"></div>
+      <label class="text-sm text-gray-700">Produto</label>
+      <input id="priceQueryEmp" class="w-full border rounded p-2" placeholder="Ex: coca, heine..." autocomplete="off" />
+      <div id="priceSuggestEmp" class="mt-2 space-y-2"></div>
     </div>
 
-    <div class="mt-3 text-xs text-gray-500">
-      Total de produtos cadastrados: <span id="priceCountEmp">0</span>
+    <div class="mt-3 border-t pt-3">
+      <div class="text-sm font-semibold mb-2">Resultado</div>
+      <div id="priceResultsEmp" class="text-sm text-gray-700">Digite para pesquisar.</div>
     </div>
   </div>
 
@@ -213,45 +216,48 @@
     </div>
   </div>
 
-  <!-- ✅✅✅ PRODUTOS & PREÇOS (GERENTE + CLAUDIA: CRIAR/ATUALIZAR; DEMAIS: SÓ CONSULTA) -->
+  <!-- ✅ PRODUTOS & PREÇOS (GERENTE) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
-        <h3 class="text-lg font-semibold">Produtos e preços</h3>
-        <p class="text-xs text-gray-500">Gerente e Claudia podem cadastrar/atualizar. Outros só consultam.</p>
+        <h3 class="font-semibold">Produtos & Preços</h3>
+        <p class="text-xs text-gray-500">Gerente cria/atualiza. Funcionários só consultam.</p>
       </div>
-      <span id="pricePermLabelGer" class="text-xs text-gray-500">-</span>
+      <div class="text-xs text-gray-500">
+        <span id="pricePermGer">Carregando...</span>
+      </div>
     </div>
 
-    <!-- Form (somente quem pode editar) -->
-    <div id="priceEditorWrap" class="hidden mt-3 border-t pt-3">
+    <!-- Editor (aparece só para manager) -->
+    <div id="priceEditorGer" class="hidden mt-3 border rounded p-3 bg-gray-50">
+      <div class="text-sm font-semibold mb-2">Criar / Atualizar</div>
       <div class="grid md:grid-cols-3 gap-2">
-        <input id="priceName" class="border rounded p-2 md:col-span-2" placeholder="Nome do produto (ex: Coca 2L)" />
-        <input id="priceValue" class="border rounded p-2" placeholder="Preço (ex: 12,50)" inputmode="decimal" />
-      </div>
-      <div class="flex gap-2 mt-2">
-        <button id="btnSavePrice" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded w-full">
-          Salvar / Atualizar
-        </button>
-        <button id="btnClearPriceForm" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-          Limpar
+        <input id="prodNameGer" class="border rounded p-2" placeholder="Nome do produto (ex: Coca 2L)" />
+        <input id="prodPriceGer" class="border rounded p-2" placeholder="Preço (ex: 9.99)" inputmode="decimal" />
+        <button id="btnSaveProdGer" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
+          Salvar
         </button>
       </div>
       <p class="text-xs text-gray-500 mt-2">
-        Dica: se você digitar um nome que já existe, ele atualiza o preço.
+        Dica: se o nome já existir, o preço é atualizado.
       </p>
+
+      <div class="mt-3 border-t pt-3">
+        <div class="text-sm font-semibold mb-2">Lista (gerenciar)</div>
+        <div id="prodListGer" class="text-sm space-y-2 max-h-[40vh] overflow-auto"></div>
+      </div>
     </div>
 
-    <!-- Consulta (todos) -->
-    <div class="mt-4 border-t pt-4">
-      <div class="font-semibold text-sm mb-2">Consulta rápida</div>
-      <input id="priceSearchGer" class="w-full border rounded p-2" placeholder="Digite para buscar... (ex: água, pão, gelo)" />
-      <div id="priceResultsGer" class="mt-2 border rounded bg-white overflow-hidden"></div>
-      <div id="priceSelectedGer" class="mt-3 hidden border rounded p-3 bg-gray-50"></div>
+    <!-- Consulta (sempre aparece) -->
+    <div class="mt-3">
+      <label class="text-sm text-gray-700">Pesquisar</label>
+      <input id="priceQueryGer" class="w-full border rounded p-2" placeholder="Ex: ita, heine..." autocomplete="off" />
+      <div id="priceSuggestGer" class="mt-2 space-y-2"></div>
+    </div>
 
-      <div class="mt-3 text-xs text-gray-500">
-        Total de produtos cadastrados: <span id="priceCountGer">0</span>
-      </div>
+    <div class="mt-3 border-t pt-3">
+      <div class="text-sm font-semibold mb-2">Resultado</div>
+      <div id="priceResultsGer" class="text-sm text-gray-700">Digite para pesquisar.</div>
     </div>
   </div>
 
@@ -394,7 +400,7 @@
   // =========================
   // ✅ ANTI-CACHE (PWA / SW)
   // =========================
-  const BUILD_ID = "2026-02-05-precos-1";
+  const BUILD_ID = "2026-02-05-prices-1";
   console.log("BUILD_ID", BUILD_ID);
 
   try {
@@ -501,8 +507,9 @@
   function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
   function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
   function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
+  function normalizeProd(name){ return String(name||"").trim().replace(/\s+/g," "); }
+  function normKey(s){ return String(s||"").trim().toLowerCase(); }
 
-  // ✅ Normaliza weekKey antigo "2026-W5" para "2026-W05"
   function normalizeWeekKeyLoose(wk){
     const s = String(wk || "").trim();
     const m = s.match(/^(\d{4})-W(\d{1,2})$/i);
@@ -520,6 +527,7 @@
   let tasksDone = [];
   let missingReports = [];
   let currentUser = "";
+  let currentRole = "employee"; // ✅ novo
   let currentWeekKey = "";
   let employees = [];
   let globalTask = null;
@@ -529,231 +537,38 @@
   let escalaLocalEmployee = null;
   let escalaLocalGer = null;
 
-  // ✅✅✅ PREÇOS/PRODUTOS
-  let productsAll = []; // [{id, name, nameKey, priceCents, updatedAtHuman, updatedBy}]
-  const productsCol = () => collection(db, "stores", STORE_ID, "products");
-
-  function removeDiacritics(str){
-    return String(str||"").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  }
-  function normalizeProductName(name){
-    return normalizeCat(name);
-  }
-  function productKey(name){
-    // chave para ID: sem acento, minúsculo, só letras/números e hífen
-    const s = removeDiacritics(normalizeProductName(name)).toLowerCase();
-    return s
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/(^-|-$)/g, "");
-  }
-  function parsePriceToCents(raw){
-    // aceita: "12,50" "12.50" "12" "R$ 12,50"
-    const s0 = String(raw||"").trim();
-    if (!s0) return null;
-    const s = s0.replace(/[^\d.,]/g, "");
-    if (!s) return null;
-
-    // se tem vírgula, assume vírgula decimal; se só ponto, assume ponto decimal
-    let normalized = s;
-    const hasComma = s.includes(",");
-    const hasDot = s.includes(".");
-    if (hasComma && hasDot){
-      // caso "1.234,56" => remove pontos (milhar) e troca vírgula por ponto
-      normalized = s.replaceAll(".", "").replaceAll(",", ".");
-    } else if (hasComma && !hasDot){
-      normalized = s.replaceAll(".", "").replaceAll(",", ".");
-    } else {
-      // "1234.56" ok; "1234" ok
-      normalized = s;
-    }
-
-    const val = Number(normalized);
-    if (!Number.isFinite(val)) return null;
-    return Math.round(val * 100);
-  }
-  function formatCentsBRL(cents){
-    const v = Number(cents || 0) / 100;
-    try{
-      return v.toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
-    } catch(e){
-      // fallback
-      return "R$ " + v.toFixed(2).replace(".", ",");
-    }
-  }
-
-  function canEditPrices(){
-    return currentUser === "GERENTE" || currentUser === "Claudia";
-  }
-
-  async function upsertProduct(name, priceRaw){
-    name = normalizeProductName(name);
-    if (!name) throw new Error("Nome do produto vazio.");
-    const cents = parsePriceToCents(priceRaw);
-    if (cents == null) throw new Error("Preço inválido (ex: 12,50).");
-
-    const id = productKey(name);
-    if (!id) throw new Error("Nome do produto inválido.");
-
-    await setDoc(doc(db, "stores", STORE_ID, "products", id), {
-      name,
-      nameKey: removeDiacritics(name).toLowerCase(),
-      priceCents: cents,
-      updatedAt: serverTimestamp(),
-      updatedAtHuman: nowHuman(),
-      updatedBy: currentUser
-    }, { merge:true });
-  }
-
-  function setPricePermLabels(){
-    const emp = $("pricePermLabelEmp");
-    const ger = $("pricePermLabelGer");
-    if (emp){
-      emp.innerText = (currentUser === "GERENTE" || currentUser === "Claudia")
-        ? "Você pode cadastrar (mas aqui é só consulta)"
-        : "Somente consulta";
-    }
-    if (ger){
-      ger.innerText = canEditPrices() ? "Você pode cadastrar/atualizar" : "Somente consulta";
-    }
-  }
-
-  function renderPriceResults(listEl, selectedEl, queryText, mode){
-    // mode: "emp" | "ger"
-    if (!listEl || !selectedEl) return;
-
-    const q = removeDiacritics(String(queryText||"").trim()).toLowerCase();
-    const items = productsAll || [];
-
-    let filtered = items;
-    if (q){
-      // prioriza "começa com" e depois "contém"
-      const starts = [];
-      const contains = [];
-      for (const p of items){
-        const key = p.nameKey || removeDiacritics(p.name||"").toLowerCase();
-        if (key.startsWith(q)) starts.push(p);
-        else if (key.includes(q)) contains.push(p);
-      }
-      filtered = starts.concat(contains);
-    } else {
-      filtered = items.slice(0);
-    }
-
-    filtered = filtered.slice(0, 12);
-
-    listEl.innerHTML = "";
-    if (!items.length){
-      listEl.innerHTML = `<div class="p-3 text-sm text-gray-500">Nenhum produto cadastrado ainda.</div>`;
-      selectedEl.classList.add("hidden");
-      selectedEl.innerHTML = "";
-      return;
-    }
-
-    if (!filtered.length){
-      listEl.innerHTML = `<div class="p-3 text-sm text-gray-500">Nenhum resultado.</div>`;
-      selectedEl.classList.add("hidden");
-      selectedEl.innerHTML = "";
-      return;
-    }
-
-    filtered.forEach((p, idx)=>{
-      const row = document.createElement("button");
-      row.type = "button";
-      row.className = "w-full text-left px-3 py-2 hover:bg-gray-50 border-b last:border-b-0 flex items-center justify-between gap-2";
-      row.innerHTML = `
-        <div class="min-w-0">
-          <div class="font-semibold text-sm truncate">${p.name}</div>
-          <div class="text-xs text-gray-500 truncate">Atualizado por ${p.updatedBy || "-"} em ${p.updatedAtHuman || "-"}</div>
-        </div>
-        <div class="text-sm font-bold whitespace-nowrap">${formatCentsBRL(p.priceCents)}</div>
-      `;
-      row.addEventListener("click", ()=>{
-        selectedEl.classList.remove("hidden");
-        selectedEl.innerHTML = `
-          <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0">
-              <div class="text-sm text-gray-500">Produto</div>
-              <div class="text-lg font-bold truncate">${p.name}</div>
-              <div class="text-xs text-gray-500 mt-1">Atualizado por ${p.updatedBy || "-"} em ${p.updatedAtHuman || "-"}</div>
-            </div>
-            <div class="text-right">
-              <div class="text-sm text-gray-500">Preço</div>
-              <div class="text-2xl font-black">${formatCentsBRL(p.priceCents)}</div>
-            </div>
-          </div>
-        `;
-
-        // no gerente, se pode editar, clicar preenche o formulário pra facilitar atualização
-        if (mode === "ger" && canEditPrices()){
-          const n = $("priceName");
-          const v = $("priceValue");
-          if (n) n.value = p.name;
-          if (v) v.value = (Number(p.priceCents||0)/100).toFixed(2).replace(".", ",");
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      });
-
-      listEl.appendChild(row);
-    });
-  }
-
-  function wirePriceSearch(){
-    const sEmp = $("priceSearchEmp");
-    const rEmp = $("priceResultsEmp");
-    const selEmp = $("priceSelectedEmp");
-
-    const sGer = $("priceSearchGer");
-    const rGer = $("priceResultsGer");
-    const selGer = $("priceSelectedGer");
-
-    if (sEmp){
-      sEmp.addEventListener("input", ()=> renderPriceResults(rEmp, selEmp, sEmp.value, "emp"));
-    }
-    if (sGer){
-      sGer.addEventListener("input", ()=> renderPriceResults(rGer, selGer, sGer.value, "ger"));
-    }
-  }
-
-  function refreshPriceUI(){
-    const countEmp = $("priceCountEmp");
-    const countGer = $("priceCountGer");
-    if (countEmp) countEmp.innerText = String(productsAll.length || 0);
-    if (countGer) countGer.innerText = String(productsAll.length || 0);
-
-    const sEmp = $("priceSearchEmp");
-    const rEmp = $("priceResultsEmp");
-    const selEmp = $("priceSelectedEmp");
-    if (rEmp && selEmp && sEmp){
-      renderPriceResults(rEmp, selEmp, sEmp.value, "emp");
-    }
-
-    const sGer = $("priceSearchGer");
-    const rGer = $("priceResultsGer");
-    const selGer = $("priceSelectedGer");
-    if (rGer && selGer && sGer){
-      renderPriceResults(rGer, selGer, sGer.value, "ger");
-    }
-
-    // editor perm
-    const wrap = $("priceEditorWrap");
-    if (wrap){
-      if (canEditPrices()) wrap.classList.remove("hidden");
-      else wrap.classList.add("hidden");
-    }
-
-    setPricePermLabels();
-  }
+  // ✅ Produtos & preços
+  let products = []; // [{id,name,price,updatedAtHuman}]
+  let productsLoaded = false;
 
   // ===== Refs =====
   const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
   const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
   const cfgGlobalTplRef = () => doc(db,"stores",STORE_ID,"config","global_templates");
+  const cfgProductsRef  = () => doc(db,"stores",STORE_ID,"config","products"); // ✅ novo
   const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
   const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
   const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
   const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
+
+  // ===== Permissões =====
+  function isManager(){
+    return currentRole === "manager" || currentUser === "GERENTE";
+  }
+
+  async function loadRoleForUser(u){
+    if (!u) return "employee";
+    if (u === "GERENTE") return "manager";
+    try{
+      const snap = await getDoc(userRef(u));
+      const role = snap.exists() ? (snap.data().role || "employee") : "employee";
+      return role === "manager" ? "manager" : "employee";
+    } catch(e){
+      console.warn("Falha ao carregar role:", e);
+      return "employee";
+    }
+  }
 
   // ===== Top bar =====
   function monthKey(date){
@@ -779,7 +594,7 @@
       return;
     }
 
-    if (currentUser === "GERENTE"){
+    if (isManager()){
       topTitle.innerText = "Gerente";
       topSubtitle.innerText = "Painel administrativo";
       pointsBox.classList.add("hidden");
@@ -833,7 +648,9 @@
   }
 
   // ===== Sessão =====
-  function saveSession(user){ localStorage.setItem(SESSION_KEY, JSON.stringify({ user, at: Date.now() })); }
+  function saveSession(user, role){
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ user, role, at: Date.now() }));
+  }
   function clearSession(){ localStorage.removeItem(SESSION_KEY); }
   function getSession(){
     try{
@@ -963,7 +780,7 @@
         : "bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm";
       btn.innerText = e.active ? "Bloquear" : "Ativar";
       btn.onclick = async ()=>{
-        if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+        if (!isManager()) return toast("Apenas o gerente.");
         const next = employees.map(x => x.name===e.name ? ({...x, active: !x.active}) : x);
         await setEmployees(next);
       };
@@ -1181,7 +998,7 @@
   }
 
   function canEditEscala(){
-    return currentUser === "GERENTE" || currentUser === "Claudia";
+    return isManager() || currentUser === "Claudia";
   }
 
   function validateEscala(obj){
@@ -1420,6 +1237,243 @@
     }
   }
 
+  // ===== ✅ PRODUTOS & PREÇOS =====
+  async function ensureProductsDoc(){
+    const snap = await getDoc(cfgProductsRef());
+    if (!snap.exists()){
+      await setDoc(cfgProductsRef(), { products: [], updatedAt: serverTimestamp() }, { merge:true });
+      products = [];
+      productsLoaded = true;
+      return;
+    }
+    const raw = snap.data().products;
+    products = Array.isArray(raw) ? raw : [];
+    productsLoaded = true;
+  }
+
+  function formatBRL(v){
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "R$ 0,00";
+    return n.toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
+  }
+
+  function parsePriceInput(raw){
+    let s = String(raw||"").trim();
+    if (!s) return null;
+    s = s.replace(/[^\d,.-]/g,"");
+    if (s.includes(",") && s.includes(".")){
+      // assume "." milhar e "," decimal
+      s = s.replace(/\./g,"").replace(",",".");
+    } else if (s.includes(",")){
+      s = s.replace(",",".");
+    }
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function sortProducts(arr){
+    return arr.slice().sort((a,b)=> String(a.name||"").localeCompare(String(b.name||""), "pt-BR", { sensitivity:"base" }));
+  }
+
+  function findByNameLoose(name){
+    const key = normKey(name);
+    return products.find(p => normKey(p.name) === key);
+  }
+
+  async function upsertProduct(name, price){
+    name = normalizeProd(name);
+    if (!name) throw new Error("Nome do produto vazio.");
+    if (!Number.isFinite(price)) throw new Error("Preço inválido.");
+
+    const existing = findByNameLoose(name);
+    const next = products.slice();
+
+    if (existing){
+      const idx = next.findIndex(p => p.id === existing.id);
+      next[idx] = {
+        ...existing,
+        name,
+        price,
+        updatedAtHuman: nowHuman()
+      };
+    } else {
+      const id = "prd_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8);
+      next.push({
+        id,
+        name,
+        price,
+        createdAtHuman: nowHuman(),
+        updatedAtHuman: nowHuman()
+      });
+    }
+
+    await setDoc(cfgProductsRef(), { products: next, updatedAt: serverTimestamp() }, { merge:false });
+  }
+
+  async function deleteProductById(id){
+    const next = products.filter(p => p.id !== id);
+    await setDoc(cfgProductsRef(), { products: next, updatedAt: serverTimestamp() }, { merge:false });
+  }
+
+  function searchProducts(prefix, max=8){
+    const q = normKey(prefix);
+    if (!q) return [];
+    const list = products
+      .filter(p => normKey(p.name).startsWith(q))
+      .slice(0, 200);
+    return sortProducts(list).slice(0, max);
+  }
+
+  function renderSuggest(list, suggestEl, onPick){
+    suggestEl.innerHTML = "";
+    if (!list.length) return;
+    list.forEach(p=>{
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "w-full text-left border rounded p-2 bg-gray-50 hover:bg-gray-100";
+      btn.innerHTML = `
+        <div class="flex items-center justify-between gap-2">
+          <div class="font-semibold text-sm">${p.name}</div>
+          <div class="text-sm font-bold">${formatBRL(p.price)}</div>
+        </div>
+      `;
+      btn.onclick = ()=> onPick(p);
+      suggestEl.appendChild(btn);
+    });
+  }
+
+  function renderResult(p, resultsEl){
+    if (!p){
+      resultsEl.innerHTML = `<span class="text-gray-500">Nenhum produto encontrado.</span>`;
+      return;
+    }
+    resultsEl.innerHTML = `
+      <div class="border rounded p-3 bg-gray-50">
+        <div class="flex items-center justify-between gap-2">
+          <div class="font-semibold">${p.name}</div>
+          <div class="text-lg font-bold">${formatBRL(p.price)}</div>
+        </div>
+        <div class="text-xs text-gray-600 mt-1">Atualizado: ${p.updatedAtHuman || p.createdAtHuman || "-"}</div>
+      </div>
+    `;
+  }
+
+  function renderProductsManagerList(){
+    const wrap = $("prodListGer");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+
+    const ordered = sortProducts(products);
+    if (!ordered.length){
+      wrap.innerHTML = `<div class="text-gray-500">Sem produtos cadastrados.</div>`;
+      return;
+    }
+
+    ordered.forEach(p=>{
+      const row = document.createElement("div");
+      row.className = "border rounded p-2 bg-white flex items-center justify-between gap-2";
+      row.innerHTML = `
+        <div class="min-w-0">
+          <div class="font-semibold truncate">${p.name}</div>
+          <div class="text-xs text-gray-600">Preço: <b>${formatBRL(p.price)}</b> • ${p.updatedAtHuman || "-"}</div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+          <button data-edit="${p.id}" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded text-xs">Editar</button>
+          <button data-del="${p.id}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs">Excluir</button>
+        </div>
+      `;
+      wrap.appendChild(row);
+
+      row.querySelector("button[data-edit]")?.addEventListener("click", ()=>{
+        $("prodNameGer").value = p.name;
+        $("prodPriceGer").value = String(p.price ?? "");
+        window.scrollTo({ top: 0, behavior:"smooth" });
+      });
+
+      row.querySelector("button[data-del]")?.addEventListener("click", async ()=>{
+        if (!isManager()) return toast("Sem permissão.");
+        if (!confirm(`Excluir "${p.name}"?`)) return;
+        try{
+          await deleteProductById(p.id);
+          toast("Produto excluído.");
+        } catch(e){
+          console.error(e);
+          toast("Erro ao excluir produto.");
+        }
+      });
+    });
+  }
+
+  function setupPriceSearchUI(){
+    // Permissões
+    $("pricePermEmp").innerText = "Somente consulta";
+    $("pricePermGer").innerText = isManager() ? "Você pode gerenciar" : "Somente consulta";
+
+    // Editor gerente
+    const editor = $("priceEditorGer");
+    if (editor){
+      if (isManager()) editor.classList.remove("hidden");
+      else editor.classList.add("hidden");
+    }
+
+    // Bind search employee
+    const qEmp = $("priceQueryEmp");
+    const sugEmp = $("priceSuggestEmp");
+    const resEmp = $("priceResultsEmp");
+    if (qEmp){
+      qEmp.oninput = ()=>{
+        const list = searchProducts(qEmp.value, 8);
+        renderSuggest(list, sugEmp, (p)=>{
+          qEmp.value = p.name;
+          sugEmp.innerHTML = "";
+          renderResult(p, resEmp);
+        });
+        if (!qEmp.value.trim()){
+          sugEmp.innerHTML = "";
+          resEmp.innerHTML = "Digite para pesquisar.";
+        }
+      };
+    }
+
+    // Bind search gerente
+    const qGer = $("priceQueryGer");
+    const sugGer = $("priceSuggestGer");
+    const resGer = $("priceResultsGer");
+    if (qGer){
+      qGer.oninput = ()=>{
+        const list = searchProducts(qGer.value, 8);
+        renderSuggest(list, sugGer, (p)=>{
+          qGer.value = p.name;
+          sugGer.innerHTML = "";
+          renderResult(p, resGer);
+        });
+        if (!qGer.value.trim()){
+          sugGer.innerHTML = "";
+          resGer.innerHTML = "Digite para pesquisar.";
+        }
+      };
+    }
+
+    // Bind save gerente
+    $("btnSaveProdGer")?.addEventListener("click", async ()=>{
+      if (!isManager()) return toast("Sem permissão.");
+      const name = normalizeProd($("prodNameGer").value);
+      const price = parsePriceInput($("prodPriceGer").value);
+      if (!name) return toast("Digite o nome do produto.");
+      if (price == null) return toast("Digite um preço válido (ex: 9,99).");
+
+      try{
+        await upsertProduct(name, price);
+        $("prodNameGer").value = "";
+        $("prodPriceGer").value = "";
+        toast("Produto salvo.");
+      } catch(e){
+        console.error(e);
+        toast(String(e?.message || "Erro ao salvar produto."));
+      }
+    });
+  }
+
   // ===== Ranking mensal (gerente) =====
   function renderRanking(){
     const mk = monthKey(new Date());
@@ -1468,6 +1522,7 @@
     if (!isEmployeeActive(currentUser)){
       clearSession();
       currentUser = "";
+      currentRole = "employee";
       show("login");
       return;
     }
@@ -1479,9 +1534,6 @@
     $("monthPointsInline").innerText = mp;
     $("monthPointsTop").innerText = mp;
     updateTopBar();
-
-    // ✅ preços também
-    refreshPriceUI();
 
     const container = $("tasks");
     container.innerHTML = "";
@@ -1659,9 +1711,7 @@
 
     if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
     renderRanking();
-
-    // ✅ preços também
-    refreshPriceUI();
+    renderProductsManagerList();
 
     const t = $("gerTasks");
     t.innerHTML = "";
@@ -1785,28 +1835,8 @@
     toast("Registrado!");
   });
 
-  // ✅✅✅ PREÇOS: botões
-  $("btnSavePrice")?.addEventListener("click", async ()=>{
-    if (!canEditPrices()) return toast("Sem permissão.");
-    const name = $("priceName")?.value || "";
-    const val  = $("priceValue")?.value || "";
-    try{
-      await upsertProduct(name, val);
-      toast("Produto salvo/atualizado.");
-      if ($("priceName")) $("priceName").value = "";
-      if ($("priceValue")) $("priceValue").value = "";
-    } catch(e){
-      console.error(e);
-      toast(String(e?.message || "Erro ao salvar produto."));
-    }
-  });
-  $("btnClearPriceForm")?.addEventListener("click", ()=>{
-    if ($("priceName")) $("priceName").value = "";
-    if ($("priceValue")) $("priceValue").value = "";
-  });
-
   $("btnSaveTpl").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const name = normalizeCat($("tplName").value);
     const items = sanitizeItemsFromInput($("tplItems").value.trim());
     if (!name) return toast("Digite o nome do template.");
@@ -1823,7 +1853,7 @@
   });
 
   $("btnDeleteTpl").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const id = $("globalTplSelect").value;
     if (!id) return toast("Selecione um template.");
     const tpl = findTemplateById(id);
@@ -1839,7 +1869,7 @@
   });
 
   $("btnPublishGlobalFromTpl").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const id = $("globalTplSelect").value;
     if (!id) return toast("Selecione um template.");
     const tpl = findTemplateById(id);
@@ -1857,7 +1887,7 @@
   });
 
   $("btnAddEmployee").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const name = $("newEmployeeName").value;
     $("newEmployeeName").value = "";
     try{ await addEmployee(name); }catch(e){ console.error(e); toast("Erro ao adicionar funcionário."); }
@@ -1869,7 +1899,7 @@
   });
 
   $("btnAddCategory").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const u = $("addUser").value;
     const cat = normalizeCat($("categoriaNome").value);
     const items = $("itensCategoria").value.trim();
@@ -1887,7 +1917,7 @@
   });
 
   $("btnSetPin").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const u = $("pinUser").value;
     const p = $("pinNew").value.trim();
     if (!u) return toast("Selecione o usuário.");
@@ -1905,7 +1935,7 @@
   });
 
   $("btnExport").addEventListener("click", ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente exporta.");
+    if (!isManager()) return toast("Apenas o gerente exporta.");
 
     const header = ["tipo","usuario","categoria","quando","detalhes"];
     let csv = header.join(",") + "\n";
@@ -1933,7 +1963,7 @@
   }
 
   $("btnResetWeek").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
 
     try{
@@ -1952,7 +1982,7 @@
 
   async function deleteByWeek(colName, wk){
     const colRef = collection(db, "stores", STORE_ID, colName);
-    const q = query(colRef, where("weekKey","==",wk), limit(450)); // ✅ sem orderBy => sem índice composto
+    const q = query(colRef, where("weekKey","==",wk), limit(450));
     const snap = await getDocs(q);
     if (snap.empty) return;
 
@@ -1971,7 +2001,7 @@
   }
 
   $("btnResetStars").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     if (!confirm("Zerar estrelas/pontos do mês para todos os funcionários ativos?")) return;
     try{
       await resetStarsThisMonth();
@@ -1983,7 +2013,7 @@
   });
 
   $("btnDeleteAllTasksWeek").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODAS as tarefas concluídas desta semana?")) return;
     try{
       await deleteByWeek("tasks", currentWeekKey);
@@ -1995,7 +2025,7 @@
   });
 
   $("btnDeleteAllMissingWeek").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODOS os itens em falta desta semana?")) return;
     try{
       await deleteByWeek("missing", currentWeekKey);
@@ -2026,19 +2056,23 @@
     if (check.noUser){
       await ensureUserPin(u, p);
       toast("PIN criado! Você já está logado.");
-      doLogin(u);
+      await doLogin(u);
       return;
     }
     if (!check.ok) return toast("PIN incorreto.");
-    doLogin(u);
+    await doLogin(u);
   });
 
-  function doLogin(u){
+  async function doLogin(u){
     currentUser = u;
     $("pin").value = "";
-    saveSession(u);
 
-    if (u === "GERENTE"){
+    currentRole = await loadRoleForUser(u);
+    saveSession(u, currentRole);
+
+    setupPriceSearchUI(); // ✅ permissões e binds
+
+    if (isManager()){
       renderManager();
       escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       $("btnSaveEscalaGer").onclick = async ()=>{
@@ -2054,11 +2088,11 @@
     }
 
     updateTopBar();
-    refreshPriceUI();
   }
 
   function doLogout(){
     currentUser = "";
+    currentRole = "employee";
     clearSession();
     show("login");
   }
@@ -2080,23 +2114,23 @@
     await ensureGlobalTemplatesDoc();
     renderGlobalTplDropdown();
 
-    // ✅ Preços: listeners de busca
-    wirePriceSearch();
+    // ✅ Produtos
+    await ensureProductsDoc();
+    setupPriceSearchUI();
+    renderProductsManagerList();
 
-    // ✅ Preços: snapshot (ordenado por nameKey / name)
-    const prodQ = query(productsCol(), orderBy("nameKey"), limit(2000));
-    onSnapshot(prodQ, (qs)=>{
-      productsAll = qs.docs.map(d => ({ id:d.id, ...d.data() }))
-        .map(p => ({
-          ...p,
-          name: p.name || "",
-          nameKey: p.nameKey || removeDiacritics(p.name||"").toLowerCase(),
-          priceCents: Number(p.priceCents || 0)
-        }));
-      refreshPriceUI();
-    }, (err)=>{
-      console.error("Erro snapshot products:", err);
-      warnManager("Erro ao carregar produtos/preços (veja o console).");
+    onSnapshot(cfgProductsRef(), (snap)=>{
+      const raw = snap.exists() ? snap.data().products : [];
+      products = Array.isArray(raw) ? raw : [];
+      productsLoaded = true;
+
+      renderProductsManagerList();
+
+      // se alguém estiver com texto digitado, mantém busca reativa:
+      const qe = $("priceQueryEmp")?.value || "";
+      const qg = $("priceQueryGer")?.value || "";
+      if (qe && $("priceQueryEmp")) $("priceQueryEmp").dispatchEvent(new Event("input"));
+      if (qg && $("priceQueryGer")) $("priceQueryGer").dispatchEvent(new Event("input"));
     });
 
     onSnapshot(cfgGlobalTplRef(), (snap)=>{
@@ -2122,21 +2156,21 @@
 
       renderEmployeesUI();
 
-      if (currentUser && currentUser !== "GERENTE" && !isEmployeeActive(currentUser)){
+      if (currentUser && !isManager() && !isEmployeeActive(currentUser)){
         clearSession();
         currentUser = "";
+        currentRole = "employee";
         toast("Usuário bloqueado. Faça login novamente.");
         show("login");
       }
 
-      if (currentUser === "GERENTE"){
+      if (isManager()){
         escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       } else if (currentUser){
         maybeSetupEscalaUI();
       }
 
       renderRanking();
-      refreshPriceUI();
     });
 
     const catsSnap = await getDoc(cfgCatsRef());
@@ -2152,8 +2186,8 @@
       const remote = snap.data().data;
       if (remote && typeof remote === "object"){
         data = remote;
-        if (currentUser && currentUser !== "GERENTE") renderEmployee();
-        if (currentUser === "GERENTE") renderManager();
+        if (currentUser && !isManager()) renderEmployee();
+        if (isManager()) renderManager();
       }
     });
 
@@ -2161,7 +2195,7 @@
       scoresDoc = snap.data() || {};
       if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
 
-      if (currentUser && currentUser !== "GERENTE"){
+      if (currentUser && !isManager()){
         const pts = getMonthPoints(currentUser);
         $("monthPointsInline").innerText = pts;
         $("monthPointsTop").innerText = pts;
@@ -2170,7 +2204,6 @@
       updateTopBar();
     });
 
-    // ✅✅✅ SEM ÍNDICE COMPOSTO: somente orderBy(createdAt) e filtra no JS
     const TASKS_LIMIT = 2500;
     const MISSING_LIMIT = 2500;
 
@@ -2180,10 +2213,10 @@
       const wk = normalizeWeekKeyLoose(currentWeekKey);
       tasksDone = tasksAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
 
-      if (currentUser === "GERENTE") renderManager();
-      if (currentUser && currentUser !== "GERENTE") renderEmployee();
+      if (isManager()) renderManager();
+      if (currentUser && !isManager()) renderEmployee();
 
-      if (currentUser === "GERENTE" && tasksAll.length > 0 && tasksDone.length === 0){
+      if (isManager() && tasksAll.length > 0 && tasksDone.length === 0){
         const samples = [...new Set(tasksAll.slice(0,50).map(t=>String(t.weekKey||"").trim()).filter(Boolean))].slice(0,8);
         if (samples.length) warnManager("Nenhuma tarefa encontrada nesta semana. Exemplos de weekKey existentes: " + samples.join(" | "));
       }
@@ -2197,7 +2230,7 @@
       missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
       const wk = normalizeWeekKeyLoose(currentWeekKey);
       missingReports = missingAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
-      if (currentUser === "GERENTE") renderManager();
+      if (isManager()) renderManager();
     }, (err)=>{
       console.error("Erro snapshot missing:", err);
       warnManager("Erro ao carregar missing (veja o console).");
@@ -2208,7 +2241,7 @@
       else globalTask = { id: snap.id, ...snap.data() };
 
       if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
-      if (currentUser && currentUser !== "GERENTE") renderEmployee();
+      if (currentUser && !isManager()) renderEmployee();
     });
 
     onSnapshot(escalaRef(currentWeekKey), (snap)=>{
@@ -2217,10 +2250,10 @@
 
       renderEscalaViewer();
 
-      if (currentUser === "GERENTE"){
+      if (isManager()){
         escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       }
-      if (currentUser && currentUser !== "GERENTE"){
+      if (currentUser && !isManager()){
         maybeSetupEscalaUI();
       }
     });
@@ -2228,7 +2261,6 @@
     renderEscalaViewer();
     renderRanking();
     updateTopBar();
-    refreshPriceUI();
   }
 
   await cloudInit();
@@ -2236,8 +2268,11 @@
   const ses = getSession();
   if (ses && ses.user){
     currentUser = ses.user;
+    currentRole = ses.role || "employee";
 
-    if (currentUser === "GERENTE"){
+    setupPriceSearchUI();
+
+    if (isManager()){
       renderManager();
       escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       $("btnSaveEscalaGer").onclick = async ()=>{
@@ -2249,6 +2284,7 @@
       if (!isEmployeeActive(currentUser)){
         clearSession();
         currentUser = "";
+        currentRole = "employee";
         show("login");
       } else {
         renderEmployee();
@@ -2262,7 +2298,6 @@
   }
 
   updateTopBar();
-  refreshPriceUI();
 
   console.log("BUILD OK", BUILD_ID);
   window.__BUILD_OK__ = true;
