@@ -189,7 +189,7 @@
     </div>
   </div>
 
-  <!-- Tarefas (renderizado via JS) -->
+  <!-- Tarefas -->
   <div id="tasks" class="space-y-4"></div>
 
   <!-- Semana anterior -->
@@ -560,7 +560,7 @@
   import {
     getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc,
     onSnapshot, query, orderBy, limit, serverTimestamp, increment,
-    deleteDoc, getDocs, writeBatch, where
+    deleteDoc, getDocs, writeBatch, where, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
   const app = initializeApp(firebaseConfig);
@@ -574,13 +574,6 @@
   const nowHuman = ()=> new Date().toLocaleString();
   const isValidPin = (p)=> /^[0-9]{4}$/.test(String(p||""));
 
-  // ✅ blindagem: evita “Cannot read properties of null”
-  function on(id, evt, fn){
-    const el = $(id);
-    if (!el) { console.warn("Elemento não encontrado:", id); return; }
-    el.addEventListener(evt, fn);
-  }
-
   let currentStoreId = "loja_principal";
   let currentUser = "";
   let currentWeekKey = "";
@@ -593,7 +586,7 @@
   let globalTask = null;
   let escala = null;
 
-  // ===== CATALOGO DE PREÇOS =====
+  // ===== CATALOGO DE PREÇOS (NOVO) =====
   let catalogItems = []; // [{id,name,nameLower,price,updatedAtHuman}]
   function catalogColRef(){
     return collection(db, "stores", currentStoreId, "catalog");
@@ -619,13 +612,8 @@
   function renderCatalogResults(targetId, q){
     const wrap = $(targetId);
     if (!wrap) return;
-
-    if (!catalogItems.length){
-      wrap.innerHTML = `<div class="text-gray-500">Catálogo vazio. Cadastre itens no painel do gerente.</div>`;
-      return;
-    }
-
     const term = String(q||"").trim().toLowerCase();
+
     const rows = !term
       ? catalogItems.slice(0, 50)
       : catalogItems.filter(x =>
@@ -638,8 +626,8 @@
     }
 
     const manage = canManageCatalog() && targetId === "catalogResultsGer";
-    wrap.innerHTML = "";
 
+    wrap.innerHTML = "";
     rows.forEach(it=>{
       const div = document.createElement("div");
       div.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
@@ -1042,92 +1030,24 @@
     });
   }
 
-  // ====== ✅ RENDER TAREFAS (CORREÇÃO PRINCIPAL) ======
-  function esc(v){
-    return String(v ?? "").replace(/[&<>"']/g, m => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[m]));
-  }
+  // ===== Missing =====
+  $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
+  $("missingSave").addEventListener("click", async ()=>{
+    const raw = $("missingInput").value.trim();
+    if (!raw) return toast("Digite o item em falta.");
 
-  function renderEmpTasks(){
-    const wrap = $("tasks");
-    if (!wrap) return;
+    await addDoc(collection(db,"stores",currentStoreId,"missing"), {
+      user: currentUser,
+      item: raw,
+      when: nowHuman(),
+      weekKey: currentWeekKey,
+      createdAt: serverTimestamp()
+    });
 
-    const mine = tasksDone.filter(t => t.user === currentUser);
-    const global = tasksDone.filter(t => t.user === "__GLOBAL__"); // se você usa global assim
-
-    const blocks = [];
-
-    if (global.length){
-      blocks.push(`<div class="bg-white p-4 rounded-xl shadow">
-        <div class="font-semibold mb-2">Tarefas GLOBAIS (semana)</div>
-        <div class="text-sm space-y-2">
-          ${global.map(t => `<div class="border rounded p-2 bg-gray-50">
-            <div class="font-semibold">${esc(t.categoria || "GLOBAL")}</div>
-            <div class="text-xs text-gray-600">${esc(t.when || "")}</div>
-          </div>`).join("")}
-        </div>
-      </div>`);
-    }
-
-    blocks.push(`<div class="bg-white p-4 rounded-xl shadow">
-      <div class="font-semibold mb-2">Minhas tarefas concluídas (semana)</div>
-      ${mine.length ? `
-        <div class="text-sm space-y-2">
-          ${mine.map(t => `<div class="border rounded p-2 bg-gray-50">
-            <div class="font-semibold">${esc(t.categoria || "Sem categoria")}</div>
-            <div class="text-xs text-gray-600">${esc(t.when || "")}</div>
-          </div>`).join("")}
-        </div>
-      ` : `<div class="text-sm text-gray-500">Nenhuma tarefa concluída nesta semana.</div>`}
-    </div>`);
-
-    wrap.innerHTML = blocks.join("");
-  }
-
-  function renderGerTasks(){
-    const wrap = $("gerTasks");
-    if (!wrap) return;
-
-    if (!tasksDone.length){
-      wrap.innerHTML = `<div class="text-sm text-gray-500">Nenhuma tarefa concluída nesta semana.</div>`;
-      return;
-    }
-
-    wrap.innerHTML = tasksDone.map(t => `
-      <div class="border rounded p-2 bg-gray-50">
-        <div class="flex items-center justify-between gap-2">
-          <div class="font-semibold">${esc(t.user || "-")} • ${esc(t.categoria || "-")}</div>
-          <div class="text-xs text-gray-600">${esc(t.when || "")}</div>
-        </div>
-      </div>
-    `).join("");
-  }
-
-  function renderPrevEmp(){
-    const wrap = $("prevEmpList");
-    if (!wrap) return;
-
-    const minePrev = tasksPrev.filter(t => t.user === currentUser);
-    wrap.innerHTML = minePrev.length
-      ? minePrev.map(t => `<div class="border rounded p-2 bg-gray-50">
-          <div class="font-semibold">${esc(t.categoria || "-")}</div>
-          <div class="text-xs text-gray-600">${esc(t.when || "")}</div>
-        </div>`).join("")
-      : `<div class="text-sm text-gray-500">Sem tarefas na semana anterior.</div>`;
-  }
-
-  function renderPrevGer(){
-    const wrapT = $("prevTasksGer");
-    if (!wrapT) return;
-
-    wrapT.innerHTML = tasksPrev.length
-      ? tasksPrev.map(t => `<div class="border rounded p-2 bg-gray-50">
-          <div class="font-semibold">${esc(t.user || "-")} • ${esc(t.categoria || "-")}</div>
-          <div class="text-xs text-gray-600">${esc(t.when || "")}</div>
-        </div>`).join("")
-      : `<div class="text-sm text-gray-500">Sem tarefas na semana anterior.</div>`;
-  }
+    $("missingInput").value = "";
+    $("missingBox").classList.add("hidden");
+    toast("Registrado!");
+  });
 
   // ===== CSV =====
   function csvCell(v){
@@ -1163,8 +1083,8 @@
     clearSession();
     show("login");
   }
-  on("btnLogout1","click", doLogout);
-  on("btnLogout2","click", doLogout);
+  $("btnLogout1").addEventListener("click", doLogout);
+  $("btnLogout2").addEventListener("click", doLogout);
 
   // ===== COLLAPSE =====
   setupCollapse("btnToggleCatalogEmp","catalogEmpContent");
@@ -1182,15 +1102,14 @@
 
     if (empInput){
       empInput.oninput = ()=> renderCatalogResults("catalogResultsEmp", empInput.value);
-      const c = $("btnClearSearchEmp");
-      if (c) c.onclick = ()=> { empInput.value=""; renderCatalogResults("catalogResultsEmp",""); empInput.focus(); };
+      $("btnClearSearchEmp").onclick = ()=> { empInput.value=""; renderCatalogResults("catalogResultsEmp",""); empInput.focus(); };
     }
     if (gerInput){
       gerInput.oninput = ()=> renderCatalogResults("catalogResultsGer", gerInput.value);
-      const c = $("btnClearSearchGer");
-      if (c) c.onclick = ()=> { gerInput.value=""; renderCatalogResults("catalogResultsGer",""); gerInput.focus(); };
+      $("btnClearSearchGer").onclick = ()=> { gerInput.value=""; renderCatalogResults("catalogResultsGer",""); gerInput.focus(); };
     }
 
+    // show/hide manage area
     const wrap = $("catalogManageWrap");
     if (wrap){
       if (canManageCatalog()) wrap.classList.remove("hidden");
@@ -1198,30 +1117,11 @@
     }
   }
 
-  // ===== Missing =====
-  on("btnMissing","click", ()=> $("missingBox")?.classList.toggle("hidden"));
-  on("missingSave","click", async ()=>{
-    const raw = $("missingInput")?.value?.trim() || "";
-    if (!raw) return toast("Digite o item em falta.");
-
-    await addDoc(collection(db,"stores",currentStoreId,"missing"), {
-      user: currentUser,
-      item: raw,
-      when: nowHuman(),
-      weekKey: currentWeekKey,
-      createdAt: serverTimestamp()
-    });
-
-    $("missingInput").value = "";
-    $("missingBox").classList.add("hidden");
-    toast("Registrado!");
-  });
-
   // ===== Catalog Manage Buttons =====
-  on("btnCatalogSave","click", async ()=>{
+  $("btnCatalogSave").addEventListener("click", async ()=>{
     if (!canManageCatalog()) return toast("Sem permissão.");
-    const name = $("catalogItemName")?.value || "";
-    const priceRaw = $("catalogItemPrice")?.value || "";
+    const name = $("catalogItemName").value;
+    const priceRaw = $("catalogItemPrice").value;
     const price = parsePrice(priceRaw);
 
     try{
@@ -1236,9 +1136,9 @@
     }
   });
 
-  on("btnCatalogDeleteByName","click", async ()=>{
+  $("btnCatalogDeleteByName").addEventListener("click", async ()=>{
     if (!canManageCatalog()) return toast("Sem permissão.");
-    const name = $("catalogItemName")?.value || "";
+    const name = $("catalogItemName").value;
     const n = normalizeCat(name);
     if (!n) return toast("Digite o nome do item para excluir.");
     if (!confirm(`Excluir "${n}"?`)) return;
@@ -1255,23 +1155,23 @@
   });
 
   // ===== Buttons =====
-  on("btnAddEmployee","click", async ()=>{
+  $("btnAddEmployee").addEventListener("click", async ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente.");
-    const name = $("newEmployeeName")?.value || "";
+    const name = $("newEmployeeName").value;
     $("newEmployeeName").value = "";
     try{ await addEmployee(name); }catch(e){ console.error(e); toast("Erro ao adicionar funcionário."); }
   });
 
-  on("btnRefreshEmployees","click", ()=>{
+  $("btnRefreshEmployees").addEventListener("click", ()=>{
     renderEmployeesUI();
     toast("Lista recarregada.");
   });
 
-  on("btnAddCategory","click", async ()=>{
+  $("btnAddCategory").addEventListener("click", async ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente.");
-    const u = $("addUser")?.value || "";
-    const cat = normalizeCat($("categoriaNome")?.value || "");
-    const items = ($("itensCategoria")?.value || "").trim();
+    const u = $("addUser").value;
+    const cat = normalizeCat($("categoriaNome").value);
+    const items = $("itensCategoria").value.trim();
     if (!u) return toast("Selecione o funcionário.");
     if (!cat) return toast("Informe o nome da categoria");
 
@@ -1285,10 +1185,10 @@
     toast("Categoria atualizada.");
   });
 
-  on("btnSetPin","click", async ()=>{
+  $("btnSetPin").addEventListener("click", async ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente.");
-    const u = $("pinUser")?.value || "";
-    const p = ($("pinNew")?.value || "").trim();
+    const u = $("pinUser").value;
+    const p = $("pinNew").value.trim();
     if (!u) return toast("Selecione o usuário.");
     if (!isValidPin(p)) return toast("Novo PIN precisa ter 4 dígitos.");
 
@@ -1303,7 +1203,7 @@
     toast("PIN definido.");
   });
 
-  on("btnExport","click", ()=>{
+  $("btnExport").addEventListener("click", ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente exporta.");
 
     const header = ["tipo","usuario","categoria","quando","detalhes","weekKey","loja"];
@@ -1325,7 +1225,7 @@
     document.body.removeChild(a);
   });
 
-  on("btnResetWeek","click", async ()=>{
+  $("btnResetWeek").addEventListener("click", async ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente.");
     if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
 
@@ -1341,12 +1241,12 @@
     }
   });
 
-  on("btnResetStars","click", ()=>{
+  $("btnResetStars").addEventListener("click", ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente.");
     resetMonthlyStars();
   });
 
-  on("btnDeleteAllTasksWeek","click", async ()=>{
+  $("btnDeleteAllTasksWeek").addEventListener("click", async ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODAS as tarefas concluídas da semana atual?")) return;
     try{
@@ -1358,7 +1258,7 @@
     }
   });
 
-  on("btnDeleteAllMissingWeek","click", async ()=>{
+  $("btnDeleteAllMissingWeek").addEventListener("click", async ()=>{
     if (currentUser !== managerName()) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODOS os itens em falta da semana atual?")) return;
     try{
@@ -1371,15 +1271,15 @@
   });
 
   // ===== Login =====
-  on("storeSelect","change", async ()=>{
+  $("storeSelect").addEventListener("change", async ()=>{
     if (currentUser) return;
     currentStoreId = $("storeSelect").value;
     await cloudInit(false);
   });
 
-  on("btnLogin","click", async ()=>{
-    const u = $("userSelect")?.value || "";
-    const p = $("pin")?.value || "";
+  $("btnLogin").addEventListener("click", async ()=>{
+    const u = $("userSelect").value;
+    const p = $("pin").value;
 
     if (!u) return toast("Selecione o usuário.");
     if (!isValidPin(p)) return toast("PIN precisa ter 4 dígitos.");
@@ -1405,29 +1305,16 @@
     $("pin").value = "";
     saveSession(currentStoreId, u);
 
-    $("weekKeyLabel").innerText = currentWeekKey;
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
-    $("prevWeekLabelEmp").innerText = prevWeekKey;
-    $("userName").innerText = currentUser;
-
-    $("weekKeyLabelGer").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
-    $("prevWeekLabelGer").innerText = prevWeekKey;
-    $("storeLabelGer").innerText = storeCfg().label;
-
-    wireCatalogSearch();
+    wireCatalogSearch(); // atualiza permissões e busca
 
     if (u === managerName()){
       show("gerente");
-      renderGerTasks();
-      renderPrevGer();
     } else {
       show("funcionario");
-      renderEmpTasks();
-      renderPrevEmp();
     }
     updateTopBar();
 
+    // Re-render inicial catálogo
     renderCatalogResults("catalogResultsEmp", $("catalogSearchEmp")?.value || "");
     renderCatalogResults("catalogResultsGer", $("catalogSearchGer")?.value || "");
   }
@@ -1502,22 +1389,13 @@
       updateTopBar();
     }));
 
-    // ✅ Tasks realtime + render
+    // Tasks realtime (sem where+orderBy)
     unsubscribers.push(onSnapshot(
       query(collection(db,"stores",currentStoreId,"tasks"), orderBy("createdAt","desc"), limit(900)),
       (qs)=>{
         tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
         tasksDone = tasksAll.filter(x=>x.weekKey === currentWeekKey);
         tasksPrev = tasksAll.filter(x=>x.weekKey === prevWeekKey);
-
-        if (currentUser && currentUser !== managerName()){
-          renderEmpTasks();
-          renderPrevEmp();
-        }
-        if (currentUser === managerName()){
-          renderGerTasks();
-          renderPrevGer();
-        }
       }
     ));
 
@@ -1528,11 +1406,10 @@
         missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
         missingReports = missingAll.filter(x=>x.weekKey === currentWeekKey);
         missingPrev = missingAll.filter(x=>x.weekKey === prevWeekKey);
-        // (se você tem render de faltas, pode adicionar aqui depois)
       }
     ));
 
-    // Catalog realtime
+    // ===== CATALOGO realtime (NOVO) =====
     unsubscribers.push(onSnapshot(
       query(catalogColRef(), orderBy("nameLower"), limit(1000)),
       (qs)=>{
@@ -1541,6 +1418,7 @@
           .map(x => ({ ...x, price: Number(x.price||0) }))
           .sort((a,b)=> String(a.nameLower).localeCompare(String(b.nameLower)));
 
+        // Re-render resultados conforme inputs
         renderCatalogResults("catalogResultsEmp", $("catalogSearchEmp")?.value || "");
         renderCatalogResults("catalogResultsGer", $("catalogSearchGer")?.value || "");
       }
