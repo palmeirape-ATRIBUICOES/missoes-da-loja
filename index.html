@@ -6,6 +6,8 @@
   <title>Missoes</title>
 
   <meta name="theme-color" content="#2563eb" />
+
+  <!-- Ícone (favicon) em SVG (ALVO) -->
   <link id="appIcon" rel="icon" type="image/svg+xml" href="" />
   <link id="appAppleIcon" rel="apple-touch-icon" href="" />
   <link id="appManifest" rel="manifest" href="" />
@@ -15,9 +17,11 @@
 
 <body class="bg-gray-100 min-h-screen p-4">
 
+<!-- TOP BAR (dinâmico: login ou usuário) -->
 <header class="max-w-4xl mx-auto mb-4">
   <div class="bg-white rounded-xl shadow p-4 flex items-center justify-between gap-3">
     <div class="min-w-0 flex items-center gap-3">
+      <!-- LOGO (ALVO) -->
       <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-700" viewBox="0 0 24 24" fill="currentColor" aria-label="Logo">
           <path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 .001-16.001A8 8 0 0 1 12 20zm0-14a6 6 0 1 0 .001 12.001A6 6 0 0 0 12 6zm0 10a4 4 0 1 1 .001-8.001A4 4 0 0 1 12 16zm0-6a2 2 0 1 0 .001 4.001A2 2 0 0 0 12 10z"/>
@@ -30,6 +34,7 @@
       </div>
     </div>
 
+    <!-- bloco pontos (só quando logado como funcionário) -->
     <div id="topPointsBox" class="hidden items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 17.27l5.18 3.04-1.39-5.99 4.64-4.02-6.12-.53L12 4l-2.31 5.77-6.12.53 4.64 4.02-1.39 5.99L12 17.27z"/>
@@ -42,6 +47,7 @@
   </div>
 </header>
 
+<!-- LOGIN -->
 <section id="login" class="max-w-3xl mx-auto bg-white p-4 rounded-xl shadow">
   <h2 class="text-lg font-semibold mb-3">Entrar</h2>
 
@@ -77,8 +83,10 @@
   </div>
 </section>
 
+<!-- FUNCIONÁRIO -->
 <section id="funcionario" class="hidden max-w-3xl mx-auto">
 
+  <!-- Escala (visível para todos; editor só Claudia e Gerente) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -100,17 +108,21 @@
       </div>
     </div>
 
+    <!-- Conteúdo colapsável -->
     <div id="escalaEmpContent" class="mt-3">
+      <!-- Viewer Semana Atual -->
       <div class="mb-3">
         <div class="text-xs font-semibold text-gray-700 mb-2">Semana atual</div>
         <div id="escalaViewer" class="text-sm space-y-2"></div>
       </div>
 
+      <!-- Viewer Semana Anterior -->
       <div class="border-t pt-3">
         <div class="text-xs font-semibold text-gray-700 mb-2">Semana anterior</div>
         <div id="escalaViewerPrev" class="text-sm space-y-2"></div>
       </div>
 
+      <!-- Editor (só Claudia e Gerente) -->
       <div id="escalaEditorWrap" class="hidden mt-4 border-t pt-4">
         <div class="flex items-center justify-between">
           <div class="font-semibold text-sm">Editar escala (semana atual)</div>
@@ -131,6 +143,7 @@
     </div>
   </div>
 
+  <!-- topo usuário -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
@@ -159,40 +172,25 @@
     </div>
   </div>
 
+  <!-- Tarefas (inclui GLOBAL + pessoais) -->
   <div id="tasks" class="space-y-4"></div>
 </section>
 
+<!-- GERENTE -->
 <section id="gerente" class="hidden max-w-4xl mx-auto">
   <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-      <div class="min-w-0">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+      <div>
         <h2 class="text-xl font-semibold">Painel do Gerente</h2>
-
-        <div class="mt-1 flex flex-col md:flex-row md:items-center gap-2">
-          <div class="text-xs text-gray-500">
-            Semana atual do app: <b><span id="weekKeyLabelCurrentApp">-</span></b>
-          </div>
-
-          <div class="flex items-center gap-2 flex-wrap">
-            <div class="text-xs text-gray-600">Ver semana:</div>
-            <select id="managerWeekSelect" class="border p-2 rounded text-sm bg-white">
-              <option value="">Carregando semanas...</option>
-            </select>
-          </div>
-        </div>
-
-        <p class="text-xs text-gray-500 mt-1">
-          Selecionada: <span id="weekKeyLabelGerSel">-</span>
+        <p class="text-xs text-gray-500">
+          Semana atual: <span id="weekKeyLabelGer">-</span>
           <span class="mx-2 text-gray-300">|</span>
-          Anterior: <span id="weekKeyLabelGerPrevSel">-</span>
+          Semana anterior: <span id="weekKeyLabelGerPrev">-</span>
         </p>
-
-        <div id="managerWarn" class="hidden mt-2 text-xs bg-yellow-50 border border-yellow-200 text-yellow-900 rounded p-2"></div>
       </div>
-
       <div class="flex gap-2 flex-wrap">
-        <button id="btnResetSelectedWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
-          Zerar semana selecionada
+        <button id="btnResetWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
+          Zerar semana (tudo)
         </button>
         <button id="btnExport" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded">
           Exportar CSV
@@ -204,6 +202,7 @@
     </div>
   </div>
 
+  <!-- Ranking mensal (colapsável) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -220,10 +219,12 @@
     </div>
   </div>
 
+  <!-- GLOBAL: publicar por template + criar templates -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <h3 class="font-semibold mb-2">Tarefas GLOBAIS salvas (Templates)</h3>
     <p class="text-xs text-gray-500 mb-3">
-      (Publicar GLOBAL só na semana atual do app)
+      Crie templates de GLOBAL e depois publique a GLOBAL da semana escolhendo no dropdown.
+      Quem concluir primeiro “trava” e some dos demais.
     </p>
 
     <div class="grid md:grid-cols-4 gap-2">
@@ -231,7 +232,7 @@
         <option value="">Carregando templates...</option>
       </select>
       <button id="btnPublishGlobalFromTpl" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
-        Publicar GLOBAL (semana atual)
+        Publicar GLOBAL (semana)
       </button>
       <button id="btnDeleteTpl" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded">
         Excluir template
@@ -239,7 +240,7 @@
     </div>
 
     <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold mb-2">Status GLOBAL da semana selecionada</div>
+      <div class="text-sm font-semibold mb-2">Status GLOBAL desta semana</div>
       <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
     </div>
 
@@ -255,34 +256,79 @@
         <input id="tplName" class="border p-2 rounded md:col-span-2" placeholder="Nome do template (ex: Conferir geladeira)" />
         <input id="tplItems" class="border p-2 rounded md:col-span-2" placeholder="Itens separados por vírgula (ex: Coca, Guaraná...)" />
       </div>
+      <p class="text-xs text-gray-500 mt-2">
+        Dica: se quiser “só checklist sem números”, mesmo assim use Qtd e coloque 0 quando for o caso.
+      </p>
     </div>
   </div>
 
+  <!-- Escala (gerente edita semana atual + visualiza semana anterior) -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-semibold">Escala da Semana</h3>
+        <p class="text-xs text-gray-500">
+          Atual: <span id="weekKeyLabelEscalaGer">-</span>
+          <span class="mx-2 text-gray-300">|</span>
+          Anterior: <span id="weekKeyLabelEscalaGerPrev">-</span>
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnToggleEscalaGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+          Minimizar
+        </button>
+        <button id="btnClearEscalaGer" class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
+          Limpar escala
+        </button>
+        <button id="btnSaveEscalaGer" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
+          Salvar escala
+        </button>
+      </div>
+    </div>
+    <p class="text-xs text-gray-500 mt-2">
+      Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
+    </p>
+
+    <div id="escalaGerContent" class="mt-3">
+      <div class="text-xs font-semibold text-gray-700 mb-2">Editor (semana atual)</div>
+      <div id="escalaEditorGer" class="space-y-3"></div>
+
+      <div class="border-t mt-4 pt-4">
+        <div class="text-xs font-semibold text-gray-700 mb-2">Visualização (semana anterior)</div>
+        <div id="escalaViewerGerPrev" class="text-sm space-y-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- tarefas e faltas (semana atual + anterior) -->
   <div class="grid md:grid-cols-2 gap-4">
     <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Tarefas concluídas (semana selecionada)</h3>
-      <div id="gerTasksSel" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
+      <h3 class="font-semibold mb-2">Tarefas concluídas (semana atual)</h3>
+      <div id="gerTasks" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
 
       <div class="border-t mt-4 pt-4">
         <h3 class="font-semibold mb-2">Tarefas concluídas (semana anterior)</h3>
-        <div id="gerTasksPrevSel" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
+        <div id="gerTasksPrev" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
       </div>
     </div>
 
     <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Itens em falta (semana selecionada)</h3>
-      <div id="gerMissingSel" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
+      <h3 class="font-semibold mb-2">Itens em falta (semana atual)</h3>
+      <div id="gerMissing" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
 
       <div class="border-t mt-4 pt-4">
         <h3 class="font-semibold mb-2">Itens em falta (semana anterior)</h3>
-        <div id="gerMissingPrevSel" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
+        <div id="gerMissingPrev" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
       </div>
     </div>
   </div>
 
+  <!-- FUNCIONÁRIOS -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Funcionários (Ativar / Bloquear)</h3>
-    <p class="text-xs text-gray-500 mb-3">Bloqueado não aparece no login.</p>
+    <p class="text-xs text-gray-500 mb-3">
+      Bloqueado não aparece no login.
+    </p>
 
     <div class="grid md:grid-cols-3 gap-2">
       <input id="newEmployeeName" class="border p-2 rounded" placeholder="Nome do funcionário (ex: Ingrid)" />
@@ -297,6 +343,7 @@
     <div id="employeeTable" class="mt-3 space-y-2"></div>
   </div>
 
+  <!-- CATEGORIAS: ADD/UPDATE -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Adicionar / Atualizar categoria (individual)</h3>
     <div class="grid md:grid-cols-4 gap-2">
@@ -307,8 +354,12 @@
     <button id="btnAddCategory" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded w-full">
       Adicionar / Atualizar categoria
     </button>
+    <p class="text-xs text-gray-500 mt-2">
+      Observação: categorias aqui são checklist com Qtd (número) para cada item.
+    </p>
   </div>
 
+  <!-- PINS -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">PINs</h3>
     <div class="grid md:grid-cols-3 gap-2 mt-2">
@@ -318,6 +369,7 @@
         Definir / Resetar PIN
       </button>
     </div>
+
     <p class="text-xs text-gray-500 mt-2">
       PIN mestre inicial do gerente: <b>1234</b> só se o gerente ainda não tiver PIN criado.
     </p>
@@ -325,6 +377,7 @@
 </section>
 
 <script type="module">
+  // ====== PWA: Manifest + Icon gerados automaticamente (logo ALVO) ======
   const TARGET_SVG = `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
     <defs>
@@ -343,9 +396,12 @@
   function svgDataUrl(svg){
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   }
+
   const iconUrl = svgDataUrl(TARGET_SVG);
-  document.getElementById("appIcon").href = iconUrl;
-  document.getElementById("appAppleIcon").href = iconUrl;
+  const $icon = document.getElementById("appIcon");
+  const $apple = document.getElementById("appAppleIcon");
+  if ($icon) $icon.href = iconUrl;
+  if ($apple) $apple.href = iconUrl;
 
   const manifest = {
     name: "Missoes",
@@ -359,9 +415,13 @@
       { src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
     ]
   };
-  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-  document.getElementById("appManifest").href = URL.createObjectURL(manifestBlob);
 
+  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+  const manifestUrl = URL.createObjectURL(manifestBlob);
+  const $m = document.getElementById("appManifest");
+  if ($m) $m.href = manifestUrl;
+
+  // ====== Firebase ======
   const firebaseConfig = {
     apiKey: "AIzaSyDsWJ9VVMSIsQNtifkLVnRNnbzU7favF7s",
     authDomain: "missoes-drive.firebaseapp.com",
@@ -387,66 +447,38 @@
 
   const $ = (id) => document.getElementById(id);
   function toast(msg){ alert(msg); }
-  function warnManager(msg){
-    const box = $("managerWarn");
-    if (!box) return;
-    if (!msg){
-      box.classList.add("hidden");
-      box.innerText = "";
-      return;
-    }
-    box.classList.remove("hidden");
-    box.innerText = msg;
-  }
-
   function show(section){
     ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
     $(section).classList.remove("hidden");
     updateTopBar();
   }
-
   function isValidPin(p){ return /^[0-9]{4}$/.test(String(p || "")); }
   function nowHuman(){ return new Date().toLocaleString(); }
   function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
   function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
   function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
 
-  // ✅ normaliza weekKey antigo "2026-W5" para "2026-W05"
-  function normalizeWeekKeyLoose(wk){
-    const s = String(wk || "").trim();
-    const m = s.match(/^(\d{4})-W(\d{1,2})$/i);
-    if (!m) return s;
-    const y = m[1];
-    const w = String(Number(m[2])).padStart(2,"0");
-    return `${y}-W${w}`;
-  }
-
+  // ====== State ======
   let data = {};
   let scoresDoc = {};
+  let tasksDone = [];
+  let tasksPrevWeek = [];
+  let missingReports = [];
+  let missingPrevWeek = [];
   let currentUser = "";
-  let employees = [];
-
   let currentWeekKey = "";
   let prevWeekKey = "";
-
-  let managerViewWeekKey = "";
-  let managerViewPrevWeekKey = "";
-
-  let tasksSel = [];
-  let tasksPrevSel = [];
-  let missingSel = [];
-  let missingPrevSel = [];
-
-  let globalTaskSel = null;
-
-  let tasksDone = [];
+  let employees = [];
   let globalTask = null;
   let escala = null;
   let escalaPrev = null;
 
+  // Templates globais
   let globalTemplates = [];
-  let managerUnsubs = [];
+  let escalaLocalEmployee = null;
+  let escalaLocalGer = null;
 
+  // ===== Refs =====
   const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
   const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
   const cfgGlobalTplRef = () => doc(db,"stores",STORE_ID,"config","global_templates");
@@ -456,6 +488,7 @@
   const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
   const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
 
+  // ===== Top bar =====
   function monthKey(date){
     const y = date.getFullYear();
     const m = String(date.getMonth()+1).padStart(2,"0");
@@ -495,12 +528,14 @@
     pointsBox.classList.add("flex");
   }
 
+  // ===== SHA-256 =====
   async function sha256(str){
     const enc = new TextEncoder().encode(str);
     const buf = await crypto.subtle.digest("SHA-256", enc);
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
   }
 
+  // ===== Semana ISO =====
   function weekKey(date){
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -510,12 +545,19 @@
     return d.getUTCFullYear() + "-W" + String(weekNo).padStart(2,"0");
   }
 
+  // ✅ Semana anterior correta por data (evita bug de W01/W52)
   function prevWeekKeyByDate(currentWk){
     const [yPart, wPart] = String(currentWk).split("-W");
     const y = Number(yPart);
     const w = Number(wPart);
     if (!Number.isFinite(y) || !Number.isFinite(w)) return currentWk;
 
+    // Pega uma data no meio do ano e calcula a segunda-feira da semana ISO alvo
+    // Estratégia: achar a quinta-feira da semana ISO (define o ano ISO) e voltar para segunda
+    // Aqui usamos uma aproximação robusta:
+    // 1) Começa em 4 de janeiro (sempre na semana 1 ISO)
+    // 2) Vai para a semana desejada somando (w-1)*7 dias
+    // 3) Ajusta para segunda-feira
     const jan4 = new Date(Date.UTC(y, 0, 4));
     const jan4Day = jan4.getUTCDay() || 7;
     const week1Mon = new Date(jan4);
@@ -524,25 +566,11 @@
     const targetMon = new Date(week1Mon);
     targetMon.setUTCDate(week1Mon.getUTCDate() + (w - 1) * 7);
 
+    // volta 7 dias para semana anterior
     const prevMon = new Date(targetMon);
     prevMon.setUTCDate(targetMon.getUTCDate() - 7);
 
     return weekKey(new Date(prevMon.getUTCFullYear(), prevMon.getUTCMonth(), prevMon.getUTCDate()));
-  }
-
-  function buildWeekListBack(n=60){
-    const keys = [];
-    const seen = new Set();
-    const d = new Date();
-    for (let i=0;i<n;i++){
-      const k = weekKey(d);
-      if (!seen.has(k)){
-        seen.add(k);
-        keys.push(k);
-      }
-      d.setDate(d.getDate()-7);
-    }
-    return keys;
   }
 
   async function ensureWeekKey(){
@@ -568,6 +596,7 @@
     prevWeekKey = prevWeekKeyByDate(saved);
   }
 
+  // ===== Sessão =====
   function saveSession(user){ localStorage.setItem(SESSION_KEY, JSON.stringify({ user, at: Date.now() })); }
   function clearSession(){ localStorage.removeItem(SESSION_KEY); }
   function getSession(){
@@ -579,6 +608,7 @@
     } catch(e){ return null; }
   }
 
+  // ===== Funcionários =====
   const defaultEmployeesLegacy = ["Sandra","Thauane","Ingrid","Claudia","DADA"];
   const defaultEmployees = defaultEmployeesLegacy.map(n => ({ name: n, active: true }));
 
@@ -596,11 +626,13 @@
 
   async function ensureEmployeesConfig(){
     const snap = await getDoc(cfgAppRef());
+
     if (!snap.exists()){
       await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
       employees = clone(defaultEmployees);
       return;
     }
+
     const raw = snap.data().employees;
 
     if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "string"){
@@ -660,6 +692,20 @@
     if (prev && Array.from(selectEl.options).some(o=>o.value===prev)) selectEl.value = prev;
   }
 
+  function renderEmployeesUI(){
+    const loginSel = $("userSelect");
+    loginSel.innerHTML = "";
+    loginSel.appendChild(new Option("Selecione", ""));
+    loginSel.appendChild(new Option("Gerente", "GERENTE"));
+    activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
+
+    const namesAll = allNames();
+    fillSelect($("addUser"), namesAll, false, null);
+    fillSelect($("pinUser"), namesAll, true, null);
+
+    renderEmployeeTable();
+  }
+
   function renderEmployeeTable(){
     const wrap = $("employeeTable");
     if (!wrap) return;
@@ -695,20 +741,7 @@
     });
   }
 
-  function renderEmployeesUI(){
-    const loginSel = $("userSelect");
-    loginSel.innerHTML = "";
-    loginSel.appendChild(new Option("Selecione", ""));
-    loginSel.appendChild(new Option("Gerente", "GERENTE"));
-    activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
-
-    const namesAll = allNames();
-    fillSelect($("addUser"), namesAll, false, null);
-    fillSelect($("pinUser"), namesAll, true, null);
-
-    renderEmployeeTable();
-  }
-
+  // ===== Categorias base =====
   const defaultData = {
     Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
     Thauane: {
@@ -737,6 +770,7 @@
     DADA: { "Mineirinho (Terca)": ["Mineirinho 2L","Mineirinho 350ml"] }
   };
 
+  // ===== PIN =====
   async function ensureUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (snap.exists()) return { created:false };
@@ -762,6 +796,11 @@
     return { ok: (await sha256(pin)) === pinHash, noUser:false };
   }
 
+  function isCategoryDoneThisWeek(user, cat){
+    return tasksDone.some(t => t.user === user && t.categoria === cat && t.weekKey === currentWeekKey);
+  }
+
+  // ===== Scores (MENSAL) =====
   async function ensureScoresDoc(){
     const sSnap = await getDoc(scoresRef());
     if (!sSnap.exists()){
@@ -773,6 +812,376 @@
     if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
   }
 
+  async function bumpMonthlyScore(user, delta){
+    const mk = monthKey(new Date());
+    await updateDoc(scoresRef(), {
+      ["monthScores."+mk+"."+user]: increment(delta),
+      updatedAt: serverTimestamp()
+    });
+  }
+
+  // ===== GLOBAL (semana) =====
+  function getGlobalStatusText(){
+    if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL publicada nesta semana.";
+    if (globalTask.status === "completed") return `GLOBAL concluída por ${globalTask.completedBy} em ${globalTask.completedAtHuman || ""}`;
+    if (globalTask.status === "open") return `GLOBAL pendente: ${globalTask.name || "(sem nome)"} (aguardando conclusão)`;
+    return "GLOBAL: estado desconhecido.";
+  }
+
+  async function publishGlobalTaskFromTemplate(tpl){
+    const ref = globalRef(currentWeekKey);
+    const snap = await getDoc(ref);
+    if (snap.exists()){
+      const g = snap.data();
+      if (g?.exists) throw new Error("Já existe GLOBAL nesta semana.");
+    }
+
+    await setDoc(ref, {
+      exists: true,
+      weekKey: currentWeekKey,
+      status: "open",
+      name: tpl.name,
+      items: tpl.items || [],
+      templateId: tpl.id || "",
+      createdAt: serverTimestamp(),
+      createdAtHuman: nowHuman()
+    }, { merge:false });
+  }
+
+  async function completeGlobalTaskAsFirst(user, itensQtd){
+    const ref = globalRef(currentWeekKey);
+    await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(ref);
+      if (!snap.exists()) throw new Error("GLOBAL não existe.");
+      const g = snap.data();
+      if (!g.exists || g.status !== "open") throw new Error("GLOBAL já foi concluída.");
+      tx.update(ref, {
+        status: "completed",
+        completedBy: user,
+        completedAt: serverTimestamp(),
+        completedAtHuman: nowHuman()
+      });
+    });
+
+    await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
+      user,
+      categoria: "[GLOBAL] " + (globalTask?.name || "GLOBAL"),
+      itens: itensQtd || {},
+      when: nowHuman(),
+      weekKey: currentWeekKey,
+      createdAt: serverTimestamp()
+    });
+
+    await bumpMonthlyScore(user, 10);
+  }
+
+  // ===== GLOBAL TEMPLATES =====
+  function sanitizeItemsFromInput(raw){
+    return raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : [];
+  }
+
+  function renderGlobalTplDropdown(){
+    const sel = $("globalTplSelect");
+    if (!sel) return;
+    const prev = sel.value;
+
+    sel.innerHTML = "";
+    sel.appendChild(new Option("Selecione um template...", ""));
+    const ordered = (globalTemplates || []).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    ordered.forEach(t => sel.appendChild(new Option(t.name, t.id)));
+
+    if (prev && ordered.some(t=>t.id===prev)) sel.value = prev;
+  }
+
+  async function ensureGlobalTemplatesDoc(){
+    const snap = await getDoc(cfgGlobalTplRef());
+    if (!snap.exists()){
+      await setDoc(cfgGlobalTplRef(), { templates: [], updatedAt: serverTimestamp() }, { merge:true });
+      globalTemplates = [];
+      return;
+    }
+    const raw = snap.data().templates;
+    globalTemplates = Array.isArray(raw) ? raw : [];
+  }
+
+  async function saveGlobalTemplate(name, items){
+    name = normalizeCat(name);
+    if (!name) throw new Error("Nome do template vazio.");
+    if (!Array.isArray(items) || items.length === 0) throw new Error("Template precisa ter itens.");
+
+    const id = "tpl_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8);
+    const next = (globalTemplates || []).concat([{
+      id,
+      name,
+      items,
+      createdAtHuman: nowHuman()
+    }]);
+
+    await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
+  }
+
+  async function deleteGlobalTemplateById(id){
+    const next = (globalTemplates || []).filter(t=>t.id !== id);
+    await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
+  }
+
+  function findTemplateById(id){
+    return (globalTemplates || []).find(t=>t.id === id);
+  }
+
+  // ===== ESCALA =====
+  const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+
+  function emptyEscala(){
+    const days = {};
+    for (const d of DAYS) days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
+    return { weekKey: currentWeekKey, days };
+  }
+
+  function canEditEscala(){
+    return currentUser === "GERENTE" || currentUser === "Claudia";
+  }
+
+  function validateEscala(obj){
+    for (const d of DAYS){
+      const day = obj?.days?.[d];
+      if (!day) return `Dia inválido: ${d}`;
+
+      const m1 = normalizeName(day.manha?.[0] || "");
+      const m2 = normalizeName(day.manha?.[1] || "");
+      const t1 = normalizeName(day.tarde?.[0] || "");
+      const t2 = normalizeName(day.tarde?.[1] || "");
+      const f  = normalizeName(day.folga?.[0] || "");
+
+      if (!m1 || !m2) return `${d}: Manhã precisa ter 2 funcionários.`;
+      if (m1 === m2) return `${d}: Manhã não pode repetir o mesmo funcionário.`;
+
+      if (!t1 || !t2) return `${d}: Tarde precisa ter 2 funcionários.`;
+      if (t1 === t2) return `${d}: Tarde não pode repetir o mesmo funcionário.`;
+
+      if (!f) return `${d}: Folga precisa ter 1 funcionário.`;
+
+      const setWork = new Set([m1,m2,t1,t2].filter(Boolean));
+      if (setWork.has(f)) return `${d}: Folga não pode ser alguém que trabalha no mesmo dia.`;
+
+      const setManha = new Set([m1,m2]);
+      if (setManha.has(t1) || setManha.has(t2)) return `${d}: Não é permitido dobrar (mesma pessoa manhã+tarde).`;
+    }
+    return null;
+  }
+
+  async function saveEscala(obj){
+    const err = validateEscala(obj);
+    if (err) return toast(err);
+
+    await setDoc(escalaRef(currentWeekKey), {
+      exists: true,
+      weekKey: currentWeekKey,
+      days: obj.days,
+      updatedAt: serverTimestamp(),
+      updatedAtHuman: nowHuman(),
+      updatedBy: currentUser
+    }, { merge:false });
+
+    toast("Escala salva.");
+  }
+
+  async function clearEscala(){
+    if (!canEditEscala()) return toast("Sem permissão.");
+    if (!confirm("Limpar a escala da semana atual? (vai ficar tudo em branco)")) return;
+    const obj = emptyEscala();
+    await setDoc(escalaRef(currentWeekKey), {
+      exists: true,
+      weekKey: currentWeekKey,
+      days: obj.days,
+      updatedAt: serverTimestamp(),
+      updatedAtHuman: nowHuman(),
+      updatedBy: currentUser
+    }, { merge:false });
+    toast("Escala limpa.");
+  }
+
+  function renderEscalaViewerInto(elId, escalaObj, labelWeekElId){
+    const view = $(elId);
+    if (!view) return;
+    view.innerHTML = "";
+
+    if (labelWeekElId && $(labelWeekElId)) $(labelWeekElId).innerText = escalaObj?.weekKey || "-";
+
+    const s = escalaObj && escalaObj.exists ? escalaObj : null;
+    if (!s){
+      view.innerHTML = `<div class="text-gray-500">Sem escala cadastrada.</div>`;
+      return;
+    }
+
+    const box = document.createElement("div");
+    box.className = "border rounded p-2 bg-gray-50";
+
+    let html = `<div class="text-xs text-gray-600">Atualizada por <b>${s.updatedBy || "-"}</b> em ${s.updatedAtHuman || "-"}</div>`;
+    html += `<div class="mt-2 space-y-2">`;
+
+    for (const d of DAYS){
+      const day = s.days?.[d] || {};
+      const manha = (day.manha||[]).filter(Boolean).join(" + ") || "-";
+      const tarde = (day.tarde||[]).filter(Boolean).join(" + ") || "-";
+      const folga = (day.folga||[]).filter(Boolean).join(" + ") || "-";
+      html += `
+        <div class="border rounded bg-white p-2">
+          <div class="font-semibold">${d}</div>
+          <div class="text-sm mt-1"><b>Manhã:</b> ${manha}</div>
+          <div class="text-sm"><b>Tarde:</b> ${tarde}</div>
+          <div class="text-sm"><b>Folga:</b> ${folga}</div>
+        </div>
+      `;
+    }
+
+    html += `</div>`;
+    box.innerHTML = html;
+    view.appendChild(box);
+  }
+
+  function buildSelect(options, value){
+    const sel = document.createElement("select");
+    sel.className = "border p-2 rounded w-full";
+    sel.appendChild(new Option("Selecione...", ""));
+    options.forEach(n => sel.appendChild(new Option(n, n)));
+    sel.value = value || "";
+    return sel;
+  }
+
+  function setSelectOptions(selectEl, options, keepValue){
+    const current = keepValue || "";
+    selectEl.innerHTML = "";
+    selectEl.appendChild(new Option("Selecione...", ""));
+    options.forEach(n => selectEl.appendChild(new Option(n, n)));
+    if (current && options.includes(current)) selectEl.value = current;
+    else selectEl.value = "";
+  }
+
+  function renderEscalaEditor(containerId){
+    const container = $(containerId);
+    if (!container) return null;
+
+    container.innerHTML = "";
+    const names = activeNames();
+    const base = (escala && escala.exists) ? escala : emptyEscala();
+    const local = clone(base);
+
+    for (const d of DAYS){
+      const day = local.days[d];
+
+      const row = document.createElement("div");
+      row.className = "border rounded p-3 bg-gray-50";
+
+      const title = document.createElement("div");
+      title.className = "font-semibold mb-2";
+      title.innerText = d;
+
+      const grid = document.createElement("div");
+      grid.className = "grid md:grid-cols-3 gap-2";
+
+      const mWrap = document.createElement("div");
+      mWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Manhã (2)</div>`;
+      const m1 = buildSelect(names, day.manha[0]);
+      const m2 = buildSelect(names, day.manha[1]);
+      mWrap.appendChild(m1);
+      mWrap.appendChild(document.createElement("div")).className = "h-2";
+      mWrap.appendChild(m2);
+
+      const tWrap = document.createElement("div");
+      tWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Tarde (2)</div>`;
+      const t1 = buildSelect(names, day.tarde[0]);
+      const t2 = buildSelect(names, day.tarde[1]);
+      tWrap.appendChild(t1);
+      tWrap.appendChild(document.createElement("div")).className = "h-2";
+      tWrap.appendChild(t2);
+
+      const fWrap = document.createElement("div");
+      fWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Folga (1)</div>`;
+      const f1 = buildSelect(names, day.folga[0]);
+      fWrap.appendChild(f1);
+
+      grid.appendChild(mWrap);
+      grid.appendChild(tWrap);
+      grid.appendChild(fWrap);
+
+      row.appendChild(title);
+      row.appendChild(grid);
+      container.appendChild(row);
+
+      const getPicked = () => {
+        const picked = new Set();
+        [m1.value, m2.value, t1.value, t2.value, f1.value].forEach(v=>{
+          const vv = normalizeName(v || "");
+          if (vv) picked.add(vv);
+        });
+        return picked;
+      };
+
+      const availableFor = (selfValue) => {
+        const picked = getPicked();
+        const me = normalizeName(selfValue || "");
+        if (me) picked.delete(me);
+        return names.filter(n => !picked.has(n));
+      };
+
+      const sync = () => {
+        day.manha[0] = normalizeName(m1.value);
+        day.manha[1] = normalizeName(m2.value);
+        day.tarde[0] = normalizeName(t1.value);
+        day.tarde[1] = normalizeName(t2.value);
+        day.folga[0] = normalizeName(f1.value);
+
+        setSelectOptions(m1, availableFor(m1.value), m1.value);
+        setSelectOptions(m2, availableFor(m2.value), m2.value);
+        setSelectOptions(t1, availableFor(t1.value), t1.value);
+        setSelectOptions(t2, availableFor(t2.value), t2.value);
+        setSelectOptions(f1, availableFor(f1.value), f1.value);
+
+        day.manha[0] = normalizeName(m1.value);
+        day.manha[1] = normalizeName(m2.value);
+        day.tarde[0] = normalizeName(t1.value);
+        day.tarde[1] = normalizeName(t2.value);
+        day.folga[0] = normalizeName(f1.value);
+      };
+
+      const jumpTo = (nextSel) => setTimeout(() => nextSel?.focus?.(), 0);
+
+      m1.addEventListener("change", ()=>{ sync(); jumpTo(m2); });
+      m2.addEventListener("change", ()=>{ sync(); jumpTo(t1); });
+      t1.addEventListener("change", ()=>{ sync(); jumpTo(t2); });
+      t2.addEventListener("change", ()=>{ sync(); jumpTo(f1); });
+      f1.addEventListener("change", ()=>{ sync(); });
+
+      sync();
+    }
+
+    return local;
+  }
+
+  function maybeSetupEscalaUI(){
+    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaPrev").innerText = prevWeekKey;
+
+    const can = canEditEscala();
+    $("escalaPermLabel").innerText = can ? "Você pode editar" : "Somente leitura";
+
+    const editorWrap = $("escalaEditorWrap");
+    if (can){
+      editorWrap.classList.remove("hidden");
+      escalaLocalEmployee = renderEscalaEditor("escalaEditor");
+      $("btnSaveEscala").onclick = async ()=>{
+        if (!escalaLocalEmployee) escalaLocalEmployee = renderEscalaEditor("escalaEditor");
+        await saveEscala(escalaLocalEmployee);
+      };
+      $("btnClearEscalaEmp").onclick = async ()=>{ await clearEscala(); };
+    } else {
+      editorWrap.classList.add("hidden");
+      escalaLocalEmployee = null;
+    }
+  }
+
+  // ===== Ranking mensal (gerente) =====
   function renderRanking(){
     const mk = monthKey(new Date());
     $("monthKeyLabelGer").innerText = mk;
@@ -815,12 +1224,201 @@
     });
   }
 
+  // ===== Render funcionário =====
+  function renderEmployee(){
+    if (!isEmployeeActive(currentUser)){
+      clearSession();
+      currentUser = "";
+      show("login");
+      return;
+    }
+
+    $("userName").innerText = currentUser;
+    $("weekKeyLabel").innerText = currentWeekKey;
+
+    const mp = getMonthPoints(currentUser);
+    $("monthPointsInline").innerText = mp;
+    $("monthPointsTop").innerText = mp;
+    updateTopBar();
+
+    const container = $("tasks");
+    container.innerHTML = "";
+
+    // GLOBAL open
+    if (globalTask && globalTask.exists && globalTask.status === "open"){
+      const card = document.createElement("div");
+      card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
+
+      const title = document.createElement("div");
+      title.className = "flex items-center justify-between gap-2";
+      title.innerHTML = `<h3 class="font-semibold">[GLOBAL] ${globalTask.name || "Tarefa Global"}</h3><span class="text-xs text-gray-500">+10 (primeiro que concluir)</span>`;
+      card.appendChild(title);
+
+      const body = document.createElement("div");
+      body.className = "mt-3 space-y-2";
+
+      const itens = Array.isArray(globalTask.items) ? globalTask.items : [];
+      itens.forEach((item)=>{
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between gap-2";
+        row.innerHTML =
+          "<span class='text-sm text-gray-800'>" + item + "</span>" +
+          "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
+        body.appendChild(row);
+      });
+
+      const warn = document.createElement("p");
+      warn.className = "text-xs text-gray-500 mt-2";
+      warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
+      body.appendChild(warn);
+
+      const btn = document.createElement("button");
+      btn.className = "mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded";
+      btn.innerText = "Concluir GLOBAL";
+
+      btn.addEventListener("click", async ()=>{
+        const itensQtd = {};
+        const inputs = Array.from(body.querySelectorAll("input[type=number]"));
+        for (const inp of inputs){
+          const name = decodeURIComponent(inp.getAttribute("data-item"));
+          if (inp.value === ""){
+            toast("Preencha todos os itens. Se for zero, digite 0.");
+            inp.focus();
+            return;
+          }
+          const val = Number(inp.value);
+          itensQtd[name] = Number.isFinite(val) ? val : 0;
+        }
+
+        btn.disabled = true;
+        btn.classList.add("opacity-50");
+        btn.innerText = "Tentando concluir...";
+
+        try{
+          await completeGlobalTaskAsFirst(currentUser, itensQtd);
+          toast("Você concluiu a GLOBAL primeiro!");
+        } catch(e){
+          console.error(e);
+          toast("GLOBAL já foi concluída por outra pessoa.");
+        } finally {
+          btn.disabled = true;
+          btn.innerText = "Encerrada";
+        }
+      });
+
+      card.appendChild(body);
+      card.appendChild(btn);
+      container.appendChild(card);
+    }
+
+    // categorias pessoais
+    const cats = data[currentUser] || {};
+    const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
+    if (!catNames.length){
+      const box = document.createElement("div");
+      box.className = "bg-white p-4 rounded-xl shadow text-gray-600";
+      box.innerText = "Sem categorias para este usuário.";
+      container.appendChild(box);
+      return;
+    }
+
+    catNames.forEach((cat)=>{
+      const card = document.createElement("div");
+      card.className = "bg-white p-4 rounded-xl shadow";
+
+      const done = isCategoryDoneThisWeek(currentUser, cat);
+
+      const title = document.createElement("div");
+      title.className = "flex items-center justify-between gap-2";
+      title.innerHTML = "<h3 class='font-semibold'>" + cat + "</h3><span class='text-xs text-gray-500'>+10</span>";
+      card.appendChild(title);
+
+      const body = document.createElement("div");
+      body.className = "mt-3 space-y-2";
+
+      const itens = cats[cat] || [];
+      itens.forEach((item)=>{
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between gap-2";
+        row.innerHTML =
+          "<span class='text-sm text-gray-800'>" + item + "</span>" +
+          "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
+        body.appendChild(row);
+      });
+
+      const warn = document.createElement("p");
+      warn.className = "text-xs text-gray-500 mt-2";
+      warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
+      body.appendChild(warn);
+
+      const btn = document.createElement("button");
+      btn.className = "mt-4 w-full bg-green-600 hover:bg-green-700 text-white p-2 rounded";
+      btn.innerText = done ? "Concluído (semana)" : "Concluir";
+      btn.disabled = done;
+      if (done) btn.classList.add("opacity-50");
+
+      btn.addEventListener("click", async ()=>{
+        if (btn.disabled) return;
+
+        const itensQtd = {};
+        const inputs = Array.from(body.querySelectorAll("input[type=number]"));
+        for (const inp of inputs){
+          const name = decodeURIComponent(inp.getAttribute("data-item"));
+          if (inp.value === ""){
+            toast("Preencha todos os itens. Se for zero, digite 0.");
+            inp.focus();
+            return;
+          }
+          const val = Number(inp.value);
+          itensQtd[name] = Number.isFinite(val) ? val : 0;
+        }
+
+        if (isCategoryDoneThisWeek(currentUser, cat)){
+          toast("Essa categoria já foi concluída nesta semana.");
+          renderEmployee();
+          return;
+        }
+
+        btn.disabled = true;
+        btn.classList.add("opacity-50");
+        btn.innerText = "Salvando...";
+
+        try{
+          await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
+            user: currentUser,
+            categoria: cat,
+            itens: itensQtd,
+            when: nowHuman(),
+            weekKey: currentWeekKey,
+            createdAt: serverTimestamp()
+          });
+
+          await bumpMonthlyScore(currentUser, 10);
+
+          btn.innerText = "Concluído";
+          toast("Concluído!");
+        } catch(e){
+          console.error(e);
+          toast("Erro ao salvar. Verifique a internet e tente novamente.");
+          btn.disabled = false;
+          btn.classList.remove("opacity-50");
+          btn.innerText = "Concluir";
+        }
+      });
+
+      card.appendChild(body);
+      card.appendChild(btn);
+      container.appendChild(card);
+    });
+  }
+
+  // ===== Render gerente =====
   function renderTasksList(containerId, rows){
     const t = $(containerId);
     if (!t) return;
     t.innerHTML = "";
-    const ordered = (rows || []).slice(0, 600);
 
+    const ordered = (rows || []).slice(0, 400);
     if (!ordered.length){
       t.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa.</p>";
       return;
@@ -837,7 +1435,6 @@
       let html = `
         <div class="font-semibold">${r.user} - ${r.categoria}</div>
         <div class="text-xs text-gray-600">${(r.when || "")}</div>
-        <div class="text-[11px] text-gray-500">weekKey salvo: <b>${r.weekKey || "-"}</b></div>
       `;
 
       if (hasItens){
@@ -863,7 +1460,7 @@
     const m = $(containerId);
     if (!m) return;
     m.innerHTML = "";
-    const mo = (rows || []).slice(0, 600);
+    const mo = (rows || []).slice(0, 400);
     if (!mo.length){
       m.innerHTML = "<p class='text-gray-500'>Nenhuma falta.</p>";
       return;
@@ -874,128 +1471,49 @@
       div.innerHTML =
         "<div class='font-semibold'>" + r.user + "</div>" +
         "<div class='text-xs text-gray-600'>" + (r.when || "") + "</div>" +
-        "<div class='text-sm mt-1'>" + r.item + "</div>" +
-        "<div class='text-[11px] text-gray-500'>weekKey salvo: <b>" + (r.weekKey || "-") + "</b></div>";
+        "<div class='text-sm mt-1'>" + r.item + "</div>";
       m.appendChild(div);
     });
   }
 
-  function getGlobalStatusTextFrom(g){
-    if (!g || !g.exists) return "Nenhuma GLOBAL publicada nesta semana.";
-    if (g.status === "completed") return `GLOBAL concluída por ${g.completedBy} em ${g.completedAtHuman || ""}`;
-    if (g.status === "open") return `GLOBAL pendente: ${g.name || "(sem nome)"} (aguardando conclusão)`;
-    return "GLOBAL: estado desconhecido.";
+  function renderManager(){
+    $("weekKeyLabelGer").innerText = currentWeekKey;
+    $("weekKeyLabelGerPrev").innerText = prevWeekKey;
+    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGerPrev").innerText = prevWeekKey;
+
+    if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
+
+    renderRanking();
+
+    renderTasksList("gerTasks", tasksDone);
+    renderTasksList("gerTasksPrev", tasksPrevWeek);
+
+    renderMissingList("gerMissing", missingReports);
+    renderMissingList("gerMissingPrev", missingPrevWeek);
+
+    // Escala viewers
+    renderEscalaViewerInto("escalaViewerGerPrev", escalaPrev, null);
   }
 
-  function clearManagerListeners(){
-    managerUnsubs.forEach(fn=>{ try{ fn(); }catch(e){} });
-    managerUnsubs = [];
-  }
-
-  // ✅ NOVO: gerente busca POR DATA e filtra no JS (pega históricos com weekKey antigo e sem índice)
-  function attachManagerWeekListeners(wk){
-    managerViewWeekKey = wk || currentWeekKey;
-    managerViewPrevWeekKey = prevWeekKeyByDate(managerViewWeekKey);
-
-    $("weekKeyLabelCurrentApp").innerText = currentWeekKey;
-    $("weekKeyLabelGerSel").innerText = managerViewWeekKey;
-    $("weekKeyLabelGerPrevSel").innerText = managerViewPrevWeekKey;
-
-    warnManager("");
-
-    clearManagerListeners();
-
-    const TASK_LIMIT = 4000;   // aumenta para resgatar histórico
-    const MISS_LIMIT = 4000;
-
-    // tasks: sem where, sem índice, filtra no JS
-    const tasksCol = collection(db,"stores",STORE_ID,"tasks");
-    const qTasks = query(tasksCol, orderBy("createdAt","desc"), limit(TASK_LIMIT));
-
-    managerUnsubs.push(onSnapshot(qTasks, (qs)=>{
-      const all = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-
-      // normaliza weekKey salvo e compara com a semana selecionada
-      tasksSel = all.filter(r => normalizeWeekKeyLoose(r.weekKey) === normalizeWeekKeyLoose(managerViewWeekKey));
-      tasksPrevSel = all.filter(r => normalizeWeekKeyLoose(r.weekKey) === normalizeWeekKeyLoose(managerViewPrevWeekKey));
-
-      // dica se nada aparecer
-      if (!tasksSel.length && !tasksPrevSel.length){
-        // tenta detectar se existem tarefas sem weekKey
-        const noWk = all.filter(r => !r.weekKey).length;
-        if (noWk > 0){
-          warnManager(`Atenção: encontrei ${noWk} tarefas sem weekKey salvo. Essas tarefas antigas não conseguem ser agrupadas por semana automaticamente.`);
-        } else {
-          // tenta achar outra "versão" parecida de weekKey
-          const sample = all.slice(0,40).map(r=>r.weekKey).filter(Boolean);
-          if (sample.length){
-            warnManager(`Não achei tarefas para ${managerViewWeekKey}. Exemplo de weekKey existente nas últimas tarefas: ${[...new Set(sample)].slice(0,5).join(" | ")}`);
-          }
-        }
-      }
-
-      if (currentUser === "GERENTE"){
-        renderTasksList("gerTasksSel", tasksSel);
-        renderTasksList("gerTasksPrevSel", tasksPrevSel);
-      }
-    }, (err)=>{
-      console.error("Erro snapshot tasks:", err);
-      warnManager("Erro ao carregar tarefas (veja o console).");
-    }));
-
-    // missing: sem where, filtra no JS
-    const missCol = collection(db,"stores",STORE_ID,"missing");
-    const qMiss = query(missCol, orderBy("createdAt","desc"), limit(MISS_LIMIT));
-
-    managerUnsubs.push(onSnapshot(qMiss, (qs)=>{
-      const all = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-      missingSel = all.filter(r => normalizeWeekKeyLoose(r.weekKey) === normalizeWeekKeyLoose(managerViewWeekKey));
-      missingPrevSel = all.filter(r => normalizeWeekKeyLoose(r.weekKey) === normalizeWeekKeyLoose(managerViewPrevWeekKey));
-
-      if (currentUser === "GERENTE"){
-        renderMissingList("gerMissingSel", missingSel);
-        renderMissingList("gerMissingPrevSel", missingPrevSel);
-      }
-    }, (err)=>{
-      console.error("Erro snapshot missing:", err);
-      warnManager("Erro ao carregar faltas (veja o console).");
-    }));
-
-    // global: mantém doc por weekKey (sem índice)
-    managerUnsubs.push(onSnapshot(globalRef(managerViewWeekKey), (snap)=>{
-      globalTaskSel = snap.exists() ? ({ id: snap.id, ...snap.data() }) : null;
-      if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusTextFrom(globalTaskSel);
-    }));
-  }
-
-  function setupManagerWeekSelector(){
-    const sel = $("managerWeekSelect");
-    sel.innerHTML = "";
-    const weeks = buildWeekListBack(80);
-    weeks.forEach(w => sel.appendChild(new Option(w, w)));
-    sel.value = currentWeekKey;
-    sel.onchange = ()=> attachManagerWeekListeners(sel.value || currentWeekKey);
-  }
-
-  // ===== UI util =====
+  // ===== Colapsar =====
   function setupCollapse(btnId, contentId){
     const btn = $(btnId);
     const content = $(contentId);
     if (!btn || !content) return;
+
     btn.addEventListener("click", ()=>{
       const hidden = content.classList.toggle("hidden");
       btn.innerText = hidden ? "Expandir" : "Minimizar";
     });
   }
 
-  setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
-  setupCollapse("btnToggleRanking", "rankingContent");
-
-  // ===== Missing funcionário =====
+  // ===== Missing =====
   $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
   $("missingSave").addEventListener("click", async ()=>{
     const raw = $("missingInput").value.trim();
     if (!raw) return toast("Digite o item em falta.");
+
     await addDoc(collection(db,"stores",STORE_ID,"missing"), {
       user: currentUser,
       item: raw,
@@ -1003,12 +1521,197 @@
       weekKey: currentWeekKey,
       createdAt: serverTimestamp()
     });
+
     $("missingInput").value = "";
     $("missingBox").classList.add("hidden");
     toast("Registrado!");
   });
 
-  // ===== Logout =====
+  // ===== GLOBAL TEMPLATES UI =====
+  $("btnSaveTpl").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const name = normalizeCat($("tplName").value);
+    const items = sanitizeItemsFromInput($("tplItems").value.trim());
+    if (!name) return toast("Digite o nome do template.");
+    if (!items.length) return toast("Digite pelo menos 1 item.");
+    try{
+      await saveGlobalTemplate(name, items);
+      $("tplName").value = "";
+      $("tplItems").value = "";
+      toast("Template salvo.");
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao salvar template."));
+    }
+  });
+
+  $("btnDeleteTpl").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const id = $("globalTplSelect").value;
+    if (!id) return toast("Selecione um template.");
+    const tpl = findTemplateById(id);
+    if (!tpl) return toast("Template não encontrado.");
+    if (!confirm(`Excluir template "${tpl.name}"?`)) return;
+    try{
+      await deleteGlobalTemplateById(id);
+      toast("Template excluído.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir template.");
+    }
+  });
+
+  $("btnPublishGlobalFromTpl").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const id = $("globalTplSelect").value;
+    if (!id) return toast("Selecione um template.");
+    const tpl = findTemplateById(id);
+    if (!tpl) return toast("Template não encontrado.");
+
+    if (!confirm(`Publicar GLOBAL desta semana usando "${tpl.name}"?`)) return;
+
+    try{
+      await publishGlobalTaskFromTemplate(tpl);
+      toast("GLOBAL publicada para esta semana.");
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao publicar GLOBAL."));
+    }
+  });
+
+  // ===== Funcionários add =====
+  $("btnAddEmployee").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const name = $("newEmployeeName").value;
+    $("newEmployeeName").value = "";
+    try{ await addEmployee(name); }catch(e){ console.error(e); toast("Erro ao adicionar funcionário."); }
+  });
+
+  $("btnRefreshEmployees").addEventListener("click", ()=>{
+    renderEmployeesUI();
+    toast("Lista recarregada.");
+  });
+
+  // ===== Categories individual =====
+  $("btnAddCategory").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const u = $("addUser").value;
+    const cat = normalizeCat($("categoriaNome").value);
+    const items = $("itensCategoria").value.trim();
+    if (!u) return toast("Selecione o funcionário.");
+    if (!cat) return toast("Informe o nome da categoria");
+
+    const newData = clone(data || {});
+    if (!newData[u]) newData[u] = {};
+    newData[u][cat] = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
+
+    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
+    $("categoriaNome").value = "";
+    $("itensCategoria").value = "";
+    toast("Categoria atualizada.");
+  });
+
+  // ===== PIN reset =====
+  $("btnSetPin").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    const u = $("pinUser").value;
+    const p = $("pinNew").value.trim();
+    if (!u) return toast("Selecione o usuário.");
+    if (!isValidPin(p)) return toast("Novo PIN precisa ter 4 dígitos.");
+
+    await setDoc(userRef(u), {
+      user: u,
+      role: (u === "GERENTE") ? "manager" : "employee",
+      pinHash: await sha256(p),
+      updatedAt: serverTimestamp()
+    }, { merge:true });
+
+    $("pinNew").value = "";
+    toast("PIN definido.");
+  });
+
+  // ===== Export CSV =====
+  $("btnExport").addEventListener("click", ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente exporta.");
+
+    const header = ["tipo","usuario","categoria","quando","detalhes","weekKey"];
+    let csv = header.join(",") + "\n";
+
+    const addLine = (arr)=>{ csv += arr.map(csvCell).join(",") + "\n"; };
+
+    tasksDone.forEach((r)=>{
+      addLine(["tarefa_atual", r.user, r.categoria, r.when, JSON.stringify(r.itens || {}), r.weekKey]);
+    });
+    tasksPrevWeek.forEach((r)=>{
+      addLine(["tarefa_anterior", r.user, r.categoria, r.when, JSON.stringify(r.itens || {}), r.weekKey]);
+    });
+    missingReports.forEach((r)=>{
+      addLine(["falta_atual", r.user, "", r.when, JSON.stringify({ item: r.item }), r.weekKey]);
+    });
+    missingPrevWeek.forEach((r)=>{
+      addLine(["falta_anterior", r.user, "", r.when, JSON.stringify({ item: r.item }), r.weekKey]);
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "relatorio_" + currentWeekKey + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  function csvCell(v){
+    const s = String(v == null ? "" : v);
+    if (/[\n\r,"]/g.test(s)) return '"' + s.replaceAll('"', '""') + '"';
+    return s;
+  }
+
+  // ===== Reset semana =====
+  $("btnResetWeek").addEventListener("click", async ()=>{
+    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
+
+    try{
+      await deleteByWeek("tasks", currentWeekKey);
+      await deleteByWeek("missing", currentWeekKey);
+
+      try{ await deleteDoc(globalRef(currentWeekKey)); }catch(e){}
+      try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
+
+      toast("Semana zerada.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao zerar semana.");
+    }
+  });
+
+  async function deleteByWeek(colName, wk){
+    const colRef = collection(db, "stores", STORE_ID, colName);
+    const q = query(colRef, where("weekKey","==",wk), limit(450));
+    const snap = await getDocs(q);
+    if (snap.empty) return;
+
+    let batch = writeBatch(db);
+    let count = 0;
+    for (const d of snap.docs){
+      batch.delete(d.ref);
+      count++;
+      if (count % 450 === 0){
+        await batch.commit();
+        batch = writeBatch(db);
+      }
+    }
+    await batch.commit();
+    if (snap.docs.length === 450) await deleteByWeek(colName, wk);
+  }
+
+  // ===== Collapses =====
+  setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
+  setupCollapse("btnToggleEscalaGer", "escalaGerContent");
+  setupCollapse("btnToggleRanking", "rankingContent");
+
+  // ===== Login / Logout =====
   $("btnLogout1").addEventListener("click", doLogout);
   $("btnLogout2").addEventListener("click", doLogout);
 
@@ -1039,12 +1742,22 @@
     saveSession(u);
 
     if (u === "GERENTE"){
-      setupManagerWeekSelector();
-      attachManagerWeekListeners(currentWeekKey);
+      renderManager();
+      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      $("btnSaveEscalaGer").onclick = async ()=>{
+        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+        await saveEscala(escalaLocalGer);
+      };
+      $("btnClearEscalaGer").onclick = async ()=>{ await clearEscala(); };
       show("gerente");
     } else {
+      renderEmployee();
+      maybeSetupEscalaUI();
+      renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
+      renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
       show("funcionario");
     }
+
     updateTopBar();
   }
 
@@ -1058,10 +1771,13 @@
   async function cloudInit(){
     await ensureWeekKey();
 
-    $("weekKeyLabelCurrentApp").innerText = currentWeekKey;
+    $("weekKeyLabel").innerText = currentWeekKey;
+    $("weekKeyLabelGer").innerText = currentWeekKey;
+    $("weekKeyLabelGerPrev").innerText = prevWeekKey;
     $("weekKeyLabelEscala").innerText = currentWeekKey;
     $("weekKeyLabelEscalaPrev").innerText = prevWeekKey;
-    $("weekKeyLabel").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+    $("weekKeyLabelEscalaGerPrev").innerText = prevWeekKey;
 
     await ensureEmployeesConfig();
     renderEmployeesUI();
@@ -1069,21 +1785,51 @@
     await ensureScoresDoc();
     updateTopBar();
 
+    // Templates: ensure + realtime
+    await ensureGlobalTemplatesDoc();
+    renderGlobalTplDropdown();
+
+    onSnapshot(cfgGlobalTplRef(), (snap)=>{
+      if (!snap.exists()){
+        globalTemplates = [];
+      } else {
+        const raw = snap.data().templates;
+        globalTemplates = Array.isArray(raw) ? raw : [];
+      }
+      renderGlobalTplDropdown();
+    });
+
     // employees realtime
     onSnapshot(cfgAppRef(), (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
+
       employees = (Array.isArray(raw) ? raw : [])
         .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
         .filter(x => x.name);
 
       const seen = new Set();
       employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
+
       renderEmployeesUI();
+
+      if (currentUser && currentUser !== "GERENTE" && !isEmployeeActive(currentUser)){
+        clearSession();
+        currentUser = "";
+        toast("Usuário bloqueado. Faça login novamente.");
+        show("login");
+      }
+
+      if (currentUser === "GERENTE"){
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      } else if (currentUser){
+        maybeSetupEscalaUI();
+      }
+
       renderRanking();
     });
 
-    // categories init + realtime
+    // categories
     const catsSnap = await getDoc(cfgCatsRef());
     if (!catsSnap.exists()){
       await setDoc(cfgCatsRef(), { data: defaultData, updatedAt: serverTimestamp() }, { merge:false });
@@ -1095,33 +1841,133 @@
 
     onSnapshot(cfgCatsRef(), (snap)=>{
       const remote = snap.data().data;
-      if (remote && typeof remote === "object") data = remote;
+      if (remote && typeof remote === "object"){
+        data = remote;
+        if (currentUser && currentUser !== "GERENTE") renderEmployee();
+        if (currentUser === "GERENTE") renderManager();
+      }
     });
 
     // scores realtime
     onSnapshot(scoresRef(), (snap)=>{
       scoresDoc = snap.data() || {};
       if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
+
+      if (currentUser && currentUser !== "GERENTE"){
+        const pts = getMonthPoints(currentUser);
+        $("monthPointsInline").innerText = pts;
+        $("monthPointsTop").innerText = pts;
+      }
       renderRanking();
       updateTopBar();
     });
+
+    // ✅✅ tarefas por semana (atual e anterior)
+    const tasksCol = collection(db,"stores",STORE_ID,"tasks");
+    const tasksQWeek = query(tasksCol, where("weekKey","==",currentWeekKey), orderBy("createdAt","desc"), limit(1500));
+    const tasksQPrev = query(tasksCol, where("weekKey","==",prevWeekKey), orderBy("createdAt","desc"), limit(1500));
+
+    onSnapshot(tasksQWeek, (qs)=>{
+      tasksDone = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+      if (currentUser === "GERENTE") renderManager();
+      if (currentUser && currentUser !== "GERENTE") renderEmployee();
+    });
+    onSnapshot(tasksQPrev, (qs)=>{
+      tasksPrevWeek = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+      if (currentUser === "GERENTE") renderManager();
+    });
+
+    // ✅✅ faltas por semana (atual e anterior)
+    const missCol = collection(db,"stores",STORE_ID,"missing");
+    const missQWeek = query(missCol, where("weekKey","==",currentWeekKey), orderBy("createdAt","desc"), limit(1500));
+    const missQPrev = query(missCol, where("weekKey","==",prevWeekKey), orderBy("createdAt","desc"), limit(1500));
+
+    onSnapshot(missQWeek, (qs)=>{
+      missingReports = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+      if (currentUser === "GERENTE") renderManager();
+    });
+    onSnapshot(missQPrev, (qs)=>{
+      missingPrevWeek = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+      if (currentUser === "GERENTE") renderManager();
+    });
+
+    // global week doc (semana atual)
+    onSnapshot(globalRef(currentWeekKey), (snap)=>{
+      if (!snap.exists()) globalTask = null;
+      else globalTask = { id: snap.id, ...snap.data() };
+
+      if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
+      if (currentUser && currentUser !== "GERENTE") renderEmployee();
+    });
+
+    // escala semana atual
+    onSnapshot(escalaRef(currentWeekKey), (snap)=>{
+      if (!snap.exists()) escala = null;
+      else escala = { id: snap.id, ...snap.data() };
+
+      renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
+      if (currentUser && currentUser !== "GERENTE"){
+        renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
+      }
+
+      if (currentUser === "GERENTE"){
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      }
+      if (currentUser && currentUser !== "GERENTE"){
+        maybeSetupEscalaUI();
+      }
+    });
+
+    // escala semana anterior (viewer)
+    onSnapshot(escalaRef(prevWeekKey), (snap)=>{
+      if (!snap.exists()) escalaPrev = null;
+      else escalaPrev = { id: snap.id, ...snap.data() };
+
+      renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
+      renderEscalaViewerInto("escalaViewerGerPrev", escalaPrev, null);
+    });
+
+    // primeira render
+    renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
+    renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
+    renderRanking();
+    updateTopBar();
   }
 
+  // ===== Start =====
   await cloudInit();
 
   const ses = getSession();
   if (ses && ses.user){
     currentUser = ses.user;
+
     if (currentUser === "GERENTE"){
-      setupManagerWeekSelector();
-      attachManagerWeekListeners(currentWeekKey);
+      renderManager();
+      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      $("btnSaveEscalaGer").onclick = async ()=>{
+        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+        await saveEscala(escalaLocalGer);
+      };
+      $("btnClearEscalaGer").onclick = async ()=>{ await clearEscala(); };
       show("gerente");
     } else {
-      show("funcionario");
+      if (!isEmployeeActive(currentUser)){
+        clearSession();
+        currentUser = "";
+        show("login");
+      } else {
+        renderEmployee();
+        maybeSetupEscalaUI();
+        renderEscalaViewerInto("escalaViewer", escala, "weekKeyLabelEscala");
+        renderEscalaViewerInto("escalaViewerPrev", escalaPrev, "weekKeyLabelEscalaPrev");
+        show("funcionario");
+      }
     }
   } else {
     show("login");
   }
+
+  updateTopBar();
 
   console.log("BUILD OK");
   window.__BUILD_OK__ = true;
