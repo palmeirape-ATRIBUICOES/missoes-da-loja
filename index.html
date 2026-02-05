@@ -7,6 +7,7 @@
 
   <meta name="theme-color" content="#2563eb" />
 
+  <!-- Ícone (favicon) em SVG (ALVO) -->
   <link id="appIcon" rel="icon" type="image/svg+xml" href="" />
   <link id="appAppleIcon" rel="apple-touch-icon" href="" />
   <link id="appManifest" rel="manifest" href="" />
@@ -16,6 +17,7 @@
 
 <body class="bg-gray-100 min-h-screen p-4">
 
+<!-- TOP BAR -->
 <header class="max-w-4xl mx-auto mb-4">
   <div class="bg-white rounded-xl shadow p-4 flex items-center justify-between gap-3">
     <div class="min-w-0 flex items-center gap-3">
@@ -43,10 +45,22 @@
   </div>
 </header>
 
+<!-- LOGIN -->
 <section id="login" class="max-w-3xl mx-auto bg-white p-4 rounded-xl shadow">
   <h2 class="text-lg font-semibold mb-3">Entrar</h2>
 
-  <div class="grid md:grid-cols-3 gap-3">
+  <div class="grid md:grid-cols-4 gap-3">
+    <div class="md:col-span-1">
+      <label class="text-sm text-gray-700">Loja</label>
+      <select id="storeSelect" class="w-full border p-2 rounded">
+        <option value="loja_principal">Loja Principal</option>
+        <option value="loja_bogados">Bogados</option>
+      </select>
+      <p class="text-xs text-gray-500 mt-1">
+        Cada loja é um sistema separado (dados separados).
+      </p>
+    </div>
+
     <div class="md:col-span-1">
       <label class="text-sm text-gray-700">Usuário</label>
       <select id="userSelect" class="w-full border p-2 rounded">
@@ -78,8 +92,10 @@
   </div>
 </section>
 
+<!-- FUNCIONÁRIO -->
 <section id="funcionario" class="hidden max-w-3xl mx-auto">
 
+  <!-- Escala -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -100,11 +116,12 @@
     <div id="escalaEmpContent" class="mt-3">
       <div id="escalaViewer" class="text-sm space-y-2"></div>
 
+      <!-- Editor (só Claudia e Gerente) -->
       <div id="escalaEditorWrap" class="hidden mt-4 border-t pt-4">
         <div class="flex items-center justify-between">
           <div class="font-semibold text-sm">Editar escala</div>
-          <div class="flex gap-2">
-            <button id="btnClearEscala" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+          <div class="flex items-center gap-2">
+            <button id="btnClearEscalaEmp" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
               Limpar escala
             </button>
             <button id="btnSaveEscala" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
@@ -120,6 +137,7 @@
     </div>
   </div>
 
+  <!-- topo usuário -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
@@ -148,22 +166,41 @@
     </div>
   </div>
 
+  <!-- Tarefas -->
   <div id="tasks" class="space-y-4"></div>
+
+  <!-- Semana anterior -->
+  <div class="bg-white p-4 rounded-xl shadow mt-4">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h3 class="font-semibold">Tarefas concluídas (semana anterior)</h3>
+        <p class="text-xs text-gray-500">Semana: <span id="prevWeekLabelEmp">-</span></p>
+      </div>
+      <button id="btnTogglePrevEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+        Minimizar
+      </button>
+    </div>
+    <div id="prevEmpContent" class="mt-3">
+      <div id="prevEmpList" class="text-sm space-y-2"></div>
+    </div>
+  </div>
 </section>
 
+<!-- GERENTE -->
 <section id="gerente" class="hidden max-w-4xl mx-auto">
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
         <h2 class="text-xl font-semibold">Painel do Gerente</h2>
         <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelGer">-</span></p>
+        <p class="text-xs text-gray-500">Loja: <span id="storeLabelGer">-</span></p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button id="btnResetWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
           Zerar semana (tudo)
         </button>
-        <button id="btnResetStars" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
-          Zerar estrelas do mês
+        <button id="btnResetStars" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded">
+          Zerar estrelas (mês atual)
         </button>
         <button id="btnExport" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded">
           Exportar CSV
@@ -173,9 +210,9 @@
         </button>
       </div>
     </div>
-    <div id="managerWarn" class="hidden mt-3 text-xs bg-yellow-50 border border-yellow-200 text-yellow-900 rounded p-2"></div>
   </div>
 
+  <!-- Ranking mensal -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -192,11 +229,11 @@
     </div>
   </div>
 
+  <!-- GLOBAL templates -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <h3 class="font-semibold mb-2">Tarefas GLOBAIS salvas (Templates)</h3>
     <p class="text-xs text-gray-500 mb-3">
-      Crie templates de GLOBAL e depois publique.
-      Quem concluir primeiro “trava” e some dos demais.
+      Crie templates e publique GLOBAIS desta semana. (As GLOBAIS aparecem para os funcionários.)
     </p>
 
     <div class="grid md:grid-cols-4 gap-2">
@@ -231,6 +268,7 @@
     </div>
   </div>
 
+  <!-- Escala -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between">
       <div>
@@ -258,28 +296,57 @@
     </div>
   </div>
 
+  <!-- tarefas / faltas + ações de limpeza -->
   <div class="grid md:grid-cols-2 gap-4">
     <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
-      <div class="flex gap-2 mb-3">
-        <button id="btnDeleteAllTasksWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-          Excluir TODAS tarefas (semana)
-        </button>
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <h3 class="font-semibold">Tarefas concluídas (semana)</h3>
+        <div class="flex gap-2">
+          <button id="btnDeleteAllTasksWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+            Excluir tudo
+          </button>
+        </div>
       </div>
       <div id="gerTasks" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
     </div>
 
     <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Itens em falta</h3>
-      <div class="flex gap-2 mb-3">
-        <button id="btnDeleteAllMissingWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-          Excluir TODAS faltas (semana)
-        </button>
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <h3 class="font-semibold">Itens em falta</h3>
+        <div class="flex gap-2">
+          <button id="btnDeleteAllMissingWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+            Excluir tudo
+          </button>
+        </div>
       </div>
       <div id="gerMissing" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
     </div>
   </div>
 
+  <!-- Semana anterior (gerente) -->
+  <div class="bg-white p-4 rounded-xl shadow mt-4">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h3 class="font-semibold">Semana anterior</h3>
+        <p class="text-xs text-gray-500">Semana: <span id="prevWeekLabelGer">-</span></p>
+      </div>
+      <button id="btnTogglePrevGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+        Minimizar
+      </button>
+    </div>
+    <div id="prevGerContent" class="mt-3 grid md:grid-cols-2 gap-4">
+      <div class="border rounded p-3 bg-gray-50">
+        <div class="font-semibold mb-2">Tarefas (semana anterior)</div>
+        <div id="prevTasksGer" class="text-sm space-y-2 max-h-[45vh] overflow-auto"></div>
+      </div>
+      <div class="border rounded p-3 bg-gray-50">
+        <div class="font-semibold mb-2">Faltas (semana anterior)</div>
+        <div id="prevMissingGer" class="text-sm space-y-2 max-h-[45vh] overflow-auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FUNCIONÁRIOS -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Funcionários (Ativar / Bloquear)</h3>
     <p class="text-xs text-gray-500 mb-3">
@@ -299,6 +366,7 @@
     <div id="employeeTable" class="mt-3 space-y-2"></div>
   </div>
 
+  <!-- CATEGORIAS: ADD/UPDATE -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Adicionar / Atualizar categoria (individual)</h3>
     <div class="grid md:grid-cols-4 gap-2">
@@ -309,8 +377,12 @@
     <button id="btnAddCategory" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded w-full">
       Adicionar / Atualizar categoria
     </button>
+    <p class="text-xs text-gray-500 mt-2">
+      Observação: categorias aqui são checklist com Qtd (número) para cada item.
+    </p>
   </div>
 
+  <!-- PINS -->
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">PINs</h3>
     <div class="grid md:grid-cols-3 gap-2 mt-2">
@@ -328,7 +400,7 @@
 </section>
 
 <script type="module">
-  // ====== PWA: Manifest + Icon ======
+  // ====== PWA: Manifest + Icon gerados automaticamente (logo ALVO) ======
   const TARGET_SVG = `
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
     <defs>
@@ -347,7 +419,6 @@
   function svgDataUrl(svg){
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
   }
-
   const iconUrl = svgDataUrl(TARGET_SVG);
   const $icon = document.getElementById("appIcon");
   const $apple = document.getElementById("appAppleIcon");
@@ -381,8 +452,54 @@
     appId: "1:198254465545:web:dce028792e2c2c57161ed8"
   };
 
-  const STORE_ID = "loja_principal";
-  const SESSION_KEY = "mdl_session_v1";
+  // ====== Multi-loja (separado, sem “lixo”) ======
+  const STORES = {
+    loja_principal: {
+      label: "Loja Principal",
+      managerUser: "GERENTE",
+      // lista inicial (pode mudar no painel do gerente)
+      defaultEmployees: ["Sandra","Thauane","Ingrid","Claudia","DADA"].map(n => ({ name:n, active:true })),
+      // categorias iniciais (somente para a loja principal)
+      defaultCategories: {
+        Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
+        Thauane: {
+          "Ambev (Segunda)": [
+            "Cracudinha (cascos vazios completos)","Guarana Antarctica fora da geladeira","Sukita fora da geladeira",
+            "Guaraviton","Gatorade","Suco Tang - Laranja","Suco Tang - Morango","Suco Tang - Guarana","Suco Tang - Uva",
+            "Suco Tang - Limao","Suco Tang - Maracuja","Guaravita","Agua com gas 500ml","Agua com gas 1,5L",
+            "Agua sem gas 500ml","Agua sem gas 1,5L","Corona long","Stella long"
+          ],
+          "Coca-Cola (Retornaveis e Packs)": [
+            "Retornavel vazia completa","KS vazia completa","Packs completos de Coca-Cola 2L","Pack completo de Fanta Uva",
+            "Pack completo de Fanta Laranja","Guarana latinha (Coca)","Garrafinha de Coca 200ml","Garrafinha de Fanta 200ml"
+          ]
+        },
+        Ingrid: {
+          "Jardim America": ["Antarctica latao","Brahma latao","Imperio latao","Heineken latao","Heineken long"],
+          "Fotos (Check)": [
+            "Foto de todas as estantes arrumadas e abastecidas","Foto dos biscoitos","Foto das reservas",
+            "Foto dos doces","Foto do freezer com barras de chocolate"
+          ]
+        },
+        Claudia: {
+          "Sadia (Segunda)": ["Mortadela comum","Mortadela defumada","Presunto","Calabresa","Salsicha","Hamburguer"],
+          "Queijos": ["Queijo prato","Queijo mussarela","Queijo minas","Minas padrao"]
+        },
+        DADA: { "Mineirinho (Terca)": ["Mineirinho 2L","Mineirinho 350ml"] }
+      }
+    },
+
+    loja_bogados: {
+      label: "Bogados",
+      managerUser: "BOGADOS - GERENTE",
+      // SOMENTE 1 funcionário + gerente (isolado)
+      defaultEmployees: [{ name:"bogados", active:true }],
+      // SEM categorias iniciais (evita “lixo” no banco)
+      defaultCategories: {} // <-- aqui já remove “Rotina (Bogados)” e não cria nada sozinho
+    }
+  };
+
+  const SESSION_KEY = "mdl_session_v2"; // store + user
   const MASTER_MANAGER_PIN = "1234";
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -397,18 +514,6 @@
 
   const $ = (id) => document.getElementById(id);
   function toast(msg){ alert(msg); }
-  function warnManager(msg){
-    const box = $("managerWarn");
-    if (!box) return;
-    if (!msg){
-      box.classList.add("hidden");
-      box.innerText = "";
-      return;
-    }
-    box.classList.remove("hidden");
-    box.innerText = msg;
-  }
-
   function show(section){
     ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
     $(section).classList.remove("hidden");
@@ -420,42 +525,41 @@
   function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
   function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
 
-  // ✅ Normaliza weekKey antigo "2026-W5" para "2026-W05"
-  function normalizeWeekKeyLoose(wk){
-    const s = String(wk || "").trim();
-    const m = s.match(/^(\d{4})-W(\d{1,2})$/i);
-    if (!m) return s;
-    const y = m[1];
-    const w = String(Number(m[2])).padStart(2,"0");
-    return `${y}-W${w}`;
-  }
-
   // ====== State ======
+  let currentStoreId = "loja_principal";
   let data = {};
   let scoresDoc = {};
-  let tasksAll = [];
-  let missingAll = [];
-  let tasksDone = [];
-  let missingReports = [];
+  let tasksAll = [];        // até 900 mais recentes
+  let missingAll = [];      // até 900 mais recentes
+  let tasksDone = [];       // filtrado semana atual
+  let missingReports = [];  // filtrado semana atual
+  let tasksPrev = [];       // semana anterior
+  let missingPrev = [];     // semana anterior
+
   let currentUser = "";
   let currentWeekKey = "";
+  let prevWeekKey = "";
   let employees = [];
   let globalTask = null;
   let escala = null;
 
+  // Templates globais
   let globalTemplates = [];
   let escalaLocalEmployee = null;
   let escalaLocalGer = null;
 
-  // ===== Refs =====
-  const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
-  const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
-  const cfgGlobalTplRef = () => doc(db,"stores",STORE_ID,"config","global_templates");
-  const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
-  const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
-  const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
-  const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
-  const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
+  function storeCfg(){ return STORES[currentStoreId] || STORES.loja_principal; }
+  function managerName(){ return storeCfg().managerUser; }
+
+  // ===== Refs (por loja) =====
+  const cfgCatsRef = () => doc(db,"stores",currentStoreId,"config","categories");
+  const cfgAppRef  = () => doc(db,"stores",currentStoreId,"config","app");
+  const cfgGlobalTplRef = () => doc(db,"stores",currentStoreId,"config","global_templates");
+  const scoresRef  = () => doc(db,"stores",currentStoreId,"state","scores");
+  const metaRef    = () => doc(db,"stores",currentStoreId,"meta","app");
+  const userRef    = (user) => doc(db,"stores",currentStoreId,"users",user);
+  const escalaRef  = (wk) => doc(db,"stores",currentStoreId,"state","escala_"+wk);
+  const globalRef  = (wk) => doc(db,"stores",currentStoreId,"state","global_"+wk);
 
   // ===== Top bar =====
   function monthKey(date){
@@ -481,8 +585,8 @@
       return;
     }
 
-    if (currentUser === "GERENTE"){
-      topTitle.innerText = "Gerente";
+    if (currentUser === managerName()){
+      topTitle.innerText = currentUser;
       topSubtitle.innerText = "Painel administrativo";
       pointsBox.classList.add("hidden");
       pointsBox.classList.remove("flex");
@@ -490,7 +594,7 @@
     }
 
     topTitle.innerText = currentUser;
-    topSubtitle.innerText = "Acompanhe suas tarefas";
+    topSubtitle.innerText = storeCfg().label;
     const pts = getMonthPoints(currentUser);
     $("monthPointsTop").innerText = pts;
     pointsBox.classList.remove("hidden");
@@ -513,6 +617,20 @@
     const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     return d.getUTCFullYear() + "-W" + String(weekNo).padStart(2,"0");
   }
+  function prevWeekFromKey(wk){
+    // wk = "2026-W05" -> volta 7 dias
+    const [y, w] = wk.split("-W");
+    const year = Number(y);
+    const week = Number(w);
+    // pega uma data aproximada da semana (quinta)
+    const simple = new Date(Date.UTC(year,0,1));
+    const dayOfWeek = simple.getUTCDay() || 7;
+    const isoWeekStart = new Date(simple);
+    isoWeekStart.setUTCDate(simple.getUTCDate() + (week - 1) * 7 + (1 - dayOfWeek)); // segunda
+    const prev = new Date(isoWeekStart);
+    prev.setUTCDate(prev.getUTCDate() - 7);
+    return weekKey(prev);
+  }
 
   async function ensureWeekKey(){
     const snap = await getDoc(metaRef());
@@ -522,6 +640,7 @@
     if (!snap.exists()){
       await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
       currentWeekKey = wk;
+      prevWeekKey = prevWeekFromKey(wk);
       return;
     }
 
@@ -529,27 +648,28 @@
     if (today.getDay() === 1 && saved !== wk){
       await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
       currentWeekKey = wk;
+      prevWeekKey = prevWeekFromKey(wk);
       return;
     }
     currentWeekKey = saved;
+    prevWeekKey = prevWeekFromKey(saved);
   }
 
   // ===== Sessão =====
-  function saveSession(user){ localStorage.setItem(SESSION_KEY, JSON.stringify({ user, at: Date.now() })); }
+  function saveSession(storeId, user){
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ storeId, user, at: Date.now() }));
+  }
   function clearSession(){ localStorage.removeItem(SESSION_KEY); }
   function getSession(){
     try{
       const raw = localStorage.getItem(SESSION_KEY);
       if (!raw) return null;
       const obj = JSON.parse(raw);
-      return obj && obj.user ? obj : null;
+      return obj && obj.user && obj.storeId ? obj : null;
     } catch(e){ return null; }
   }
 
   // ===== Funcionários =====
-  const defaultEmployeesLegacy = ["Sandra","Thauane","Ingrid","Claudia","DADA"];
-  const defaultEmployees = defaultEmployeesLegacy.map(n => ({ name: n, active: true }));
-
   function isEmployeeActive(name){
     const n = normalizeName(name);
     const e = employees.find(x => x.name === n);
@@ -564,31 +684,26 @@
 
   async function ensureEmployeesConfig(){
     const snap = await getDoc(cfgAppRef());
+    const defaults = storeCfg().defaultEmployees;
 
     if (!snap.exists()){
-      await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
-      employees = clone(defaultEmployees);
+      // Cria só a config de funcionários (limpo)
+      await setDoc(cfgAppRef(), { employees: defaults, updatedAt: serverTimestamp() }, { merge:true });
+      employees = clone(defaults);
       return;
     }
 
     const raw = snap.data().employees;
 
-    if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "string"){
-      const migrated = raw.map(n => ({ name: normalizeName(n), active: true })).filter(x=>x.name);
-      await setDoc(cfgAppRef(), { employees: migrated, updatedAt: serverTimestamp() }, { merge:true });
-      employees = migrated;
-      return;
-    }
-
     if (!Array.isArray(raw) || raw.length === 0){
-      await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
-      employees = clone(defaultEmployees);
+      await setDoc(cfgAppRef(), { employees: defaults, updatedAt: serverTimestamp() }, { merge:true });
+      employees = clone(defaults);
       return;
     }
 
     employees = raw
       .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name);
+      .filter(x => x.name && x.name !== managerName());
 
     const seen = new Set();
     employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
@@ -597,7 +712,7 @@
   async function setEmployees(next){
     const cleaned = next
       .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name && x.name.toUpperCase() !== "GERENTE");
+      .filter(x => x.name && x.name !== managerName());
 
     const seen = new Set();
     const unique = cleaned.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
@@ -608,35 +723,46 @@
   async function addEmployee(name){
     name = normalizeName(name);
     if (!name) return toast("Digite um nome.");
-    if (name.toUpperCase() === "GERENTE") return toast("Nome inválido.");
+    if (name === managerName()) return toast("Nome inválido.");
     if (employees.some(e => e.name === name)) return toast("Esse funcionário já existe.");
 
     const next = employees.concat([{ name, active: true }]);
     await setEmployees(next);
 
-    const newCats = clone(data || {});
-    if (!newCats[name]) newCats[name] = {};
-    await setDoc(cfgCatsRef(), { data: newCats, updatedAt: serverTimestamp() }, { merge:false });
+    // Evita “lixo”: NÃO cria categorias vazias automaticamente.
     toast("Funcionário adicionado (ativo).");
+  }
+
+  async function toggleEmployee(name, active){
+    name = normalizeName(name);
+    const next = employees.map(e => e.name === name ? ({ ...e, active: !!active }) : e);
+    await setEmployees(next);
+  }
+
+  function fillSelect(selectEl, values, includeManager=false, placeholder=null){
+    if (!selectEl) return;
+    const prev = selectEl.value;
+    selectEl.innerHTML = "";
+    if (placeholder !== null) selectEl.appendChild(new Option(placeholder, ""));
+    if (includeManager) selectEl.appendChild(new Option(managerName(), managerName()));
+    values.forEach(v => selectEl.appendChild(new Option(v, v)));
+    if (prev && Array.from(selectEl.options).some(o=>o.value===prev)) selectEl.value = prev;
   }
 
   function renderEmployeesUI(){
     const loginSel = $("userSelect");
     loginSel.innerHTML = "";
     loginSel.appendChild(new Option("Selecione", ""));
-    loginSel.appendChild(new Option("Gerente", "GERENTE"));
+
+    // Gerente sempre visível
+    loginSel.appendChild(new Option("Gerente", managerName()));
+
+    // Só funcionários ativos DAQUELA LOJA
     activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
 
     const namesAll = allNames();
-    const addUser = $("addUser");
-    const pinUser = $("pinUser");
-
-    addUser.innerHTML = "";
-    namesAll.forEach(n => addUser.appendChild(new Option(n,n)));
-
-    pinUser.innerHTML = "";
-    pinUser.appendChild(new Option("GERENTE", "GERENTE"));
-    namesAll.forEach(n => pinUser.appendChild(new Option(n,n)));
+    fillSelect($("addUser"), namesAll, false, null);
+    fillSelect($("pinUser"), namesAll, true, null);
 
     renderEmployeeTable();
   }
@@ -646,72 +772,48 @@
     if (!wrap) return;
     wrap.innerHTML = "";
 
-    const ordered = employees.slice().sort((a,b)=>a.name.localeCompare(b.name));
-    if (!ordered.length){
-      wrap.innerHTML = `<div class="text-sm text-gray-500">Sem funcionários.</div>`;
+    const rows = (employees || []).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    if (!rows.length){
+      wrap.innerHTML = `<div class="text-sm text-gray-500">Sem funcionários cadastrados.</div>`;
       return;
     }
 
-    ordered.forEach((e)=>{
-      const row = document.createElement("div");
-      row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
+    rows.forEach(e=>{
+      const div = document.createElement("div");
+      div.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
 
       const left = document.createElement("div");
-      left.innerHTML = `<div class="font-semibold">${e.name}</div><div class="text-xs text-gray-600">${e.active ? "Ativo" : "Bloqueado"}</div>`;
+      left.innerHTML = `<div class="font-semibold">${e.name}</div><div class="text-xs text-gray-500">${e.active ? "Ativo" : "Bloqueado"}</div>`;
 
       const btn = document.createElement("button");
       btn.className = e.active
         ? "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm"
         : "bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm";
       btn.innerText = e.active ? "Bloquear" : "Ativar";
+
       btn.onclick = async ()=>{
-        if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-        const next = employees.map(x => x.name===e.name ? ({...x, active: !x.active}) : x);
-        await setEmployees(next);
+        if (currentUser !== managerName()) return toast("Apenas o gerente.");
+        await toggleEmployee(e.name, !e.active);
       };
 
-      row.appendChild(left);
-      row.appendChild(btn);
-      wrap.appendChild(row);
+      div.appendChild(left);
+      div.appendChild(btn);
+      wrap.appendChild(div);
     });
   }
 
-  // ===== Categorias base =====
-  const defaultData = {
-    Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
-    Thauane: {
-      "Ambev (Segunda)": [
-        "Cracudinha (cascos vazios completos)","Guarana Antarctica fora da geladeira","Sukita fora da geladeira",
-        "Guaraviton","Gatorade","Suco Tang - Laranja","Suco Tang - Morango","Suco Tang - Guarana","Suco Tang - Uva",
-        "Suco Tang - Limao","Suco Tang - Maracuja","Guaravita","Agua com gas 500ml","Agua com gas 1,5L",
-        "Agua sem gas 500ml","Agua sem gas 1,5L","Corona long","Stella long"
-      ],
-      "Coca-Cola (Retornaveis e Packs)": [
-        "Retornavel vazia completa","KS vazia completa","Packs completos de Coca-Cola 2L","Pack completo de Fanta Uva",
-        "Pack completo de Fanta Laranja","Guarana latinha (Coca)","Garrafinha de Coca 200ml","Garrafinha de Fanta 200ml"
-      ]
-    },
-    Ingrid: {
-      "Jardim America": ["Antarctica latao","Brahma latao","Imperio latao","Heineken latao","Heineken long"],
-      "Fotos (Check)": [
-        "Foto de todas as estantes arrumadas e abastecidas","Foto dos biscoitos","Foto das reservas",
-        "Foto dos doces","Foto do freezer com barras de chocolate"
-      ]
-    },
-    Claudia: {
-      "Sadia (Segunda)": ["Mortadela comum","Mortadela defumada","Presunto","Calabresa","Salsicha","Hamburguer"],
-      "Queijos": ["Queijo prato","Queijo mussarela","Queijo minas","Minas padrao"]
-    },
-    DADA: { "Mineirinho (Terca)": ["Mineirinho 2L","Mineirinho 350ml"] }
-  };
-
   // ===== PIN =====
+  function userBelongsToStore(user){
+    if (user === managerName()) return true;
+    return employees.some(e => e.name === user);
+  }
+
   async function ensureUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (snap.exists()) return { created:false };
     await setDoc(userRef(user), {
       user,
-      role: (user === "GERENTE") ? "manager" : "employee",
+      role: (user === managerName()) ? "manager" : "employee",
       pinHash: await sha256(pin),
       createdAt: serverTimestamp()
     }, { merge:true });
@@ -721,7 +823,7 @@
   async function verifyUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (!snap.exists()){
-      if (user === "GERENTE" && pin === MASTER_MANAGER_PIN){
+      if (user === managerName() && pin === MASTER_MANAGER_PIN){
         await ensureUserPin(user, pin);
         return { ok:true, usedMaster:true };
       }
@@ -732,8 +834,7 @@
   }
 
   function isCategoryDoneThisWeek(user, cat){
-    const wk = normalizeWeekKeyLoose(currentWeekKey);
-    return tasksDone.some(t => t.user === user && t.categoria === cat && normalizeWeekKeyLoose(t.weekKey) === wk);
+    return tasksDone.some(t => t.user === user && t.categoria === cat && t.weekKey === currentWeekKey);
   }
 
   // ===== Scores (MENSAL) =====
@@ -756,13 +857,14 @@
     });
   }
 
-  // ===== Zerar estrelas do mês =====
-  async function resetStarsThisMonth(){
+  async function resetMonthlyStars(){
     const mk = monthKey(new Date());
-    const active = activeNames();
-    const updates = { updatedAt: serverTimestamp() };
-    active.forEach(u => updates["monthScores."+mk+"."+u] = 0);
-    await updateDoc(scoresRef(), updates);
+    if (!confirm(`Zerar estrelas do mês ${mk}?`)) return;
+    await setDoc(scoresRef(), {
+      monthScores: { ...(scoresDoc.monthScores || {}), [mk]: {} },
+      updatedAt: serverTimestamp()
+    }, { merge:false });
+    toast("Estrelas zeradas (mês atual).");
   }
 
   // ===== GLOBAL (semana) =====
@@ -808,7 +910,7 @@
       });
     });
 
-    await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
+    await addDoc(collection(db,"stores",currentStoreId,"tasks"), {
       user,
       categoria: "[GLOBAL] " + (globalTask?.name || "GLOBAL"),
       itens: itensQtd || {},
@@ -884,7 +986,9 @@
   }
 
   function canEditEscala(){
-    return currentUser === "GERENTE" || currentUser === "Claudia";
+    // só na loja principal existe "Claudia" com permissão especial
+    if (currentStoreId === "loja_principal" && currentUser === "Claudia") return true;
+    return currentUser === managerName();
   }
 
   function validateEscala(obj){
@@ -934,17 +1038,13 @@
   async function clearEscala(){
     if (!canEditEscala()) return toast("Sem permissão.");
     if (!confirm("Limpar a escala desta semana?")) return;
-
-    await setDoc(escalaRef(currentWeekKey), {
-      exists: true,
-      weekKey: currentWeekKey,
-      days: emptyEscala().days,
-      updatedAt: serverTimestamp(),
-      updatedAtHuman: nowHuman(),
-      updatedBy: currentUser
-    }, { merge:false });
-
-    toast("Escala limpa.");
+    try{
+      await deleteDoc(escalaRef(currentWeekKey));
+      toast("Escala removida.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao limpar escala.");
+    }
   }
 
   function renderEscalaViewer(){
@@ -984,7 +1084,6 @@
     view.appendChild(box);
   }
 
-  // ===== ESCALA EDITOR =====
   function buildSelect(options, value){
     const sel = document.createElement("select");
     sel.className = "border p-2 rounded w-full";
@@ -1118,7 +1217,7 @@
         if (!escalaLocalEmployee) escalaLocalEmployee = renderEscalaEditor("escalaEditor");
         await saveEscala(escalaLocalEmployee);
       };
-      $("btnClearEscala").onclick = clearEscala;
+      $("btnClearEscalaEmp").onclick = clearEscala;
     } else {
       editorWrap.classList.add("hidden");
       escalaLocalEmployee = null;
@@ -1168,6 +1267,71 @@
     });
   }
 
+  // ===== Semana anterior render =====
+  function renderPrevEmployee(){
+    $("prevWeekLabelEmp").innerText = prevWeekKey;
+    const list = $("prevEmpList");
+    list.innerHTML = "";
+
+    const mine = tasksPrev.filter(t=>t.user === currentUser).slice(0, 120);
+
+    if (!mine.length){
+      list.innerHTML = `<div class="text-gray-500">Nenhuma tarefa sua na semana anterior.</div>`;
+      return;
+    }
+
+    mine.forEach(r=>{
+      const div = document.createElement("div");
+      div.className = "border rounded p-2 bg-gray-50";
+      div.innerHTML = `
+        <div class="font-semibold">${r.categoria}</div>
+        <div class="text-xs text-gray-600">${r.when || ""}</div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function renderPrevManager(){
+    $("prevWeekLabelGer").innerText = prevWeekKey;
+
+    const t = $("prevTasksGer");
+    const m = $("prevMissingGer");
+    t.innerHTML = "";
+    m.innerHTML = "";
+
+    const orderedT = tasksPrev.slice(0, 250);
+    const orderedM = missingPrev.slice(0, 250);
+
+    if (!orderedT.length){
+      t.innerHTML = `<div class="text-gray-500">Sem tarefas na semana anterior.</div>`;
+    } else {
+      orderedT.forEach(r=>{
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 bg-white";
+        div.innerHTML = `
+          <div class="font-semibold">${r.user} - ${r.categoria}</div>
+          <div class="text-xs text-gray-600">${r.when || ""}</div>
+        `;
+        t.appendChild(div);
+      });
+    }
+
+    if (!orderedM.length){
+      m.innerHTML = `<div class="text-gray-500">Sem faltas na semana anterior.</div>`;
+    } else {
+      orderedM.forEach(r=>{
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 bg-white";
+        div.innerHTML = `
+          <div class="font-semibold">${r.user}</div>
+          <div class="text-xs text-gray-600">${r.when || ""}</div>
+          <div class="text-sm mt-1">${r.item}</div>
+        `;
+        m.appendChild(div);
+      });
+    }
+  }
+
   // ===== Render funcionário =====
   function renderEmployee(){
     if (!isEmployeeActive(currentUser)){
@@ -1188,6 +1352,7 @@
     const container = $("tasks");
     container.innerHTML = "";
 
+    // GLOBAL open
     if (globalTask && globalTask.exists && globalTask.status === "open"){
       const card = document.createElement("div");
       card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
@@ -1254,6 +1419,7 @@
       container.appendChild(card);
     }
 
+    // categorias pessoais
     const cats = data[currentUser] || {};
     const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
     if (!catNames.length){
@@ -1261,116 +1427,119 @@
       box.className = "bg-white p-4 rounded-xl shadow text-gray-600";
       box.innerText = "Sem categorias para este usuário.";
       container.appendChild(box);
-      return;
-    }
+    } else {
+      catNames.forEach((cat)=>{
+        const card = document.createElement("div");
+        card.className = "bg-white p-4 rounded-xl shadow";
 
-    catNames.forEach((cat)=>{
-      const card = document.createElement("div");
-      card.className = "bg-white p-4 rounded-xl shadow";
+        const done = isCategoryDoneThisWeek(currentUser, cat);
 
-      const done = isCategoryDoneThisWeek(currentUser, cat);
+        const title = document.createElement("div");
+        title.className = "flex items-center justify-between gap-2";
+        title.innerHTML = "<h3 class='font-semibold'>" + cat + "</h3><span class='text-xs text-gray-500'>+10</span>";
+        card.appendChild(title);
 
-      const title = document.createElement("div");
-      title.className = "flex items-center justify-between gap-2";
-      title.innerHTML = "<h3 class='font-semibold'>" + cat + "</h3><span class='text-xs text-gray-500'>+10</span>";
-      card.appendChild(title);
+        const body = document.createElement("div");
+        body.className = "mt-3 space-y-2";
 
-      const body = document.createElement("div");
-      body.className = "mt-3 space-y-2";
+        const itens = cats[cat] || [];
+        itens.forEach((item)=>{
+          const row = document.createElement("div");
+          row.className = "flex items-center justify-between gap-2";
+          row.innerHTML =
+            "<span class='text-sm text-gray-800'>" + item + "</span>" +
+            "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
+          body.appendChild(row);
+        });
 
-      const itens = cats[cat] || [];
-      itens.forEach((item)=>{
-        const row = document.createElement("div");
-        row.className = "flex items-center justify-between gap-2";
-        row.innerHTML =
-          "<span class='text-sm text-gray-800'>" + item + "</span>" +
-          "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
-        body.appendChild(row);
-      });
+        const warn = document.createElement("p");
+        warn.className = "text-xs text-gray-500 mt-2";
+        warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
+        body.appendChild(warn);
 
-      const warn = document.createElement("p");
-      warn.className = "text-xs text-gray-500 mt-2";
-      warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
-      body.appendChild(warn);
+        const btn = document.createElement("button");
+        btn.className = "mt-4 w-full bg-green-600 hover:bg-green-700 text-white p-2 rounded";
+        btn.innerText = done ? "Concluído (semana)" : "Concluir";
+        btn.disabled = done;
+        if (done) btn.classList.add("opacity-50");
 
-      const btn = document.createElement("button");
-      btn.className = "mt-4 w-full bg-green-600 hover:bg-green-700 text-white p-2 rounded";
-      btn.innerText = done ? "Concluído (semana)" : "Concluir";
-      btn.disabled = done;
-      if (done) btn.classList.add("opacity-50");
+        btn.addEventListener("click", async ()=>{
+          if (btn.disabled) return;
 
-      btn.addEventListener("click", async ()=>{
-        if (btn.disabled) return;
+          const itensQtd = {};
+          const inputs = Array.from(body.querySelectorAll("input[type=number]"));
+          for (const inp of inputs){
+            const name = decodeURIComponent(inp.getAttribute("data-item"));
+            if (inp.value === ""){
+              toast("Preencha todos os itens. Se for zero, digite 0.");
+              inp.focus();
+              return;
+            }
+            const val = Number(inp.value);
+            itensQtd[name] = Number.isFinite(val) ? val : 0;
+          }
 
-        const itensQtd = {};
-        const inputs = Array.from(body.querySelectorAll("input[type=number]"));
-        for (const inp of inputs){
-          const name = decodeURIComponent(inp.getAttribute("data-item"));
-          if (inp.value === ""){
-            toast("Preencha todos os itens. Se for zero, digite 0.");
-            inp.focus();
+          if (isCategoryDoneThisWeek(currentUser, cat)){
+            toast("Essa categoria já foi concluída nesta semana.");
+            renderEmployee();
             return;
           }
-          const val = Number(inp.value);
-          itensQtd[name] = Number.isFinite(val) ? val : 0;
-        }
 
-        if (isCategoryDoneThisWeek(currentUser, cat)){
-          toast("Essa categoria já foi concluída nesta semana.");
-          renderEmployee();
-          return;
-        }
+          btn.disabled = true;
+          btn.classList.add("opacity-50");
+          btn.innerText = "Salvando...";
 
-        btn.disabled = true;
-        btn.classList.add("opacity-50");
-        btn.innerText = "Salvando...";
+          try{
+            await addDoc(collection(db,"stores",currentStoreId,"tasks"), {
+              user: currentUser,
+              categoria: cat,
+              itens: itensQtd,
+              when: nowHuman(),
+              weekKey: currentWeekKey,
+              createdAt: serverTimestamp()
+            });
 
-        try{
-          await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
-            user: currentUser,
-            categoria: cat,
-            itens: itensQtd,
-            when: nowHuman(),
-            weekKey: currentWeekKey,
-            createdAt: serverTimestamp()
-          });
+            await bumpMonthlyScore(currentUser, 10);
 
-          await bumpMonthlyScore(currentUser, 10);
+            btn.innerText = "Concluído";
+            toast("Concluído!");
+          } catch(e){
+            console.error(e);
+            toast("Erro ao salvar. Verifique a internet e tente novamente.");
+            btn.disabled = false;
+            btn.classList.remove("opacity-50");
+            btn.innerText = "Concluir";
+          }
+        });
 
-          btn.innerText = "Concluído";
-          toast("Concluído!");
-        } catch(e){
-          console.error(e);
-          toast("Erro ao salvar. Verifique a internet e tente novamente.");
-          btn.disabled = false;
-          btn.classList.remove("opacity-50");
-          btn.innerText = "Concluir";
-        }
+        card.appendChild(body);
+        card.appendChild(btn);
+        container.appendChild(card);
       });
+    }
 
-      card.appendChild(body);
-      card.appendChild(btn);
-      container.appendChild(card);
-    });
+    renderPrevEmployee();
   }
 
   // ===== Render gerente =====
   function renderManager(){
     $("weekKeyLabelGer").innerText = currentWeekKey;
     $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+    $("storeLabelGer").innerText = storeCfg().label;
 
     if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
-    renderRanking();
 
-    // tarefas
+    renderRanking();
+    renderPrevManager();
+
+    // tarefas semana
     const t = $("gerTasks");
     t.innerHTML = "";
-    const ordered = tasksDone.slice(0, 350);
 
-    if (!ordered.length){
+    if (!tasksDone.length){
       t.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa nesta semana.</p>";
     } else {
-      ordered.forEach((r)=>{
+      tasksDone.slice(0, 300).forEach((r)=>{
         const itensObj = r.itens || {};
         const itensKeys = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
         const hasItens = itensKeys.length > 0;
@@ -1384,7 +1553,9 @@
               <div class="font-semibold">${r.user} - ${r.categoria}</div>
               <div class="text-xs text-gray-600">${(r.when || "")}</div>
             </div>
-            <button data-id="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
+            <button data-del="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs shrink-0">
+              Excluir
+            </button>
           </div>
         `;
 
@@ -1405,10 +1576,12 @@
         div.innerHTML = html;
         t.appendChild(div);
 
-        div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
+        div.querySelector("[data-del]")?.addEventListener("click", async (ev)=>{
+          if (currentUser !== managerName()) return toast("Apenas o gerente.");
+          const id = ev.currentTarget.getAttribute("data-del");
           if (!confirm("Excluir esta tarefa concluída?")) return;
           try{
-            await deleteDoc(doc(db,"stores",STORE_ID,"tasks", r.id));
+            await deleteDoc(doc(db,"stores",currentStoreId,"tasks",id));
             toast("Tarefa excluída.");
           } catch(e){
             console.error(e);
@@ -1418,31 +1591,33 @@
       });
     }
 
-    // faltas
+    // faltas semana
     const m = $("gerMissing");
     m.innerHTML = "";
-    const mo = missingReports.slice(0, 350);
-    if (!mo.length){
+
+    if (!missingReports.length){
       m.innerHTML = "<p class='text-gray-500'>Nenhuma falta nesta semana.</p>";
     } else {
-      mo.forEach((r)=>{
+      missingReports.slice(0, 250).forEach((r)=>{
         const div = document.createElement("div");
         div.className = "border rounded p-2 bg-gray-50";
         div.innerHTML =
           `<div class="flex items-start justify-between gap-2">
-            <div>
-              <div class='font-semibold'>${r.user}</div>
-              <div class='text-xs text-gray-600'>${(r.when || "")}</div>
-              <div class='text-sm mt-1'>${r.item}</div>
-            </div>
-            <button data-id="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
-          </div>`;
+             <div>
+               <div class='font-semibold'>${r.user}</div>
+               <div class='text-xs text-gray-600'>${(r.when || "")}</div>
+               <div class='text-sm mt-1'>${r.item}</div>
+             </div>
+             <button data-del="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs shrink-0">Excluir</button>
+           </div>`;
         m.appendChild(div);
 
-        div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
+        div.querySelector("[data-del]")?.addEventListener("click", async (ev)=>{
+          if (currentUser !== managerName()) return toast("Apenas o gerente.");
+          const id = ev.currentTarget.getAttribute("data-del");
           if (!confirm("Excluir este item em falta?")) return;
           try{
-            await deleteDoc(doc(db,"stores",STORE_ID,"missing", r.id));
+            await deleteDoc(doc(db,"stores",currentStoreId,"missing",id));
             toast("Falta excluída.");
           } catch(e){
             console.error(e);
@@ -1465,17 +1640,13 @@
     });
   }
 
-  setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
-  setupCollapse("btnToggleEscalaGer", "escalaGerContent");
-  setupCollapse("btnToggleRanking", "rankingContent");
-
   // ===== Missing =====
   $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
   $("missingSave").addEventListener("click", async ()=>{
     const raw = $("missingInput").value.trim();
     if (!raw) return toast("Digite o item em falta.");
 
-    await addDoc(collection(db,"stores",STORE_ID,"missing"), {
+    await addDoc(collection(db,"stores",currentStoreId,"missing"), {
       user: currentUser,
       item: raw,
       when: nowHuman(),
@@ -1490,7 +1661,7 @@
 
   // ===== GLOBAL TEMPLATES UI =====
   $("btnSaveTpl").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
     const name = normalizeCat($("tplName").value);
     const items = sanitizeItemsFromInput($("tplItems").value.trim());
     if (!name) return toast("Digite o nome do template.");
@@ -1507,7 +1678,7 @@
   });
 
   $("btnDeleteTpl").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
     const id = $("globalTplSelect").value;
     if (!id) return toast("Selecione um template.");
     const tpl = findTemplateById(id);
@@ -1523,7 +1694,7 @@
   });
 
   $("btnPublishGlobalFromTpl").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
     const id = $("globalTplSelect").value;
     if (!id) return toast("Selecione um template.");
     const tpl = findTemplateById(id);
@@ -1542,7 +1713,7 @@
 
   // ===== Funcionários add / toggle =====
   $("btnAddEmployee").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
     const name = $("newEmployeeName").value;
     $("newEmployeeName").value = "";
     try{ await addEmployee(name); }catch(e){ console.error(e); toast("Erro ao adicionar funcionário."); }
@@ -1555,13 +1726,14 @@
 
   // ===== Categories individual buttons =====
   $("btnAddCategory").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
     const u = $("addUser").value;
     const cat = normalizeCat($("categoriaNome").value);
     const items = $("itensCategoria").value.trim();
     if (!u) return toast("Selecione o funcionário.");
     if (!cat) return toast("Informe o nome da categoria");
 
+    // Evita “lixo”: só escreve categories quando realmente precisa (aqui sim).
     const newData = clone(data || {});
     if (!newData[u]) newData[u] = {};
     newData[u][cat] = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
@@ -1574,7 +1746,7 @@
 
   // ===== PIN reset =====
   $("btnSetPin").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
     const u = $("pinUser").value;
     const p = $("pinNew").value.trim();
     if (!u) return toast("Selecione o usuário.");
@@ -1582,7 +1754,7 @@
 
     await setDoc(userRef(u), {
       user: u,
-      role: (u === "GERENTE") ? "manager" : "employee",
+      role: (u === managerName()) ? "manager" : "employee",
       pinHash: await sha256(p),
       updatedAt: serverTimestamp()
     }, { merge:true });
@@ -1593,22 +1765,22 @@
 
   // ===== Export CSV =====
   $("btnExport").addEventListener("click", ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente exporta.");
+    if (currentUser !== managerName()) return toast("Apenas o gerente exporta.");
 
-    const header = ["tipo","usuario","categoria","quando","detalhes"];
+    const header = ["tipo","usuario","categoria","quando","detalhes","weekKey","loja"];
     let csv = header.join(",") + "\n";
 
     tasksDone.forEach((r)=>{
-      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {})].map(csvCell).join(",") + "\n";
+      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {}), r.weekKey, currentStoreId].map(csvCell).join(",") + "\n";
     });
     missingReports.forEach((r)=>{
-      csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item })].map(csvCell).join(",") + "\n";
+      csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item }), r.weekKey, currentStoreId].map(csvCell).join(",") + "\n";
     });
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "relatorio_" + currentWeekKey + ".csv";
+    a.download = "relatorio_" + currentWeekKey + "_" + currentStoreId + ".csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1620,9 +1792,9 @@
     return s;
   }
 
-  // ===== Reset semana =====
+  // ===== Reset / deletes =====
   $("btnResetWeek").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
     if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
 
     try{
@@ -1639,9 +1811,38 @@
     }
   });
 
+  $("btnResetStars").addEventListener("click", ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    resetMonthlyStars();
+  });
+
+  $("btnDeleteAllTasksWeek").addEventListener("click", async ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    if (!confirm("Excluir TODAS as tarefas concluídas da semana atual?")) return;
+    try{
+      await deleteByWeek("tasks", currentWeekKey);
+      toast("Tarefas da semana excluídas.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir tarefas.");
+    }
+  });
+
+  $("btnDeleteAllMissingWeek").addEventListener("click", async ()=>{
+    if (currentUser !== managerName()) return toast("Apenas o gerente.");
+    if (!confirm("Excluir TODOS os itens em falta da semana atual?")) return;
+    try{
+      await deleteByWeek("missing", currentWeekKey);
+      toast("Faltas da semana excluídas.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir faltas.");
+    }
+  });
+
   async function deleteByWeek(colName, wk){
-    const colRef = collection(db, "stores", STORE_ID, colName);
-    // ✅ aqui pode usar where sem orderBy (não pede índice composto)
+    const colRef = collection(db, "stores", currentStoreId, colName);
+    // Sem orderBy para evitar índice composto
     const q = query(colRef, where("weekKey","==",wk), limit(450));
     const snap = await getDocs(q);
     if (snap.empty) return;
@@ -1660,59 +1861,38 @@
     if (snap.docs.length === 450) await deleteByWeek(colName, wk);
   }
 
-  // ===== Zerar estrelas =====
-  $("btnResetStars").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    if (!confirm("Zerar estrelas/pontos do mês para todos os funcionários ativos?")) return;
-    try{
-      await resetStarsThisMonth();
-      toast("Estrelas zeradas.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao zerar estrelas.");
-    }
-  });
-
-  // ===== Excluir todas tasks/faltas semana =====
-  $("btnDeleteAllTasksWeek").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    if (!confirm("Excluir TODAS as tarefas concluídas desta semana?")) return;
-    try{
-      await deleteByWeek("tasks", currentWeekKey);
-      toast("Tarefas da semana excluídas.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao excluir tarefas.");
-    }
-  });
-
-  $("btnDeleteAllMissingWeek").addEventListener("click", async ()=>{
-    if (currentUser !== "GERENTE") return toast("Apenas o gerente.");
-    if (!confirm("Excluir TODOS os itens em falta desta semana?")) return;
-    try{
-      await deleteByWeek("missing", currentWeekKey);
-      toast("Faltas da semana excluídas.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao excluir faltas.");
-    }
-  });
-
-  // ===== Limpar escala =====
-  $("btnClearEscalaEmp")?.addEventListener("click", clearEscala);
-  $("btnClearEscalaGer")?.addEventListener("click", clearEscala);
+  // ===== Collapses =====
+  setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
+  setupCollapse("btnToggleEscalaGer", "escalaGerContent");
+  setupCollapse("btnToggleRanking", "rankingContent");
+  setupCollapse("btnTogglePrevEmp", "prevEmpContent");
+  setupCollapse("btnTogglePrevGer", "prevGerContent");
 
   // ===== Login / Logout =====
   $("btnLogout1").addEventListener("click", doLogout);
   $("btnLogout2").addEventListener("click", doLogout);
 
+  $("btnClearEscalaGer").addEventListener("click", clearEscala);
+
+  // ===== Loja select (no login) =====
+  $("storeSelect").addEventListener("change", async ()=>{
+    // troca loja só na tela de login (para evitar bagunçar sessão)
+    if (currentUser) return;
+    currentStoreId = $("storeSelect").value;
+    await cloudInit(false); // sem auto-login
+  });
+
   $("btnLogin").addEventListener("click", async ()=>{
     const u = $("userSelect").value;
     const p = $("pin").value;
+
     if (!u) return toast("Selecione o usuário.");
     if (!isValidPin(p)) return toast("PIN precisa ter 4 dígitos.");
 
-    if (u !== "GERENTE" && !isEmployeeActive(u)){
+    // Segurança: impede logar com usuário que não pertence à loja
+    if (!userBelongsToStore(u)) return toast("Usuário não pertence a esta loja.");
+
+    if (u !== managerName() && !isEmployeeActive(u)){
       return toast("Usuário bloqueado. Fale com o gerente.");
     }
 
@@ -1730,9 +1910,9 @@
   function doLogin(u){
     currentUser = u;
     $("pin").value = "";
-    saveSession(u);
+    saveSession(currentStoreId, u);
 
-    if (u === "GERENTE"){
+    if (u === managerName()){
       renderManager();
       escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       $("btnSaveEscalaGer").onclick = async ()=>{
@@ -1756,8 +1936,16 @@
     show("login");
   }
 
-  // ===== Cloud init =====
-  async function cloudInit(){
+  // ===== Cloud init (por loja) =====
+  let unsubscribers = [];
+  function clearListeners(){
+    unsubscribers.forEach(fn=>{ try{ fn && fn(); }catch(e){} });
+    unsubscribers = [];
+  }
+
+  async function cloudInit(tryRestoreSession=true){
+    clearListeners();
+
     await ensureWeekKey();
 
     $("weekKeyLabel").innerText = currentWeekKey;
@@ -1774,7 +1962,8 @@
     await ensureGlobalTemplatesDoc();
     renderGlobalTplDropdown();
 
-    onSnapshot(cfgGlobalTplRef(), (snap)=>{
+    // Templates realtime
+    unsubscribers.push(onSnapshot(cfgGlobalTplRef(), (snap)=>{
       if (!snap.exists()){
         globalTemplates = [];
       } else {
@@ -1782,165 +1971,183 @@
         globalTemplates = Array.isArray(raw) ? raw : [];
       }
       renderGlobalTplDropdown();
-    });
+    }));
 
-    onSnapshot(cfgAppRef(), (snap)=>{
+    // employees realtime
+    unsubscribers.push(onSnapshot(cfgAppRef(), (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
 
       employees = (Array.isArray(raw) ? raw : [])
         .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-        .filter(x => x.name);
+        .filter(x => x.name && x.name !== managerName());
 
       const seen = new Set();
       employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
 
       renderEmployeesUI();
 
-      if (currentUser && currentUser !== "GERENTE" && !isEmployeeActive(currentUser)){
+      if (currentUser && currentUser !== managerName() && !isEmployeeActive(currentUser)){
         clearSession();
         currentUser = "";
         toast("Usuário bloqueado. Faça login novamente.");
         show("login");
       }
 
-      if (currentUser === "GERENTE"){
+      if (currentUser === managerName()){
         escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       } else if (currentUser){
         maybeSetupEscalaUI();
       }
 
       renderRanking();
-    });
+    }));
 
+    // categories (evita lixo: NÃO cria automaticamente em Bogados)
     const catsSnap = await getDoc(cfgCatsRef());
     if (!catsSnap.exists()){
-      await setDoc(cfgCatsRef(), { data: defaultData, updatedAt: serverTimestamp() }, { merge:false });
-      data = clone(defaultData);
+      if (currentStoreId === "loja_principal"){
+        // só a loja principal recebe categorias padrão
+        await setDoc(cfgCatsRef(), { data: storeCfg().defaultCategories, updatedAt: serverTimestamp() }, { merge:false });
+        data = clone(storeCfg().defaultCategories);
+      } else {
+        // Bogados: não cria doc aqui. Mantém vazio em memória.
+        data = {};
+      }
     } else {
       const remote = catsSnap.data().data;
-      data = (remote && typeof remote === "object") ? remote : clone(defaultData);
+      data = (remote && typeof remote === "object") ? remote : {};
     }
 
-    onSnapshot(cfgCatsRef(), (snap)=>{
+    // realtime categories (só se doc existir)
+    unsubscribers.push(onSnapshot(cfgCatsRef(), (snap)=>{
+      if (!snap.exists()){
+        data = {};
+        if (currentUser && currentUser !== managerName()) renderEmployee();
+        if (currentUser === managerName()) renderManager();
+        return;
+      }
       const remote = snap.data().data;
       if (remote && typeof remote === "object"){
         data = remote;
-        if (currentUser && currentUser !== "GERENTE") renderEmployee();
-        if (currentUser === "GERENTE") renderManager();
+        if (currentUser && currentUser !== managerName()) renderEmployee();
+        if (currentUser === managerName()) renderManager();
       }
-    });
+    }));
 
-    onSnapshot(scoresRef(), (snap)=>{
+    // scores realtime
+    unsubscribers.push(onSnapshot(scoresRef(), (snap)=>{
       scoresDoc = snap.data() || {};
       if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
 
-      if (currentUser && currentUser !== "GERENTE"){
+      if (currentUser && currentUser !== managerName()){
         const pts = getMonthPoints(currentUser);
         $("monthPointsInline").innerText = pts;
         $("monthPointsTop").innerText = pts;
       }
       renderRanking();
       updateTopBar();
-    });
+    }));
 
-    // ✅✅✅ AQUI ESTÁ A CORREÇÃO DO ÍNDICE:
-    // NÃO USAR where(weekKey) + orderBy(createdAt)
-    // Busca tudo por createdAt e filtra no JS
-    const TASKS_LIMIT = 2500;
-    const MISSING_LIMIT = 2500;
-
-    const tasksQ = query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(TASKS_LIMIT));
-    onSnapshot(tasksQ, (qs)=>{
+    // tasks (sem where/orderBy combinado => evita índice composto)
+    const tasksQ = query(collection(db,"stores",currentStoreId,"tasks"), orderBy("createdAt","desc"), limit(900));
+    unsubscribers.push(onSnapshot(tasksQ, (qs)=>{
       tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+      tasksDone = tasksAll.filter(x=>x.weekKey === currentWeekKey);
+      tasksPrev = tasksAll.filter(x=>x.weekKey === prevWeekKey);
 
-      const wk = normalizeWeekKeyLoose(currentWeekKey);
-      tasksDone = tasksAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
+      if (currentUser === managerName()) renderManager();
+      if (currentUser && currentUser !== managerName()) renderEmployee();
+    }));
 
-      if (currentUser === "GERENTE") renderManager();
-      if (currentUser && currentUser !== "GERENTE") renderEmployee();
-
-      // Se não aparecer semana passada no gerente, isso aqui ajuda a diagnosticar:
-      if (currentUser === "GERENTE" && tasksAll.length > 0 && tasksDone.length === 0){
-        const samples = [...new Set(tasksAll.slice(0,50).map(t=>String(t.weekKey||"").trim()).filter(Boolean))].slice(0,8);
-        if (samples.length) warnManager("Nenhuma tarefa encontrada nesta semana. Exemplos de weekKey existentes: " + samples.join(" | "));
-      }
-    }, (err)=>{
-      console.error("Erro snapshot tasks:", err);
-      warnManager("Erro ao carregar tasks (veja o console).");
-    });
-
-    const missQ = query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(MISSING_LIMIT));
-    onSnapshot(missQ, (qs)=>{
+    // missing (sem where/orderBy combinado => evita índice composto)
+    const missQ = query(collection(db,"stores",currentStoreId,"missing"), orderBy("createdAt","desc"), limit(900));
+    unsubscribers.push(onSnapshot(missQ, (qs)=>{
       missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+      missingReports = missingAll.filter(x=>x.weekKey === currentWeekKey);
+      missingPrev = missingAll.filter(x=>x.weekKey === prevWeekKey);
 
-      const wk = normalizeWeekKeyLoose(currentWeekKey);
-      missingReports = missingAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
+      if (currentUser === managerName()) renderManager();
+      if (currentUser && currentUser !== managerName()) renderPrevEmployee();
+    }));
 
-      if (currentUser === "GERENTE") renderManager();
-    }, (err)=>{
-      console.error("Erro snapshot missing:", err);
-      warnManager("Erro ao carregar missing (veja o console).");
-    });
-
-    onSnapshot(globalRef(currentWeekKey), (snap)=>{
+    // global week doc
+    unsubscribers.push(onSnapshot(globalRef(currentWeekKey), (snap)=>{
       if (!snap.exists()) globalTask = null;
       else globalTask = { id: snap.id, ...snap.data() };
 
       if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
-      if (currentUser && currentUser !== "GERENTE") renderEmployee();
-    });
+      if (currentUser && currentUser !== managerName()) renderEmployee();
+    }));
 
-    onSnapshot(escalaRef(currentWeekKey), (snap)=>{
+    // escala week doc
+    unsubscribers.push(onSnapshot(escalaRef(currentWeekKey), (snap)=>{
       if (!snap.exists()) escala = null;
       else escala = { id: snap.id, ...snap.data() };
 
       renderEscalaViewer();
 
-      if (currentUser === "GERENTE"){
+      if (currentUser === managerName()){
         escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       }
-      if (currentUser && currentUser !== "GERENTE"){
+      if (currentUser && currentUser !== managerName()){
         maybeSetupEscalaUI();
       }
-    });
+    }));
 
     renderEscalaViewer();
     renderRanking();
     updateTopBar();
-  }
 
-  await cloudInit();
+    // tentar restaurar sessão
+    if (tryRestoreSession){
+      const ses = getSession();
+      if (ses && ses.user && ses.storeId){
+        currentStoreId = ses.storeId;
+        $("storeSelect").value = currentStoreId;
 
-  const ses = getSession();
-  if (ses && ses.user){
-    currentUser = ses.user;
+        // recarrega tudo na loja da sessão
+        if (ses.storeId !== currentStoreId){
+          await cloudInit(false);
+        }
 
-    if (currentUser === "GERENTE"){
-      renderManager();
-      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-      $("btnSaveEscalaGer").onclick = async ()=>{
-        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        await saveEscala(escalaLocalGer);
-      };
-      show("gerente");
-    } else {
-      if (!isEmployeeActive(currentUser)){
-        clearSession();
-        currentUser = "";
-        show("login");
+        currentUser = ses.user;
+
+        if (!userBelongsToStore(currentUser)){
+          clearSession();
+          currentUser = "";
+          show("login");
+          return;
+        }
+
+        if (currentUser === managerName()){
+          renderManager();
+          escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+          $("btnSaveEscalaGer").onclick = async ()=>{
+            if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+            await saveEscala(escalaLocalGer);
+          };
+          show("gerente");
+        } else {
+          if (!isEmployeeActive(currentUser)){
+            clearSession();
+            currentUser = "";
+            show("login");
+          } else {
+            renderEmployee();
+            maybeSetupEscalaUI();
+            renderEscalaViewer();
+            show("funcionario");
+          }
+        }
       } else {
-        renderEmployee();
-        maybeSetupEscalaUI();
-        renderEscalaViewer();
-        show("funcionario");
+        show("login");
       }
     }
-  } else {
-    show("login");
   }
 
-  updateTopBar();
+  // ===== Start =====
+  await cloudInit(true);
 
   console.log("BUILD OK");
   window.__BUILD_OK__ = true;
