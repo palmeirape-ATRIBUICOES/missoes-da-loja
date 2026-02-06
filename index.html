@@ -290,6 +290,13 @@
     <div class="mt-3 border-t pt-3">
       <div class="text-sm font-semibold mb-2">Status GLOBAIS desta semana</div>
       <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
+
+      <!-- ✅ LISTA + EXCLUIR GLOBAIS ABERTAS -->
+      <div class="mt-3">
+        <div class="text-sm font-semibold mb-2">GLOBAIS publicadas (semana)</div>
+        <div id="globalsListGer" class="space-y-2 text-sm"></div>
+        <p class="text-xs text-gray-500 mt-2">Você pode excluir apenas as GLOBAIS <b>abertas</b> (ativas).</p>
+      </div>
     </div>
 
     <div class="mt-4 border-t pt-4">
@@ -356,7 +363,7 @@
     </div>
   </div>
 
-  <!-- Gestão de funcionários (desliga no BOGADOS para “ver apenas um ao outro”) -->
+  <!-- Gestão de funcionários (desliga no BOGADOS) -->
   <div id="employeesAdminBox" class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Funcionários (Ativar / Bloquear)</h3>
     <p class="text-xs text-gray-500 mb-3">
@@ -408,7 +415,7 @@
   // =========================
   // ✅ ANTI-CACHE (PWA / SW)
   // =========================
-  const BUILD_ID = "2026-02-05-full-1";
+  const BUILD_ID = "2026-02-06-fix-popup-and-delete-globals-1";
   console.log("BUILD_ID", BUILD_ID);
 
   try {
@@ -501,7 +508,16 @@
   const db = getFirestore(app);
 
   const $ = (id) => document.getElementById(id);
-  function toast(msg){ alert(msg); }
+
+  // ✅ FIX POPUP: evita alert duplicado por múltiplos handlers
+  let __toastLock = false;
+  function toast(msg){
+    if (__toastLock) return;
+    __toastLock = true;
+    alert(msg);
+    __toastLock = false;
+  }
+
   function warnManager(msg){
     const box = $("managerWarn");
     if (!box) return;
@@ -706,7 +722,7 @@
   }
 
   async function ensureEmployeesConfig(){
-    // ✅ Loja BOGADOS fixa, sem adicionar outros (ver apenas um ao outro)
+    // ✅ Loja BOGADOS fixa
     if (isBogadosStore()){
       const fixed = [{ name: BOGADOS_EMPLOYEE, active: true }];
       await setDoc(cfgAppRef(), { employees: fixed, updatedAt: serverTimestamp() }, { merge:true });
@@ -789,12 +805,11 @@
     } else {
       loginSel.appendChild(new Option("Gerente", "GERENTE"));
       activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
-      // também deixa os bogados disponíveis SEM misturar dados (troca STORE_ID no login)
+      // também deixa os bogados disponíveis
       loginSel.appendChild(new Option("BOGADOS - Gerente", BOGADOS_MANAGER));
       loginSel.appendChild(new Option("bogados", BOGADOS_EMPLOYEE));
     }
 
-    // selects do gerente
     const namesAll = allNames();
     const addUser = $("addUser");
     const pinUser = $("pinUser");
@@ -817,7 +832,6 @@
 
     renderEmployeeTable();
 
-    // esconder gestão de funcionários no BOGADOS
     const box = $("employeesAdminBox");
     if (box) box.classList.toggle("hidden", isBogadosStore());
   }
@@ -907,7 +921,6 @@
   async function verifyUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (!snap.exists()){
-      // mestre funciona para qualquer gerente (principal/bogados) se ainda não tiver PIN
       if ((user === "GERENTE" || user === BOGADOS_MANAGER) && pin === MASTER_MANAGER_PIN){
         await ensureUserPin(user, pin);
         return { ok:true, usedMaster:true };
@@ -1009,17 +1022,14 @@
   async function publishGlobalTaskFromTemplate(tpl){
     if (!isUserManager(currentUser)) throw new Error("Apenas o gerente.");
 
-    // ✅ checa limite 20 por semana (sem índice composto)
-    const recentSnap = await getDocs(query(globalsColRef(), orderBy("createdAt","desc"), limit(200)));
+    const recentSnap = await getDocs(query(globalsColRef(), orderBy("createdAt","desc"), limit(250)));
     const wk = normalizeWeekKeyLoose(currentWeekKey);
     const countThisWeek = recentSnap.docs
       .map(d => d.data())
       .filter(g => normalizeWeekKeyLoose(g.weekKey) === wk)
       .length;
 
-    if (countThisWeek >= 20) {
-      throw new Error("Limite de 20 GLOBAIS nesta semana atingido.");
-    }
+    if (countThisWeek >= 20) throw new Error("Limite de 20 GLOBAIS nesta semana atingido.");
 
     await addDoc(globalsColRef(), {
       weekKey: currentWeekKey,
@@ -1060,6 +1070,18 @@
     });
 
     await bumpMonthlyScore(user, 10);
+  }
+
+  // ✅ EXCLUIR GLOBAL ABERTA (ativa)
+  async function deleteOpenGlobal(globalId){
+    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+    const ref = doc(db,"stores",STORE_ID,"globals", globalId);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return toast("GLOBAL não encontrada.");
+    const g = snap.data();
+    if (g.status !== "open") return toast("Só é possível excluir GLOBAL aberta (ativa).");
+    await deleteDoc(ref);
+    toast("GLOBAL excluída.");
   }
 
   // ===== ESCALA =====
@@ -1274,11 +1296,11 @@
         day.folga[0] = normalizeName(f1.value);
       };
 
-      m1.addEventListener("change", sync);
-      m2.addEventListener("change", sync);
-      t1.addEventListener("change", sync);
-      t2.addEventListener("change", sync);
-      f1.addEventListener("change", sync);
+      m1.onchange = sync;
+      m2.onchange = sync;
+      t1.onchange = sync;
+      t2.onchange = sync;
+      f1.onchange = sync;
 
       sync();
     }
@@ -1429,12 +1451,11 @@
     });
   }
 
+  // ✅ FIX POPUP: setupPricesUI agora usa .onclick/.oninput (não acumula listeners)
   function setupPricesUI(){
-    // Permissões labels
     if ($("pricePermEmp")) $("pricePermEmp").innerText = canEditPrices() ? "Pode editar" : "Somente consulta";
     if ($("pricePermGer")) $("pricePermGer").innerText = canEditPrices() ? "Pode editar" : "Somente consulta";
 
-    // Employee panel
     const empEditor = $("priceEditorEmpWrap");
     if (empEditor) empEditor.classList.toggle("hidden", !canEditPrices());
 
@@ -1450,18 +1471,37 @@
       renderPriceResults("priceResultsGer", inpGer.value, true);
     }
 
-    // Save buttons
-    $("btnSavePriceEmp")?.addEventListener("click", async ()=>{
-      await saveOrUpdatePrice($("priceNameEmp").value, $("priceValueEmp").value);
-      $("priceNameEmp").value = "";
-      $("priceValueEmp").value = "";
-    });
+    const btnEmp = $("btnSavePriceEmp");
+    if (btnEmp){
+      btnEmp.onclick = async ()=>{
+        btnEmp.disabled = true;
+        btnEmp.classList.add("opacity-50");
+        try{
+          await saveOrUpdatePrice($("priceNameEmp").value, $("priceValueEmp").value);
+          $("priceNameEmp").value = "";
+          $("priceValueEmp").value = "";
+        } finally {
+          btnEmp.disabled = false;
+          btnEmp.classList.remove("opacity-50");
+        }
+      };
+    }
 
-    $("btnSavePriceGer")?.addEventListener("click", async ()=>{
-      await saveOrUpdatePrice($("priceNameGer").value, $("priceValueGer").value);
-      $("priceNameGer").value = "";
-      $("priceValueGer").value = "";
-    });
+    const btnGer = $("btnSavePriceGer");
+    if (btnGer){
+      btnGer.onclick = async ()=>{
+        btnGer.disabled = true;
+        btnGer.classList.add("opacity-50");
+        try{
+          await saveOrUpdatePrice($("priceNameGer").value, $("priceValueGer").value);
+          $("priceNameGer").value = "";
+          $("priceValueGer").value = "";
+        } finally {
+          btnGer.disabled = false;
+          btnGer.classList.remove("opacity-50");
+        }
+      };
+    }
   }
 
   // ===== Ranking mensal (gerente) =====
@@ -1516,10 +1556,6 @@
         show("login");
         return;
       }
-    } else {
-      if (currentUser !== BOGADOS_EMPLOYEE){
-        // no bogados employee panel only for bogados
-      }
     }
 
     $("userName").innerText = currentUser;
@@ -1535,7 +1571,6 @@
     const container = $("tasks");
     container.innerHTML = "";
 
-    // ✅ Mostra TODAS as GLOBAIS abertas da semana (até 20)
     const openGlobals = (globalsWeek || []).filter(g => g.status === "open");
     openGlobals.forEach((g)=>{
       const card = document.createElement("div");
@@ -1568,7 +1603,7 @@
       btn.className = "mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded";
       btn.innerText = "Concluir GLOBAL";
 
-      btn.addEventListener("click", async ()=>{
+      btn.onclick = async ()=>{
         const itensQtd = {};
         const inputs = Array.from(body.querySelectorAll("input[type=number]"));
         for (const inp of inputs){
@@ -1596,7 +1631,7 @@
           btn.disabled = true;
           btn.innerText = "Encerrada";
         }
-      });
+      };
 
       card.appendChild(body);
       card.appendChild(btn);
@@ -1648,7 +1683,7 @@
       btn.disabled = done;
       if (done) btn.classList.add("opacity-50");
 
-      btn.addEventListener("click", async ()=>{
+      btn.onclick = async ()=>{
         if (btn.disabled) return;
 
         const itensQtd = {};
@@ -1695,11 +1730,65 @@
           btn.classList.remove("opacity-50");
           btn.innerText = "Concluir";
         }
-      });
+      };
 
       card.appendChild(body);
       card.appendChild(btn);
       container.appendChild(card);
+    });
+  }
+
+  // ✅ Render lista de globais no gerente (com excluir abertas)
+  function renderGlobalsManagerList(){
+    const wrap = $("globalsListGer");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+
+    const ordered = (globalsWeek || []).slice().sort((a,b)=>{
+      const aa = a.createdAtHuman || "";
+      const bb = b.createdAtHuman || "";
+      return bb.localeCompare(aa);
+    });
+
+    if (!ordered.length){
+      wrap.innerHTML = `<div class="text-gray-500">Nenhuma GLOBAL publicada nesta semana.</div>`;
+      return;
+    }
+
+    ordered.slice(0, 30).forEach((g, idx)=>{
+      const row = document.createElement("div");
+      row.className = "border rounded p-2 bg-gray-50 flex items-start justify-between gap-2";
+
+      const left = document.createElement("div");
+      const status = g.status === "open" ? "ABERTA" : "CONCLUÍDA";
+      const meta = g.status === "completed"
+        ? `Concluída por ${g.completedBy || "-"} (${g.completedAtHuman || "-"})`
+        : `Criada por ${g.createdBy || "-"} (${g.createdAtHuman || "-"})`;
+
+      left.innerHTML = `
+        <div class="font-semibold">${idx+1}. ${g.name || "GLOBAL"}</div>
+        <div class="text-xs text-gray-600">Status: <b>${status}</b> • ${meta}</div>
+      `;
+
+      row.appendChild(left);
+
+      if (g.status === "open"){
+        const btn = document.createElement("button");
+        btn.className = "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs shrink-0";
+        btn.innerText = "Excluir";
+        btn.onclick = async ()=>{
+          if (!confirm(`Excluir GLOBAL aberta "${g.name}"?`)) return;
+          await deleteOpenGlobal(g.id);
+        };
+        row.appendChild(btn);
+      } else {
+        const tag = document.createElement("div");
+        tag.className = "text-xs px-2 py-1 rounded bg-white border text-gray-700 shrink-0";
+        tag.innerText = "Trancada";
+        row.appendChild(tag);
+      }
+
+      wrap.appendChild(row);
     });
   }
 
@@ -1712,12 +1801,13 @@
     setupPricesUI();
     renderRanking();
 
-    // status globals
     if ($("globalStatus")){
       const openCount = globalsWeek.filter(g=>g.status==="open").length;
       const doneCount = globalsWeek.filter(g=>g.status==="completed").length;
       $("globalStatus").innerText = `GLOBAIS desta semana: ${globalsWeek.length}/20 • Abertas: ${openCount} • Concluídas: ${doneCount}`;
     }
+
+    renderGlobalsManagerList();
 
     const t = $("gerTasks");
     t.innerHTML = "";
@@ -1829,7 +1919,6 @@
   setupCollapse("btnToggleEscalaGer", "escalaGerContent");
   setupCollapse("btnToggleRanking", "rankingContent");
   setupCollapse("btnTogglePricesEmp", "pricesEmpContent");
-  // ✅ Gerenciar preços começa minimizado sempre
   setupCollapse("btnTogglePricesGer", "pricesGerContent", true);
 
   // ===== Missing =====
@@ -1885,7 +1974,6 @@
     }
   });
 
-  // ✅ Publicar GLOBAL sem limite “1 por semana” (agora até 20)
   $("btnPublishGlobalFromTpl")?.addEventListener("click", async ()=>{
     if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
     const id = $("globalTplSelect").value;
@@ -1987,7 +2075,7 @@
   // ===== Deletes =====
   async function deleteByWeek(colName, wk){
     const colRef = collection(db, "stores", STORE_ID, colName);
-    const q = query(colRef, where("weekKey","==",wk), limit(450)); // ✅ sem orderBy => sem índice composto
+    const q = query(colRef, where("weekKey","==",wk), limit(450));
     const snap = await getDocs(q);
     if (snap.empty) return;
 
@@ -2006,7 +2094,6 @@
   }
 
   async function deleteGlobalsByWeek(wk){
-    // sem índice composto: busca recentes e filtra
     const snap = await getDocs(query(globalsColRef(), orderBy("createdAt","desc"), limit(400)));
     const targets = snap.docs.filter(d => normalizeWeekKeyLoose(d.data()?.weekKey) === normalizeWeekKeyLoose(wk));
     if (!targets.length) return;
@@ -2032,9 +2119,7 @@
       await deleteByWeek("tasks", currentWeekKey);
       await deleteByWeek("missing", currentWeekKey);
       await deleteGlobalsByWeek(currentWeekKey);
-
       try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
-
       toast("Semana zerada.");
     } catch(e){
       console.error(e);
@@ -2089,10 +2174,8 @@
     currentUser = "";
     clearSession();
     clearListeners();
-    // volta pra loja principal como “padrão” no login
     STORE_ID = STORE_MAIN;
     show("login");
-    // re-inicia só pra repovoar lista
     bootstrapLogin();
   }
 
@@ -2107,24 +2190,20 @@
     if (!u) return toast("Selecione o usuário.");
     if (!isValidPin(p)) return toast("PIN precisa ter 4 dígitos.");
 
-    // muda loja conforme usuário (BOGADOS separado)
     const nextStore = detectStoreByUser(u);
     if (STORE_ID !== nextStore){
       STORE_ID = nextStore;
       clearListeners();
     }
 
-    // garante configs da loja antes de validar bloqueio
     await ensureWeekKey();
     await ensureEmployeesConfig();
 
-    // bloqueio só vale na principal (BOGADOS é fixo)
     if (!isBogadosStore()){
       if (u !== "GERENTE" && !isEmployeeActive(u)){
         return toast("Usuário bloqueado. Fale com o gerente.");
       }
     } else {
-      // no BOGADOS, só permite os 2 usuários
       if (!BOGADOS_USERS.has(u)){
         return toast("Usuário não permitido no BOGADOS.");
       }
@@ -2147,7 +2226,7 @@
     $("pin").value = "";
     saveSession(u, STORE_ID);
 
-    await cloudInit(); // liga listeners e carrega dados da loja atual
+    await cloudInit();
 
     if (isUserManager(u)){
       renderManager();
@@ -2169,12 +2248,10 @@
 
   // ===== Cloud init (por loja atual) =====
   async function cloudInit(){
-    // evita duplicar listeners
     clearListeners();
 
     await ensureWeekKey();
 
-    // labels
     $("weekKeyLabel").innerText = currentWeekKey;
     $("weekKeyLabelGer").innerText = currentWeekKey;
     $("weekKeyLabelEscala").innerText = currentWeekKey;
@@ -2192,7 +2269,6 @@
     await ensurePricesDoc();
     setupPricesUI();
 
-    // templates live
     unsubs.push(onSnapshot(cfgGlobalTplRef(), (snap)=>{
       if (!snap.exists()){
         globalTemplates = [];
@@ -2203,7 +2279,6 @@
       renderGlobalTplDropdown();
     }));
 
-    // app employees live
     unsubs.push(onSnapshot(cfgAppRef(), (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
@@ -2229,7 +2304,6 @@
       renderRanking();
     }));
 
-    // prices live
     unsubs.push(onSnapshot(cfgPricesRef(), (snap)=>{
       const raw = snap.exists() ? snap.data().items : [];
       priceItems = Array.isArray(raw) ? raw : [];
@@ -2240,10 +2314,8 @@
       warnManager("Erro ao carregar preços (veja o console).");
     }));
 
-    // categories load + live
     const catsSnap = await getDoc(cfgCatsRef());
     if (!catsSnap.exists()){
-      // no BOGADOS pode começar vazio sem “lixo”
       const initial = isBogadosStore() ? { [BOGADOS_EMPLOYEE]: {} } : defaultData;
       await setDoc(cfgCatsRef(), { data: initial, updatedAt: serverTimestamp() }, { merge:false });
       data = clone(initial);
@@ -2261,7 +2333,6 @@
       }
     }));
 
-    // scores live
     unsubs.push(onSnapshot(scoresRef(), (snap)=>{
       scoresDoc = snap.data() || {};
       if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
@@ -2275,7 +2346,6 @@
       updateTopBar();
     }));
 
-    // tasks & missing live (sem índice composto)
     const TASKS_LIMIT = 2500;
     const MISSING_LIMIT = 2500;
 
@@ -2306,8 +2376,7 @@
       warnManager("Erro ao carregar missing (veja o console).");
     }));
 
-    // ✅ GLOBALS live (até 20 por semana) — sem índice composto
-    const GLOBALS_LIMIT = 200;
+    const GLOBALS_LIMIT = 250;
     unsubs.push(onSnapshot(query(globalsColRef(), orderBy("createdAt","desc"), limit(GLOBALS_LIMIT)), (qs)=>{
       globalsAll = qs.docs.map(d => ({ id: d.id, ...d.data() }));
       const wk = normalizeWeekKeyLoose(currentWeekKey);
@@ -2320,7 +2389,6 @@
       warnManager("Erro ao carregar GLOBAIS (veja o console).");
     }));
 
-    // escala live
     unsubs.push(onSnapshot(escalaRef(currentWeekKey), (snap)=>{
       if (!snap.exists()) escala = null;
       else escala = { id: snap.id, ...snap.data() };
@@ -2340,27 +2408,21 @@
     updateTopBar();
   }
 
-  // ===== Bootstrap login list (sem precisar carregar tudo) =====
+  // ===== Bootstrap login list =====
   async function bootstrapLogin(){
-    // padrão: principal
     if (!STORE_ID) STORE_ID = STORE_MAIN;
-
     await ensureEmployeesConfig();
     renderEmployeesUI();
-
-    // status prices UI sem logado não importa
   }
 
   // ===== Start =====
   await bootstrapLogin();
 
-  // restaura sessão
   const ses = getSession();
   if (ses && ses.user && ses.storeId){
     STORE_ID = ses.storeId;
     currentUser = ses.user;
 
-    // garante loja coerente com usuário
     const should = detectStoreByUser(currentUser);
     if (should !== STORE_ID) STORE_ID = should;
 
