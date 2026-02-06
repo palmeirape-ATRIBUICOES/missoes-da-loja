@@ -46,7 +46,18 @@
 <section id="login" class="max-w-3xl mx-auto bg-white p-4 rounded-xl shadow">
   <h2 class="text-lg font-semibold mb-3">Entrar</h2>
 
-  <div class="grid md:grid-cols-3 gap-3">
+  <div class="grid md:grid-cols-4 gap-3">
+    <div class="md:col-span-1">
+      <label class="text-sm text-gray-700">Loja</label>
+      <select id="storeSelect" class="w-full border p-2 rounded">
+        <option value="loja_principal">Loja Principal</option>
+        <option value="loja_bogados">Bogados</option>
+      </select>
+      <p class="text-xs text-gray-500 mt-1">
+        Cada loja é um banco separado (Firestore separado por STORE_ID).
+      </p>
+    </div>
+
     <div class="md:col-span-1">
       <label class="text-sm text-gray-700">Usuário</label>
       <select id="userSelect" class="w-full border p-2 rounded">
@@ -76,47 +87,9 @@
       </button>
     </div>
   </div>
-
-  <div class="mt-4 text-xs text-gray-500">
-    <b>Dica:</b> Usuários “BOGADOS - GERENTE” e “bogados” são uma loja separada (não mistura com a loja principal).
-  </div>
 </section>
 
 <section id="funcionario" class="hidden max-w-3xl mx-auto">
-
-  <!-- PRODUTOS & PREÇOS (Consulta em todos perfis) -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h2 class="text-lg font-semibold">Produtos & Preços</h2>
-        <p class="text-xs text-gray-500">Pesquisa rápida (todos podem consultar)</p>
-      </div>
-      <button id="btnTogglePricesEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-        Minimizar
-      </button>
-    </div>
-
-    <div id="pricesEmpContent" class="mt-3">
-      <input id="priceSearchEmp" class="w-full border rounded p-2" placeholder="Digite as primeiras letras do produto..." />
-      <div id="priceResultsEmp" class="mt-3 space-y-2 text-sm"></div>
-
-      <!-- Editor (somente gerente/Claudia) -->
-      <div id="priceEditorEmpWrap" class="hidden mt-4 border-t pt-4">
-        <div class="flex items-center justify-between">
-          <div class="font-semibold text-sm">Adicionar / Atualizar</div>
-          <div class="text-xs text-gray-500">Permissão: <span id="pricePermEmp">-</span></div>
-        </div>
-        <div class="grid md:grid-cols-3 gap-2 mt-2">
-          <input id="priceNameEmp" class="border p-2 rounded" placeholder="Nome do produto" />
-          <input id="priceValueEmp" class="border p-2 rounded" placeholder="Preço (ex: 9.99)" inputmode="decimal" />
-          <button id="btnSavePriceEmp" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded">
-            Salvar
-          </button>
-        </div>
-        <p class="text-xs text-gray-500 mt-2">Dica: use ponto para centavos (9.99). O app formata para R$.</p>
-      </div>
-    </div>
-  </div>
 
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
@@ -158,6 +131,55 @@
     </div>
   </div>
 
+  <!-- ✅ Produtos & Preços (consulta para todos + gerenciar para gerente e Claudia) -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="flex items-start justify-between gap-2">
+      <div>
+        <h2 class="text-lg font-semibold">Produtos & Preços</h2>
+        <p class="text-xs text-gray-500">Todos podem consultar. Gerente e Claudia podem gerenciar.</p>
+      </div>
+      <div class="text-xs text-gray-500">
+        <span id="pricePermEmp">Somente consulta</span>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <label class="text-sm text-gray-700">Pesquisar produto</label>
+      <div class="relative">
+        <input id="prodSearchEmp" class="w-full border rounded p-2" placeholder="Digite as primeiras letras..." autocomplete="off" />
+        <div id="prodSuggestEmp" class="hidden absolute z-10 mt-1 w-full bg-white border rounded shadow max-h-56 overflow-auto"></div>
+      </div>
+      <div id="prodResultEmp" class="mt-2 text-sm text-gray-700"></div>
+    </div>
+
+    <!-- editor (somente gerente/Claudia) -->
+    <div id="priceEditorEmp" class="hidden mt-4 border-t pt-4">
+      <div class="font-semibold text-sm mb-2">Adicionar / Atualizar</div>
+      <div class="grid md:grid-cols-3 gap-2">
+        <input id="prodNameEmp" class="border p-2 rounded" placeholder="Nome do produto" />
+        <input id="prodPriceEmp" class="border p-2 rounded" placeholder="Preço (ex: 12,50)" inputmode="decimal" />
+        <button id="btnSaveProdEmp" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded">
+          Salvar
+        </button>
+      </div>
+
+      <div class="mt-3 border-t pt-3">
+        <div class="flex items-center justify-between gap-2">
+          <div class="text-sm font-semibold">Lista (gerenciar)</div>
+          <button id="btnToggleProdListEmp"
+                  class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+            Expandir
+          </button>
+        </div>
+
+        <!-- ✅ começa minimizado -->
+        <div id="prodListWrapEmp" class="hidden mt-2">
+          <div id="prodListEmp" class="text-sm space-y-2 max-h-[40vh] overflow-auto"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
@@ -195,7 +217,6 @@
       <div>
         <h2 class="text-xl font-semibold">Painel do Gerente</h2>
         <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelGer">-</span></p>
-        <p class="text-xs text-gray-500">Loja: <span id="storeLabelGer">-</span></p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button id="btnResetWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
@@ -215,38 +236,50 @@
     <div id="managerWarn" class="hidden mt-3 text-xs bg-yellow-50 border border-yellow-200 text-yellow-900 rounded p-2"></div>
   </div>
 
-  <!-- PRODUTOS & PREÇOS (Gerenciar) -->
+  <!-- ✅ Produtos & Preços (gerente) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
+    <div class="flex items-start justify-between gap-2">
       <div>
         <h3 class="font-semibold">Produtos & Preços</h3>
-        <p class="text-xs text-gray-500">Gerenciar e consultar</p>
+        <p class="text-xs text-gray-500">Todos consultam. Gerente e Claudia podem gerenciar.</p>
       </div>
-      <button id="btnTogglePricesGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-        Expandir
-      </button>
+      <div class="text-xs text-gray-500">
+        <span id="pricePermGer">Somente consulta</span>
+      </div>
     </div>
 
-    <!-- começa minimizado -->
-    <div id="pricesGerContent" class="mt-3 hidden">
-      <input id="priceSearchGer" class="w-full border rounded p-2" placeholder="Pesquisar produto..." />
-      <div id="priceResultsGer" class="mt-3 space-y-2 text-sm"></div>
+    <div class="mt-3">
+      <label class="text-sm text-gray-700">Pesquisar produto</label>
+      <div class="relative">
+        <input id="prodSearchGer" class="w-full border rounded p-2" placeholder="Digite as primeiras letras..." autocomplete="off" />
+        <div id="prodSuggestGer" class="hidden absolute z-10 mt-1 w-full bg-white border rounded shadow max-h-56 overflow-auto"></div>
+      </div>
+      <div id="prodResultGer" class="mt-2 text-sm text-gray-700"></div>
+    </div>
 
-      <div class="mt-4 border-t pt-4">
-        <div class="flex items-center justify-between">
-          <div class="font-semibold text-sm">Adicionar / Atualizar</div>
-          <div class="text-xs text-gray-500">Permissão: <span id="pricePermGer">-</span></div>
-        </div>
+    <div id="priceEditorGer" class="mt-4 border-t pt-4 hidden">
+      <div class="font-semibold text-sm mb-2">Adicionar / Atualizar</div>
+      <div class="grid md:grid-cols-3 gap-2">
+        <input id="prodNameGer" class="border p-2 rounded" placeholder="Nome do produto" />
+        <input id="prodPriceGer" class="border p-2 rounded" placeholder="Preço (ex: 12,50)" inputmode="decimal" />
+        <button id="btnSaveProdGer" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded">
+          Salvar
+        </button>
+      </div>
 
-        <div class="grid md:grid-cols-4 gap-2 mt-2">
-          <input id="priceNameGer" class="border p-2 rounded md:col-span-2" placeholder="Nome do produto" />
-          <input id="priceValueGer" class="border p-2 rounded" placeholder="Preço (ex: 9.99)" inputmode="decimal" />
-          <button id="btnSavePriceGer" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded">
-            Salvar
+      <div class="mt-3 border-t pt-3">
+        <div class="flex items-center justify-between gap-2">
+          <div class="text-sm font-semibold">Lista (gerenciar)</div>
+          <button id="btnToggleProdListGer"
+                  class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+            Expandir
           </button>
         </div>
 
-        <p class="text-xs text-gray-500 mt-2">Gerente e Claudia podem editar preços (na loja principal). No BOGADOS, apenas “BOGADOS - GERENTE” edita.</p>
+        <!-- ✅ começa minimizado -->
+        <div id="prodListWrapGer" class="hidden mt-2">
+          <div id="prodListGer" class="text-sm space-y-2 max-h-[40vh] overflow-auto"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -272,7 +305,6 @@
     <p class="text-xs text-gray-500 mb-3">
       Crie templates de GLOBAL e depois publique.
       Quem concluir primeiro “trava” e some dos demais.
-      <br><b>Limite:</b> até 20 GLOBAIS por semana.
     </p>
 
     <div class="grid md:grid-cols-4 gap-2">
@@ -288,7 +320,7 @@
     </div>
 
     <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold mb-2">Status GLOBAIS desta semana</div>
+      <div class="text-sm font-semibold mb-2">Status GLOBAL desta semana</div>
       <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
     </div>
 
@@ -356,8 +388,7 @@
     </div>
   </div>
 
-  <!-- Gestão de funcionários (desliga no BOGADOS para “ver apenas um ao outro”) -->
-  <div id="employeesAdminBox" class="bg-white p-4 rounded-xl shadow mt-4">
+  <div class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Funcionários (Ativar / Bloquear)</h3>
     <p class="text-xs text-gray-500 mb-3">
       Bloqueado não aparece no login.
@@ -399,7 +430,7 @@
     </div>
 
     <p class="text-xs text-gray-500 mt-2">
-      PIN mestre inicial: <b>1234</b> só se o gerente ainda não tiver PIN criado.
+      PIN mestre inicial do gerente: <b>1234</b> só se o gerente ainda não tiver PIN criado.
     </p>
   </div>
 </section>
@@ -408,7 +439,7 @@
   // =========================
   // ✅ ANTI-CACHE (PWA / SW)
   // =========================
-  const BUILD_ID = "2026-02-05-full-1";
+  const BUILD_ID = "2026-02-05-full-prices-bogados-1";
   console.log("BUILD_ID", BUILD_ID);
 
   try {
@@ -477,19 +508,6 @@
     appId: "1:198254465545:web:dce028792e2c2c57161ed8"
   };
 
-  // ✅ Duas lojas (separadas)
-  const STORE_MAIN = "loja_principal";
-  const STORE_BOGADOS = "loja_bogados";
-
-  // ✅ Usuários da loja BOGADOS (isolados)
-  const BOGADOS_MANAGER = "BOGADOS - GERENTE";
-  const BOGADOS_EMPLOYEE = "bogados";
-  const BOGADOS_USERS = new Set([BOGADOS_MANAGER, BOGADOS_EMPLOYEE]);
-
-  // Sessão
-  const SESSION_KEY = "mdl_session_v2";
-  const MASTER_MANAGER_PIN = "1234";
-
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
     getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc,
@@ -502,6 +520,7 @@
 
   const $ = (id) => document.getElementById(id);
   function toast(msg){ alert(msg); }
+
   function warnManager(msg){
     const box = $("managerWarn");
     if (!box) return;
@@ -514,6 +533,31 @@
     box.innerText = msg;
   }
 
+  // =========================
+  // ✅ LOJA / STORE (separado)
+  // =========================
+  const STORE_KEY = "mdl_store_v1";
+  const SESSION_KEY = "mdl_session_v2"; // v2 inclui store
+
+  function getSavedStore(){
+    const s = localStorage.getItem(STORE_KEY);
+    return (s === "loja_bogados" || s === "loja_principal") ? s : "loja_principal";
+  }
+  function setSavedStore(storeId){
+    localStorage.setItem(STORE_KEY, storeId);
+  }
+
+  let STORE_ID = getSavedStore();
+
+  // gerente muda conforme loja
+  function managerName(){
+    return STORE_ID === "loja_bogados" ? "BOGADOS - GERENTE" : "GERENTE";
+  }
+
+  // PIN mestre do gerente (por loja)
+  const MASTER_MANAGER_PIN = "1234";
+
+  // ===== Helpers =====
   function show(section){
     ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
     $(section).classList.remove("hidden");
@@ -535,8 +579,7 @@
     return `${y}-W${w}`;
   }
 
-  // ====== State ======
-  let STORE_ID = STORE_MAIN;            // loja atual
+  // ===== State =====
   let data = {};
   let scoresDoc = {};
   let tasksAll = [];
@@ -546,38 +589,44 @@
   let currentUser = "";
   let currentWeekKey = "";
   let employees = [];
+  let globalTask = null;
   let escala = null;
 
-  // GLOBALS (até 20 por semana)
-  let globalsAll = [];
-  let globalsWeek = [];
-
-  // Templates
   let globalTemplates = [];
+  let escalaLocalEmployee = null;
+  let escalaLocalGer = null;
 
-  // Produtos & preços (1 doc config)
-  let priceItems = []; // [{name, price, updatedAtHuman, updatedBy}]
-  let pricesLoaded = false;
+  // ✅ Produtos
+  let products = []; // [{name, price}]
+  let productsLoaded = false;
 
-  // unsubscribers pra não “lixar” listeners quando troca loja
-  let unsubs = [];
-  function clearListeners(){
-    unsubs.forEach(fn => { try{ fn(); }catch(e){} });
-    unsubs = [];
-  }
-
-  // ===== Refs (dependem de STORE_ID atual) =====
+  // ===== Refs (dependem do STORE_ID) =====
   const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
   const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
   const cfgGlobalTplRef = () => doc(db,"stores",STORE_ID,"config","global_templates");
-  const cfgPricesRef = () => doc(db,"stores",STORE_ID,"config","prices");
+  const cfgProductsRef  = () => doc(db,"stores",STORE_ID,"config","products");
+
   const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
   const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
   const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
+  const globalRef  = (wk) => doc(db,"stores",STORE_ID,"state","global_"+wk);
 
-  // ✅ GLOBALS agora é coleção (até 20 por semana)
-  const globalsColRef = () => collection(db,"stores",STORE_ID,"globals");
+  // ===== Sessão =====
+  function saveSession(user){
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ user, storeId: STORE_ID, at: Date.now() }));
+  }
+  function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+  function getSession(){
+    try{
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (!obj || !obj.user) return null;
+      if (!obj.storeId) obj.storeId = "loja_principal";
+      return obj;
+    } catch(e){ return null; }
+  }
 
   // ===== Top bar =====
   function monthKey(date){
@@ -590,6 +639,7 @@
     const ms = scoresDoc?.monthScores?.[mk] || {};
     return Number(ms?.[user] || 0);
   }
+
   function updateTopBar(){
     const topTitle = $("topTitle");
     const topSubtitle = $("topSubtitle");
@@ -603,18 +653,16 @@
       return;
     }
 
-    const isManager = isUserManager(currentUser);
-
-    if (isManager){
+    if (currentUser === managerName()){
       topTitle.innerText = "Gerente";
-      topSubtitle.innerText = STORE_ID === STORE_BOGADOS ? "Painel BOGADOS" : "Painel administrativo";
+      topSubtitle.innerText = STORE_ID === "loja_bogados" ? "Bogados" : "Painel administrativo";
       pointsBox.classList.add("hidden");
       pointsBox.classList.remove("flex");
       return;
     }
 
     topTitle.innerText = currentUser;
-    topSubtitle.innerText = STORE_ID === STORE_BOGADOS ? "BOGADOS" : "Acompanhe suas tarefas";
+    topSubtitle.innerText = "Acompanhe suas tarefas";
     const pts = getMonthPoints(currentUser);
     $("monthPointsTop").innerText = pts;
     pointsBox.classList.remove("hidden");
@@ -658,40 +706,27 @@
     currentWeekKey = saved;
   }
 
-  // ===== Sessão =====
-  function saveSession(user, storeId){
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ user, storeId, at: Date.now() }));
-  }
-  function clearSession(){ localStorage.removeItem(SESSION_KEY); }
-  function getSession(){
-    try{
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (!raw) return null;
-      const obj = JSON.parse(raw);
-      return obj && obj.user && obj.storeId ? obj : null;
-    } catch(e){ return null; }
+  // ===== Permissões =====
+  let currentRole = "employee"; // preenchido ao logar
+
+  function isManager(){
+    return currentRole === "manager" || currentUser === managerName();
   }
 
-  // ===== Permissões =====
-  function isBogadosStore(){ return STORE_ID === STORE_BOGADOS; }
-  function isUserManager(user){
-    if (isBogadosStore()) return user === BOGADOS_MANAGER;
-    return user === "GERENTE";
-  }
-  function canEditEscala(){
-    // ✅ Claudia pode editar escala na loja principal
-    if (!isBogadosStore() && currentUser === "Claudia") return true;
-    return isUserManager(currentUser);
-  }
-  function canEditPrices(){
-    // ✅ Claudia também pode adicionar preços (loja principal)
-    if (!isBogadosStore() && currentUser === "Claudia") return true;
-    return isUserManager(currentUser);
+  // ✅ Claudia também pode gerenciar preços (somente na loja principal)
+  function canManagePrices(){
+    if (isManager()) return true;
+    return STORE_ID === "loja_principal" && currentUser === "Claudia";
   }
 
   // ===== Funcionários =====
-  const defaultEmployeesLegacy = ["Sandra","Thauane","Ingrid","Claudia","DADA"];
-  const defaultEmployees = defaultEmployeesLegacy.map(n => ({ name: n, active: true }));
+  const defaultEmployeesPrincipalLegacy = ["Sandra","Thauane","Ingrid","Claudia","DADA"];
+  const defaultEmployeesBogadosLegacy = ["bogados"];
+
+  function defaultEmployeesByStore(){
+    const legacy = (STORE_ID === "loja_bogados") ? defaultEmployeesBogadosLegacy : defaultEmployeesPrincipalLegacy;
+    return legacy.map(n => ({ name: n, active: true }));
+  }
 
   function isEmployeeActive(name){
     const n = normalizeName(name);
@@ -706,19 +741,11 @@
   }
 
   async function ensureEmployeesConfig(){
-    // ✅ Loja BOGADOS fixa, sem adicionar outros (ver apenas um ao outro)
-    if (isBogadosStore()){
-      const fixed = [{ name: BOGADOS_EMPLOYEE, active: true }];
-      await setDoc(cfgAppRef(), { employees: fixed, updatedAt: serverTimestamp() }, { merge:true });
-      employees = fixed;
-      return;
-    }
-
     const snap = await getDoc(cfgAppRef());
 
     if (!snap.exists()){
-      await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
-      employees = clone(defaultEmployees);
+      employees = clone(defaultEmployeesByStore());
+      await setDoc(cfgAppRef(), { employees, updatedAt: serverTimestamp() }, { merge:true });
       return;
     }
 
@@ -732,8 +759,8 @@
     }
 
     if (!Array.isArray(raw) || raw.length === 0){
-      await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
-      employees = clone(defaultEmployees);
+      employees = clone(defaultEmployeesByStore());
+      await setDoc(cfgAppRef(), { employees, updatedAt: serverTimestamp() }, { merge:true });
       return;
     }
 
@@ -746,11 +773,14 @@
   }
 
   async function setEmployees(next){
-    if (isBogadosStore()) return toast("BOGADOS: lista fixa (sem adicionar).");
+    if (STORE_ID === "loja_bogados"){
+      // evita "lixo": não permitir editar funcionários na loja bogados (fixo)
+      return toast("Loja Bogados: lista fixa.");
+    }
 
     const cleaned = next
       .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name && x.name.toUpperCase() !== "GERENTE");
+      .filter(x => x.name && x.name.toUpperCase() !== managerName().toUpperCase());
 
     const seen = new Set();
     const unique = cleaned.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
@@ -759,10 +789,10 @@
   }
 
   async function addEmployee(name){
-    if (isBogadosStore()) return toast("BOGADOS: lista fixa (sem adicionar).");
+    if (STORE_ID === "loja_bogados") return toast("Loja Bogados: lista fixa.");
     name = normalizeName(name);
     if (!name) return toast("Digite um nome.");
-    if (name.toUpperCase() === "GERENTE") return toast("Nome inválido.");
+    if (name.toUpperCase() === managerName().toUpperCase()) return toast("Nome inválido.");
     if (employees.some(e => e.name === name)) return toast("Esse funcionário já existe.");
 
     const next = employees.concat([{ name, active: true }]);
@@ -774,27 +804,17 @@
     toast("Funcionário adicionado (ativo).");
   }
 
-  function storeLabel(){
-    return isBogadosStore() ? "BOGADOS" : "PRINCIPAL";
-  }
-
   function renderEmployeesUI(){
     const loginSel = $("userSelect");
     loginSel.innerHTML = "";
     loginSel.appendChild(new Option("Selecione", ""));
 
-    if (isBogadosStore()){
-      loginSel.appendChild(new Option("BOGADOS - Gerente", BOGADOS_MANAGER));
-      loginSel.appendChild(new Option("bogados", BOGADOS_EMPLOYEE));
-    } else {
-      loginSel.appendChild(new Option("Gerente", "GERENTE"));
-      activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
-      // também deixa os bogados disponíveis SEM misturar dados (troca STORE_ID no login)
-      loginSel.appendChild(new Option("BOGADOS - Gerente", BOGADOS_MANAGER));
-      loginSel.appendChild(new Option("bogados", BOGADOS_EMPLOYEE));
-    }
+    // gerente conforme loja
+    loginSel.appendChild(new Option("Gerente", managerName()));
 
-    // selects do gerente
+    // só mostra funcionários da loja atual
+    activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
+
     const namesAll = allNames();
     const addUser = $("addUser");
     const pinUser = $("pinUser");
@@ -806,31 +826,23 @@
 
     if (pinUser){
       pinUser.innerHTML = "";
-      if (isBogadosStore()){
-        pinUser.appendChild(new Option(BOGADOS_MANAGER, BOGADOS_MANAGER));
-        pinUser.appendChild(new Option(BOGADOS_EMPLOYEE, BOGADOS_EMPLOYEE));
-      } else {
-        pinUser.appendChild(new Option("GERENTE", "GERENTE"));
-        namesAll.forEach(n => pinUser.appendChild(new Option(n,n)));
-      }
+      pinUser.appendChild(new Option(managerName(), managerName()));
+      namesAll.forEach(n => pinUser.appendChild(new Option(n,n)));
     }
 
     renderEmployeeTable();
-
-    // esconder gestão de funcionários no BOGADOS
-    const box = $("employeesAdminBox");
-    if (box) box.classList.toggle("hidden", isBogadosStore());
   }
 
   function renderEmployeeTable(){
     const wrap = $("employeeTable");
     if (!wrap) return;
-    wrap.innerHTML = "";
 
-    if (isBogadosStore()){
-      wrap.innerHTML = `<div class="text-sm text-gray-500">BOGADOS: lista fixa (somente "${BOGADOS_EMPLOYEE}").</div>`;
+    if (STORE_ID === "loja_bogados"){
+      wrap.innerHTML = `<div class="text-sm text-gray-500">Loja Bogados: funcionários fixos.</div>`;
       return;
     }
+
+    wrap.innerHTML = "";
 
     const ordered = employees.slice().sort((a,b)=>a.name.localeCompare(b.name));
     if (!ordered.length){
@@ -851,7 +863,7 @@
         : "bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm";
       btn.innerText = e.active ? "Bloquear" : "Ativar";
       btn.onclick = async ()=>{
-        if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+        if (!isManager()) return toast("Apenas o gerente.");
         const next = employees.map(x => x.name===e.name ? ({...x, active: !x.active}) : x);
         await setEmployees(next);
       };
@@ -862,8 +874,8 @@
     });
   }
 
-  // ===== Categorias base =====
-  const defaultData = {
+  // ===== Categorias base (principal) =====
+  const defaultDataPrincipal = {
     Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
     Thauane: {
       "Ambev (Segunda)": [
@@ -891,13 +903,21 @@
     DADA: { "Mineirinho (Terca)": ["Mineirinho 2L","Mineirinho 350ml"] }
   };
 
+  const defaultDataBogados = {
+    bogados: { "Rotina": ["Abrir caixa", "Conferir estoque"] }
+  };
+
+  function defaultDataByStore(){
+    return STORE_ID === "loja_bogados" ? defaultDataBogados : defaultDataPrincipal;
+  }
+
   // ===== PIN =====
   async function ensureUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (snap.exists()) return { created:false };
     await setDoc(userRef(user), {
       user,
-      role: isUserManager(user) ? "manager" : "employee",
+      role: (user === managerName()) ? "manager" : "employee",
       pinHash: await sha256(pin),
       createdAt: serverTimestamp()
     }, { merge:true });
@@ -907,8 +927,7 @@
   async function verifyUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (!snap.exists()){
-      // mestre funciona para qualquer gerente (principal/bogados) se ainda não tiver PIN
-      if ((user === "GERENTE" || user === BOGADOS_MANAGER) && pin === MASTER_MANAGER_PIN){
+      if (user === managerName() && pin === MASTER_MANAGER_PIN){
         await ensureUserPin(user, pin);
         return { ok:true, usedMaster:true };
       }
@@ -916,6 +935,16 @@
     }
     const pinHash = snap.data().pinHash || "";
     return { ok: (await sha256(pin)) === pinHash, noUser:false };
+  }
+
+  async function loadUserRole(user){
+    try{
+      const snap = await getDoc(userRef(user));
+      const role = snap.exists() ? (snap.data().role || "") : "";
+      currentRole = (role === "manager") ? "manager" : (user === managerName() ? "manager" : "employee");
+    }catch(e){
+      currentRole = (user === managerName()) ? "manager" : "employee";
+    }
   }
 
   function isCategoryDoneThisWeek(user, cat){
@@ -949,6 +978,61 @@
     const updates = { updatedAt: serverTimestamp() };
     active.forEach(u => updates["monthScores."+mk+"."+u] = 0);
     await updateDoc(scoresRef(), updates);
+  }
+
+  // ===== GLOBAL (semana) =====
+  function getGlobalStatusText(){
+    if (!globalTask || !globalTask.exists) return "Nenhuma GLOBAL publicada nesta semana.";
+    if (globalTask.status === "completed") return `GLOBAL concluída por ${globalTask.completedBy} em ${globalTask.completedAtHuman || ""}`;
+    if (globalTask.status === "open") return `GLOBAL pendente: ${globalTask.name || "(sem nome)"} (aguardando conclusão)`;
+    return "GLOBAL: estado desconhecido.";
+  }
+
+  async function publishGlobalTaskFromTemplate(tpl){
+    const ref = globalRef(currentWeekKey);
+    const snap = await getDoc(ref);
+    if (snap.exists()){
+      const g = snap.data();
+      if (g?.exists) throw new Error("Já existe GLOBAL nesta semana.");
+    }
+
+    await setDoc(ref, {
+      exists: true,
+      weekKey: currentWeekKey,
+      status: "open",
+      name: tpl.name,
+      items: tpl.items || [],
+      templateId: tpl.id || "",
+      createdAt: serverTimestamp(),
+      createdAtHuman: nowHuman()
+    }, { merge:false });
+  }
+
+  async function completeGlobalTaskAsFirst(user, itensQtd){
+    const ref = globalRef(currentWeekKey);
+    await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(ref);
+      if (!snap.exists()) throw new Error("GLOBAL não existe.");
+      const g = snap.data();
+      if (!g.exists || g.status !== "open") throw new Error("GLOBAL já foi concluída.");
+      tx.update(ref, {
+        status: "completed",
+        completedBy: user,
+        completedAt: serverTimestamp(),
+        completedAtHuman: nowHuman()
+      });
+    });
+
+    await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
+      user,
+      categoria: "[GLOBAL] " + (globalTask?.name || "GLOBAL"),
+      itens: itensQtd || {},
+      when: nowHuman(),
+      weekKey: currentWeekKey,
+      createdAt: serverTimestamp()
+    });
+
+    await bumpMonthlyScore(user, 10);
   }
 
   // ===== GLOBAL TEMPLATES =====
@@ -1005,63 +1089,6 @@
     return (globalTemplates || []).find(t=>t.id === id);
   }
 
-  // ===== GLOBALS (até 20 por semana) =====
-  async function publishGlobalTaskFromTemplate(tpl){
-    if (!isUserManager(currentUser)) throw new Error("Apenas o gerente.");
-
-    // ✅ checa limite 20 por semana (sem índice composto)
-    const recentSnap = await getDocs(query(globalsColRef(), orderBy("createdAt","desc"), limit(200)));
-    const wk = normalizeWeekKeyLoose(currentWeekKey);
-    const countThisWeek = recentSnap.docs
-      .map(d => d.data())
-      .filter(g => normalizeWeekKeyLoose(g.weekKey) === wk)
-      .length;
-
-    if (countThisWeek >= 20) {
-      throw new Error("Limite de 20 GLOBAIS nesta semana atingido.");
-    }
-
-    await addDoc(globalsColRef(), {
-      weekKey: currentWeekKey,
-      status: "open",
-      name: tpl.name,
-      items: Array.isArray(tpl.items) ? tpl.items : [],
-      templateId: tpl.id || "",
-      createdBy: currentUser,
-      createdAt: serverTimestamp(),
-      createdAtHuman: nowHuman()
-    });
-  }
-
-  async function completeGlobalTaskAsFirst(globalId, user, itensQtd){
-    const gRef = doc(db,"stores",STORE_ID,"globals", globalId);
-
-    await runTransaction(db, async (tx)=>{
-      const snap = await tx.get(gRef);
-      if (!snap.exists()) throw new Error("GLOBAL não existe.");
-      const g = snap.data();
-      if (g.status !== "open") throw new Error("GLOBAL já foi concluída.");
-
-      tx.update(gRef, {
-        status: "completed",
-        completedBy: user,
-        completedAt: serverTimestamp(),
-        completedAtHuman: nowHuman()
-      });
-    });
-
-    await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
-      user,
-      categoria: "[GLOBAL] " + String(globalsWeek.find(x=>x.id===globalId)?.name || "GLOBAL"),
-      itens: itensQtd || {},
-      when: nowHuman(),
-      weekKey: currentWeekKey,
-      createdAt: serverTimestamp()
-    });
-
-    await bumpMonthlyScore(user, 10);
-  }
-
   // ===== ESCALA =====
   const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
 
@@ -1069,6 +1096,11 @@
     const days = {};
     for (const d of DAYS) days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
     return { weekKey: currentWeekKey, days };
+  }
+
+  function canEditEscala(){
+    if (isManager()) return true;
+    return STORE_ID === "loja_principal" && currentUser === "Claudia";
   }
 
   function validateEscala(obj){
@@ -1286,9 +1318,6 @@
     return local;
   }
 
-  let escalaLocalEmployee = null;
-  let escalaLocalGer = null;
-
   function maybeSetupEscalaUI(){
     $("weekKeyLabelEscala").innerText = currentWeekKey;
 
@@ -1310,12 +1339,23 @@
     }
   }
 
-  // ===== Produtos & Preços =====
-  function parsePrice(raw){
-    const s = String(raw||"").trim().replace(",", ".");
-    const n = Number(s);
-    return Number.isFinite(n) ? n : null;
+  // =========================
+  // ✅ PRODUTOS & PREÇOS
+  // =========================
+  function normalizeProdKey(name){
+    return normalizeName(name).toLowerCase();
   }
+
+  function parsePriceInput(raw){
+    let s = String(raw || "").trim();
+    if (!s) return NaN;
+    s = s.replace(/\s+/g,"");
+    // aceita "12,50" ou "12.50"
+    s = s.replace(".", "").replace(",", ".");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
   function formatBRL(n){
     try{
       return n.toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
@@ -1323,144 +1363,270 @@
       return "R$ " + String(n);
     }
   }
-  function normalizeProductName(s){
-    return normalizeCat(s).toLowerCase();
-  }
 
-  async function ensurePricesDoc(){
-    const snap = await getDoc(cfgPricesRef());
-    if (!snap.exists()){
-      await setDoc(cfgPricesRef(), { items: [], updatedAt: serverTimestamp() }, { merge:true });
-      priceItems = [];
-      pricesLoaded = true;
-      return;
+  async function loadProductsOnce(){
+    if (productsLoaded) return;
+    try{
+      const snap = await getDoc(cfgProductsRef());
+      if (!snap.exists()){
+        products = [];
+        productsLoaded = true;
+        return;
+      }
+      const raw = snap.data().items;
+      products = Array.isArray(raw) ? raw
+        .map(x => ({ name: normalizeName(x?.name), price: Number(x?.price) }))
+        .filter(x => x.name && Number.isFinite(x.price)) : [];
+      products.sort((a,b)=>a.name.localeCompare(b.name));
+      productsLoaded = true;
+    } catch(e){
+      console.error("loadProductsOnce", e);
+      products = [];
+      productsLoaded = true;
     }
-    const raw = snap.data().items;
-    priceItems = Array.isArray(raw) ? raw : [];
-    pricesLoaded = true;
   }
 
-  async function saveOrUpdatePrice(name, price){
-    if (!canEditPrices()) return toast("Sem permissão para editar preços.");
+  async function upsertProduct(name, price){
+    name = normalizeName(name);
+    if (!name) throw new Error("Nome vazio.");
+    if (!Number.isFinite(price) || price < 0) throw new Error("Preço inválido.");
 
-    const cleanName = normalizeCat(name);
-    if (!cleanName) return toast("Nome do produto vazio.");
-    const p = parsePrice(price);
-    if (p == null) return toast("Preço inválido.");
+    const key = normalizeProdKey(name);
 
-    const nkey = normalizeProductName(cleanName);
-    const next = (priceItems || []).slice();
+    const next = (products || []).slice();
+    const idx = next.findIndex(p => normalizeProdKey(p.name) === key);
 
-    const idx = next.findIndex(x => normalizeProductName(x?.name) === nkey);
-    const item = {
-      name: cleanName,
-      price: p,
+    if (idx >= 0){
+      next[idx] = { name, price };
+    } else {
+      next.push({ name, price });
+    }
+
+    next.sort((a,b)=>a.name.localeCompare(b.name));
+
+    // ✅ evita lixo: só grava doc quando realmente existir item
+    await setDoc(cfgProductsRef(), {
+      items: next,
+      updatedAt: serverTimestamp(),
       updatedAtHuman: nowHuman(),
       updatedBy: currentUser
-    };
+    }, { merge:false });
 
-    if (idx >= 0) next[idx] = item;
-    else next.push(item);
-
-    next.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
-
-    await setDoc(cfgPricesRef(), { items: next, updatedAt: serverTimestamp() }, { merge:false });
-    toast("Preço salvo.");
+    products = next;
   }
 
-  async function deletePriceByName(name){
-    if (!canEditPrices()) return toast("Sem permissão.");
-    const cleanName = normalizeCat(name);
-    if (!cleanName) return;
+  async function deleteProductByName(name){
+    const key = normalizeProdKey(name);
+    const next = (products || []).filter(p => normalizeProdKey(p.name) !== key);
 
-    const nkey = normalizeProductName(cleanName);
-    const next = (priceItems || []).filter(x => normalizeProductName(x?.name) !== nkey);
-    await setDoc(cfgPricesRef(), { items: next, updatedAt: serverTimestamp() }, { merge:false });
-    toast("Produto removido.");
-  }
-
-  function renderPriceResults(containerId, queryText, allowDelete){
-    const box = $(containerId);
-    if (!box) return;
-    const q = normalizeProductName(queryText);
-
-    const list = (priceItems || [])
-      .filter(x => {
-        const nm = normalizeProductName(x?.name);
-        return !q ? true : nm.includes(q);
-      })
-      .slice(0, 25);
-
-    if (!pricesLoaded){
-      box.innerHTML = `<div class="text-gray-500">Carregando...</div>`;
-      return;
+    if (next.length === 0){
+      // ✅ evita lixo: mantém doc com array vazio (não cria índice, não cria subcoleção)
+      await setDoc(cfgProductsRef(), {
+        items: [],
+        updatedAt: serverTimestamp(),
+        updatedAtHuman: nowHuman(),
+        updatedBy: currentUser
+      }, { merge:false });
+    } else {
+      await setDoc(cfgProductsRef(), {
+        items: next,
+        updatedAt: serverTimestamp(),
+        updatedAtHuman: nowHuman(),
+        updatedBy: currentUser
+      }, { merge:false });
     }
 
+    products = next;
+  }
+
+  function searchProducts(queryText){
+    const q = normalizeName(queryText).toLowerCase();
+    if (!q) return [];
+    const arr = (products || []).filter(p => p.name.toLowerCase().includes(q));
+    return arr.slice(0, 10);
+  }
+
+  function renderSuggestBox(boxEl, list, onPick){
+    boxEl.innerHTML = "";
     if (!list.length){
-      box.innerHTML = `<div class="text-gray-500">Nenhum produto encontrado.</div>`;
+      boxEl.classList.add("hidden");
+      return;
+    }
+    boxEl.classList.remove("hidden");
+    list.forEach((p)=>{
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center justify-between gap-2";
+      btn.innerHTML = `<span class="truncate">${p.name}</span><span class="text-xs text-gray-500">${formatBRL(p.price)}</span>`;
+      btn.onclick = ()=>onPick(p);
+      boxEl.appendChild(btn);
+    });
+  }
+
+  function setupSearchUI(inputId, suggestId, resultId){
+    const inp = $(inputId);
+    const sug = $(suggestId);
+    const res = $(resultId);
+    if (!inp || !sug || !res) return;
+
+    const close = ()=>{ sug.classList.add("hidden"); };
+    document.addEventListener("click", (e)=>{
+      if (!sug.contains(e.target) && e.target !== inp) close();
+    });
+
+    inp.addEventListener("input", ()=>{
+      const list = searchProducts(inp.value);
+      renderSuggestBox(sug, list, (p)=>{
+        inp.value = p.name;
+        res.innerHTML = `<div class="border rounded p-2 bg-gray-50">
+          <div class="font-semibold">${p.name}</div>
+          <div class="text-sm text-gray-700">Preço: <b>${formatBRL(p.price)}</b></div>
+        </div>`;
+        close();
+      });
+    });
+
+    inp.addEventListener("focus", ()=>{
+      const list = searchProducts(inp.value);
+      renderSuggestBox(sug, list, (p)=>{
+        inp.value = p.name;
+        res.innerHTML = `<div class="border rounded p-2 bg-gray-50">
+          <div class="font-semibold">${p.name}</div>
+          <div class="text-sm text-gray-700">Preço: <b>${formatBRL(p.price)}</b></div>
+        </div>`;
+        close();
+      });
+    });
+  }
+
+  // ✅ minimiza/expande lista (gerenciar) e inicia minimizado SEMPRE
+  function setupProdListToggle(btnId, wrapId){
+    const btn = $(btnId);
+    const wrap = $(wrapId);
+    if (!btn || !wrap) return;
+
+    // estado inicial sempre minimizado
+    wrap.classList.add("hidden");
+    btn.innerText = "Expandir";
+
+    btn.onclick = ()=>{
+      const hidden = wrap.classList.toggle("hidden");
+      btn.innerText = hidden ? "Expandir" : "Minimizar";
+    };
+  }
+
+  function renderProductsManagerList(listId){
+    const list = $(listId);
+    if (!list) return;
+
+    list.innerHTML = "";
+    const ordered = (products || []).slice().sort((a,b)=>a.name.localeCompare(b.name));
+
+    if (!ordered.length){
+      list.innerHTML = `<div class="text-gray-500">Sem produtos cadastrados.</div>`;
       return;
     }
 
-    box.innerHTML = "";
-    list.forEach((it)=>{
+    ordered.forEach((p)=>{
       const row = document.createElement("div");
       row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
-
-      const left = document.createElement("div");
-      left.innerHTML = `
-        <div class="font-semibold">${it.name}</div>
-        <div class="text-xs text-gray-600">${formatBRL(Number(it.price||0))} • Atualizado por ${it.updatedBy || "-"} (${it.updatedAtHuman || "-"})</div>
+      row.innerHTML = `
+        <div class="min-w-0">
+          <div class="font-semibold truncate">${p.name}</div>
+          <div class="text-xs text-gray-600">Preço: <b>${formatBRL(p.price)}</b></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button data-edit class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs">Editar</button>
+          <button data-del class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
+        </div>
       `;
+      list.appendChild(row);
 
-      row.appendChild(left);
+      row.querySelector("button[data-edit]")?.addEventListener("click", ()=>{
+        // preenche no editor conforme painel
+        if ($("prodNameGer") && $("prodPriceGer") && listId === "prodListGer"){
+          $("prodNameGer").value = p.name;
+          $("prodPriceGer").value = String(p.price).replace(".", ",");
+        }
+        if ($("prodNameEmp") && $("prodPriceEmp") && listId === "prodListEmp"){
+          $("prodNameEmp").value = p.name;
+          $("prodPriceEmp").value = String(p.price).replace(".", ",");
+        }
+        toast("Produto carregado para edição.");
+      });
 
-      if (allowDelete){
-        const btn = document.createElement("button");
-        btn.className = "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs";
-        btn.innerText = "Excluir";
-        btn.onclick = async ()=>{
-          if (!confirm(`Excluir "${it.name}"?`)) return;
-          await deletePriceByName(it.name);
-        };
-        row.appendChild(btn);
-      }
-
-      box.appendChild(row);
+      row.querySelector("button[data-del]")?.addEventListener("click", async ()=>{
+        if (!canManagePrices()) return toast("Sem permissão.");
+        if (!confirm(`Excluir "${p.name}"?`)) return;
+        try{
+          await deleteProductByName(p.name);
+          toast("Excluído.");
+        }catch(e){
+          console.error(e);
+          toast("Erro ao excluir.");
+        }
+      });
     });
   }
 
-  function setupPricesUI(){
-    // Permissões labels
-    if ($("pricePermEmp")) $("pricePermEmp").innerText = canEditPrices() ? "Pode editar" : "Somente consulta";
-    if ($("pricePermGer")) $("pricePermGer").innerText = canEditPrices() ? "Pode editar" : "Somente consulta";
+  function setupPriceModuleVisibility(){
+    const permGer = $("pricePermGer");
+    const permEmp = $("pricePermEmp");
+    if (permGer) permGer.innerText = canManagePrices() ? "Você pode gerenciar" : "Somente consulta";
+    if (permEmp) permEmp.innerText = canManagePrices() ? "Você pode gerenciar" : "Somente consulta";
 
-    // Employee panel
-    const empEditor = $("priceEditorEmpWrap");
-    if (empEditor) empEditor.classList.toggle("hidden", !canEditPrices());
-
-    const inpEmp = $("priceSearchEmp");
-    const inpGer = $("priceSearchGer");
-
-    if (inpEmp){
-      inpEmp.oninput = ()=> renderPriceResults("priceResultsEmp", inpEmp.value, false);
-      renderPriceResults("priceResultsEmp", inpEmp.value, false);
-    }
-    if (inpGer){
-      inpGer.oninput = ()=> renderPriceResults("priceResultsGer", inpGer.value, true);
-      renderPriceResults("priceResultsGer", inpGer.value, true);
+    const editorGer = $("priceEditorGer");
+    if (editorGer){
+      if (canManagePrices()) editorGer.classList.remove("hidden");
+      else editorGer.classList.add("hidden");
     }
 
-    // Save buttons
-    $("btnSavePriceEmp")?.addEventListener("click", async ()=>{
-      await saveOrUpdatePrice($("priceNameEmp").value, $("priceValueEmp").value);
-      $("priceNameEmp").value = "";
-      $("priceValueEmp").value = "";
+    const editorEmp = $("priceEditorEmp");
+    if (editorEmp){
+      if (canManagePrices()) editorEmp.classList.remove("hidden");
+      else editorEmp.classList.add("hidden");
+    }
+  }
+
+  function setupPriceHandlers(){
+    // salvar (gerente)
+    $("btnSaveProdGer")?.addEventListener("click", async ()=>{
+      if (!canManagePrices()) return toast("Sem permissão.");
+      const name = $("prodNameGer")?.value || "";
+      const priceRaw = $("prodPriceGer")?.value || "";
+      const price = parsePriceInput(priceRaw);
+      if (!normalizeName(name)) return toast("Digite o nome do produto.");
+      if (!Number.isFinite(price)) return toast("Preço inválido (ex: 12,50).");
+
+      try{
+        await upsertProduct(name, price);
+        $("prodNameGer").value = "";
+        $("prodPriceGer").value = "";
+        toast("Salvo.");
+      }catch(e){
+        console.error(e);
+        toast(String(e?.message || "Erro ao salvar."));
+      }
     });
 
-    $("btnSavePriceGer")?.addEventListener("click", async ()=>{
-      await saveOrUpdatePrice($("priceNameGer").value, $("priceValueGer").value);
-      $("priceNameGer").value = "";
-      $("priceValueGer").value = "";
+    // salvar (funcionário - Claudia/gerente)
+    $("btnSaveProdEmp")?.addEventListener("click", async ()=>{
+      if (!canManagePrices()) return toast("Sem permissão.");
+      const name = $("prodNameEmp")?.value || "";
+      const priceRaw = $("prodPriceEmp")?.value || "";
+      const price = parsePriceInput(priceRaw);
+      if (!normalizeName(name)) return toast("Digite o nome do produto.");
+      if (!Number.isFinite(price)) return toast("Preço inválido (ex: 12,50).");
+
+      try{
+        await upsertProduct(name, price);
+        $("prodNameEmp").value = "";
+        $("prodPriceEmp").value = "";
+        toast("Salvo.");
+      }catch(e){
+        console.error(e);
+        toast(String(e?.message || "Erro ao salvar."));
+      }
     });
   }
 
@@ -1509,17 +1675,11 @@
 
   // ===== Render funcionário =====
   function renderEmployee(){
-    if (!isBogadosStore()){
-      if (!isEmployeeActive(currentUser) && currentUser !== "Claudia"){
-        clearSession();
-        currentUser = "";
-        show("login");
-        return;
-      }
-    } else {
-      if (currentUser !== BOGADOS_EMPLOYEE){
-        // no bogados employee panel only for bogados
-      }
+    if (!isEmployeeActive(currentUser)){
+      clearSession();
+      currentUser = "";
+      show("login");
+      return;
     }
 
     $("userName").innerText = currentUser;
@@ -1530,26 +1690,26 @@
     $("monthPointsTop").innerText = mp;
     updateTopBar();
 
-    setupPricesUI();
+    // ✅ preços
+    setupPriceModuleVisibility();
+    renderProductsManagerList("prodListEmp");
 
     const container = $("tasks");
     container.innerHTML = "";
 
-    // ✅ Mostra TODAS as GLOBAIS abertas da semana (até 20)
-    const openGlobals = (globalsWeek || []).filter(g => g.status === "open");
-    openGlobals.forEach((g)=>{
+    if (globalTask && globalTask.exists && globalTask.status === "open"){
       const card = document.createElement("div");
       card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
 
       const title = document.createElement("div");
       title.className = "flex items-center justify-between gap-2";
-      title.innerHTML = `<h3 class="font-semibold">[GLOBAL] ${g.name || "Tarefa Global"}</h3><span class="text-xs text-gray-500">+10 (primeiro que concluir)</span>`;
+      title.innerHTML = `<h3 class="font-semibold">[GLOBAL] ${globalTask.name || "Tarefa Global"}</h3><span class="text-xs text-gray-500">+10 (primeiro que concluir)</span>`;
       card.appendChild(title);
 
       const body = document.createElement("div");
       body.className = "mt-3 space-y-2";
 
-      const itens = Array.isArray(g.items) ? g.items : [];
+      const itens = Array.isArray(globalTask.items) ? globalTask.items : [];
       itens.forEach((item)=>{
         const row = document.createElement("div");
         row.className = "flex items-center justify-between gap-2";
@@ -1587,11 +1747,11 @@
         btn.innerText = "Tentando concluir...";
 
         try{
-          await completeGlobalTaskAsFirst(g.id, currentUser, itensQtd);
-          toast("Você concluiu essa GLOBAL primeiro!");
+          await completeGlobalTaskAsFirst(currentUser, itensQtd);
+          toast("Você concluiu a GLOBAL primeiro!");
         } catch(e){
           console.error(e);
-          toast("Essa GLOBAL já foi concluída por outra pessoa.");
+          toast("GLOBAL já foi concluída por outra pessoa.");
         } finally {
           btn.disabled = true;
           btn.innerText = "Encerrada";
@@ -1601,7 +1761,7 @@
       card.appendChild(body);
       card.appendChild(btn);
       container.appendChild(card);
-    });
+    }
 
     const cats = data[currentUser] || {};
     const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
@@ -1707,17 +1867,13 @@
   function renderManager(){
     $("weekKeyLabelGer").innerText = currentWeekKey;
     $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
-    $("storeLabelGer").innerText = storeLabel();
 
-    setupPricesUI();
+    if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
     renderRanking();
 
-    // status globals
-    if ($("globalStatus")){
-      const openCount = globalsWeek.filter(g=>g.status==="open").length;
-      const doneCount = globalsWeek.filter(g=>g.status==="completed").length;
-      $("globalStatus").innerText = `GLOBAIS desta semana: ${globalsWeek.length}/20 • Abertas: ${openCount} • Concluídas: ${doneCount}`;
-    }
+    // ✅ preços
+    setupPriceModuleVisibility();
+    renderProductsManagerList("prodListGer");
 
     const t = $("gerTasks");
     t.innerHTML = "";
@@ -1808,16 +1964,10 @@
     }
   }
 
-  // ===== Collapse helpers =====
-  function setupCollapse(btnId, contentId, defaultHidden=false){
+  function setupCollapse(btnId, contentId){
     const btn = $(btnId);
     const content = $(contentId);
     if (!btn || !content) return;
-
-    if (defaultHidden){
-      content.classList.add("hidden");
-      btn.innerText = "Expandir";
-    }
 
     btn.addEventListener("click", ()=>{
       const hidden = content.classList.toggle("hidden");
@@ -1828,11 +1978,11 @@
   setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
   setupCollapse("btnToggleEscalaGer", "escalaGerContent");
   setupCollapse("btnToggleRanking", "rankingContent");
-  setupCollapse("btnTogglePricesEmp", "pricesEmpContent");
-  // ✅ Gerenciar preços começa minimizado sempre
-  setupCollapse("btnTogglePricesGer", "pricesGerContent", true);
 
-  // ===== Missing =====
+  // ✅ Produtos: toggle lista (sempre inicia minimizado)
+  setupProdListToggle("btnToggleProdListGer", "prodListWrapGer");
+  setupProdListToggle("btnToggleProdListEmp", "prodListWrapEmp");
+
   $("btnMissing")?.addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
   $("missingSave")?.addEventListener("click", async ()=>{
     const raw = $("missingInput").value.trim();
@@ -1851,9 +2001,9 @@
     toast("Registrado!");
   });
 
-  // ===== Templates =====
+  // Templates
   $("btnSaveTpl")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const name = normalizeCat($("tplName").value);
     const items = sanitizeItemsFromInput($("tplItems").value.trim());
     if (!name) return toast("Digite o nome do template.");
@@ -1870,7 +2020,7 @@
   });
 
   $("btnDeleteTpl")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const id = $("globalTplSelect").value;
     if (!id) return toast("Selecione um template.");
     const tpl = findTemplateById(id);
@@ -1885,9 +2035,8 @@
     }
   });
 
-  // ✅ Publicar GLOBAL sem limite “1 por semana” (agora até 20)
   $("btnPublishGlobalFromTpl")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const id = $("globalTplSelect").value;
     if (!id) return toast("Selecione um template.");
     const tpl = findTemplateById(id);
@@ -1904,9 +2053,9 @@
     }
   });
 
-  // ===== Funcionários (admin) =====
+  // Funcionários
   $("btnAddEmployee")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const name = $("newEmployeeName").value;
     $("newEmployeeName").value = "";
     try{ await addEmployee(name); }catch(e){ console.error(e); toast("Erro ao adicionar funcionário."); }
@@ -1917,9 +2066,9 @@
     toast("Lista recarregada.");
   });
 
-  // ===== Categorias (admin) =====
+  // Categorias
   $("btnAddCategory")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const u = $("addUser").value;
     const cat = normalizeCat($("categoriaNome").value);
     const items = $("itensCategoria").value.trim();
@@ -1936,9 +2085,9 @@
     toast("Categoria atualizada.");
   });
 
-  // ===== PINs =====
+  // PIN
   $("btnSetPin")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     const u = $("pinUser").value;
     const p = $("pinNew").value.trim();
     if (!u) return toast("Selecione o usuário.");
@@ -1946,7 +2095,7 @@
 
     await setDoc(userRef(u), {
       user: u,
-      role: isUserManager(u) ? "manager" : "employee",
+      role: (u === managerName()) ? "manager" : "employee",
       pinHash: await sha256(p),
       updatedAt: serverTimestamp()
     }, { merge:true });
@@ -1955,9 +2104,9 @@
     toast("PIN definido.");
   });
 
-  // ===== Export =====
+  // Export
   $("btnExport")?.addEventListener("click", ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente exporta.");
+    if (!isManager()) return toast("Apenas o gerente exporta.");
 
     const header = ["tipo","usuario","categoria","quando","detalhes"];
     let csv = header.join(",") + "\n";
@@ -1984,10 +2133,28 @@
     return s;
   }
 
-  // ===== Deletes =====
+  // Reset semana
+  $("btnResetWeek")?.addEventListener("click", async ()=>{
+    if (!isManager()) return toast("Apenas o gerente.");
+    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
+
+    try{
+      await deleteByWeek("tasks", currentWeekKey);
+      await deleteByWeek("missing", currentWeekKey);
+
+      try{ await deleteDoc(globalRef(currentWeekKey)); }catch(e){}
+      try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
+
+      toast("Semana zerada.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao zerar semana.");
+    }
+  });
+
   async function deleteByWeek(colName, wk){
     const colRef = collection(db, "stores", STORE_ID, colName);
-    const q = query(colRef, where("weekKey","==",wk), limit(450)); // ✅ sem orderBy => sem índice composto
+    const q = query(colRef, where("weekKey","==",wk), limit(450));
     const snap = await getDocs(q);
     if (snap.empty) return;
 
@@ -2005,45 +2172,8 @@
     if (snap.docs.length === 450) await deleteByWeek(colName, wk);
   }
 
-  async function deleteGlobalsByWeek(wk){
-    // sem índice composto: busca recentes e filtra
-    const snap = await getDocs(query(globalsColRef(), orderBy("createdAt","desc"), limit(400)));
-    const targets = snap.docs.filter(d => normalizeWeekKeyLoose(d.data()?.weekKey) === normalizeWeekKeyLoose(wk));
-    if (!targets.length) return;
-
-    let batch = writeBatch(db);
-    let count = 0;
-    for (const d of targets){
-      batch.delete(d.ref);
-      count++;
-      if (count % 450 === 0){
-        await batch.commit();
-        batch = writeBatch(db);
-      }
-    }
-    await batch.commit();
-  }
-
-  $("btnResetWeek")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
-    if (!confirm("ATENÇÃO: Apaga tarefas, faltas, GLOBAIS e escala da semana atual. Confirmar?")) return;
-
-    try{
-      await deleteByWeek("tasks", currentWeekKey);
-      await deleteByWeek("missing", currentWeekKey);
-      await deleteGlobalsByWeek(currentWeekKey);
-
-      try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
-
-      toast("Semana zerada.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao zerar semana.");
-    }
-  });
-
   $("btnResetStars")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     if (!confirm("Zerar estrelas/pontos do mês para todos os funcionários ativos?")) return;
     try{
       await resetStarsThisMonth();
@@ -2055,7 +2185,7 @@
   });
 
   $("btnDeleteAllTasksWeek")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODAS as tarefas concluídas desta semana?")) return;
     try{
       await deleteByWeek("tasks", currentWeekKey);
@@ -2067,7 +2197,7 @@
   });
 
   $("btnDeleteAllMissingWeek")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+    if (!isManager()) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODOS os itens em falta desta semana?")) return;
     try{
       await deleteByWeek("missing", currentWeekKey);
@@ -2081,53 +2211,26 @@
   $("btnClearEscala")?.addEventListener("click", clearEscala);
   $("btnClearEscalaGer")?.addEventListener("click", clearEscala);
 
-  // ===== Logout =====
   $("btnLogout1")?.addEventListener("click", doLogout);
   $("btnLogout2")?.addEventListener("click", doLogout);
 
-  function doLogout(){
-    currentUser = "";
-    clearSession();
-    clearListeners();
-    // volta pra loja principal como “padrão” no login
-    STORE_ID = STORE_MAIN;
-    show("login");
-    // re-inicia só pra repovoar lista
-    bootstrapLogin();
-  }
+  // ===== Login / Loja =====
+  $("storeSelect").value = STORE_ID;
+  $("storeSelect").addEventListener("change", ()=>{
+    const next = $("storeSelect").value;
+    setSavedStore(next);
+    // recarrega para trocar STORE_ID sem confusão de listeners
+    location.reload();
+  });
 
-  // ===== Login =====
-  function detectStoreByUser(user){
-    return BOGADOS_USERS.has(user) ? STORE_BOGADOS : STORE_MAIN;
-  }
-
-  $("btnLogin")?.addEventListener("click", async ()=>{
+  $("btnLogin").addEventListener("click", async ()=>{
     const u = $("userSelect").value;
     const p = $("pin").value;
     if (!u) return toast("Selecione o usuário.");
     if (!isValidPin(p)) return toast("PIN precisa ter 4 dígitos.");
 
-    // muda loja conforme usuário (BOGADOS separado)
-    const nextStore = detectStoreByUser(u);
-    if (STORE_ID !== nextStore){
-      STORE_ID = nextStore;
-      clearListeners();
-    }
-
-    // garante configs da loja antes de validar bloqueio
-    await ensureWeekKey();
-    await ensureEmployeesConfig();
-
-    // bloqueio só vale na principal (BOGADOS é fixo)
-    if (!isBogadosStore()){
-      if (u !== "GERENTE" && !isEmployeeActive(u)){
-        return toast("Usuário bloqueado. Fale com o gerente.");
-      }
-    } else {
-      // no BOGADOS, só permite os 2 usuários
-      if (!BOGADOS_USERS.has(u)){
-        return toast("Usuário não permitido no BOGADOS.");
-      }
+    if (u !== managerName() && !isEmployeeActive(u)){
+      return toast("Usuário bloqueado. Fale com o gerente.");
     }
 
     const check = await verifyUserPin(u, p);
@@ -2138,18 +2241,24 @@
       return;
     }
     if (!check.ok) return toast("PIN incorreto.");
-
     await doLogin(u);
   });
 
   async function doLogin(u){
     currentUser = u;
     $("pin").value = "";
-    saveSession(u, STORE_ID);
+    saveSession(u);
 
-    await cloudInit(); // liga listeners e carrega dados da loja atual
+    await loadUserRole(u);
 
-    if (isUserManager(u)){
+    // ✅ módulo de preços: permissões e estado default minimizado
+    setupPriceModuleVisibility();
+    setupSearchUI("prodSearchGer", "prodSuggestGer", "prodResultGer");
+    setupSearchUI("prodSearchEmp", "prodSuggestEmp", "prodResultEmp");
+    setupProdListToggle("btnToggleProdListGer", "prodListWrapGer");
+    setupProdListToggle("btnToggleProdListEmp", "prodListWrapEmp");
+
+    if (u === managerName()){
       renderManager();
       escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       $("btnSaveEscalaGer").onclick = async ()=>{
@@ -2167,14 +2276,17 @@
     updateTopBar();
   }
 
-  // ===== Cloud init (por loja atual) =====
-  async function cloudInit(){
-    // evita duplicar listeners
-    clearListeners();
+  function doLogout(){
+    currentUser = "";
+    currentRole = "employee";
+    clearSession();
+    show("login");
+  }
 
+  // ===== Cloud init =====
+  async function cloudInit(){
     await ensureWeekKey();
 
-    // labels
     $("weekKeyLabel").innerText = currentWeekKey;
     $("weekKeyLabelGer").innerText = currentWeekKey;
     $("weekKeyLabelEscala").innerText = currentWeekKey;
@@ -2189,11 +2301,33 @@
     await ensureGlobalTemplatesDoc();
     renderGlobalTplDropdown();
 
-    await ensurePricesDoc();
-    setupPricesUI();
+    // ✅ produtos
+    await loadProductsOnce();
+    setupSearchUI("prodSearchGer", "prodSuggestGer", "prodResultGer");
+    setupSearchUI("prodSearchEmp", "prodSuggestEmp", "prodResultEmp");
+    setupPriceHandlers();
+    setupPriceModuleVisibility();
 
-    // templates live
-    unsubs.push(onSnapshot(cfgGlobalTplRef(), (snap)=>{
+    // listener produtos (atualiza em tempo real)
+    onSnapshot(cfgProductsRef(), (snap)=>{
+      if (!snap.exists()){
+        products = [];
+        productsLoaded = true;
+      } else {
+        const raw = snap.data().items;
+        products = Array.isArray(raw) ? raw
+          .map(x => ({ name: normalizeName(x?.name), price: Number(x?.price) }))
+          .filter(x => x.name && Number.isFinite(x.price)) : [];
+        products.sort((a,b)=>a.name.localeCompare(b.name));
+        productsLoaded = true;
+      }
+
+      // re-render listas sem abrir (continua minimizado)
+      renderProductsManagerList("prodListGer");
+      renderProductsManagerList("prodListEmp");
+    });
+
+    onSnapshot(cfgGlobalTplRef(), (snap)=>{
       if (!snap.exists()){
         globalTemplates = [];
       } else {
@@ -2201,10 +2335,9 @@
         globalTemplates = Array.isArray(raw) ? raw : [];
       }
       renderGlobalTplDropdown();
-    }));
+    });
 
-    // app employees live
-    unsubs.push(onSnapshot(cfgAppRef(), (snap)=>{
+    onSnapshot(cfgAppRef(), (snap)=>{
       if (!snap.exists()) return;
       const raw = snap.data().employees;
 
@@ -2217,177 +2350,138 @@
 
       renderEmployeesUI();
 
-      if (!isBogadosStore()){
-        if (currentUser && !isUserManager(currentUser) && !isEmployeeActive(currentUser)){
-          clearSession();
-          currentUser = "";
-          toast("Usuário bloqueado. Faça login novamente.");
-          show("login");
-        }
+      if (currentUser && currentUser !== managerName() && !isEmployeeActive(currentUser)){
+        clearSession();
+        currentUser = "";
+        toast("Usuário bloqueado. Faça login novamente.");
+        show("login");
+      }
+
+      if (currentUser === managerName()){
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      } else if (currentUser){
+        maybeSetupEscalaUI();
       }
 
       renderRanking();
-    }));
+    });
 
-    // prices live
-    unsubs.push(onSnapshot(cfgPricesRef(), (snap)=>{
-      const raw = snap.exists() ? snap.data().items : [];
-      priceItems = Array.isArray(raw) ? raw : [];
-      pricesLoaded = true;
-      setupPricesUI();
-    }, (err)=>{
-      console.error("Erro snapshot prices:", err);
-      warnManager("Erro ao carregar preços (veja o console).");
-    }));
-
-    // categories load + live
     const catsSnap = await getDoc(cfgCatsRef());
     if (!catsSnap.exists()){
-      // no BOGADOS pode começar vazio sem “lixo”
-      const initial = isBogadosStore() ? { [BOGADOS_EMPLOYEE]: {} } : defaultData;
-      await setDoc(cfgCatsRef(), { data: initial, updatedAt: serverTimestamp() }, { merge:false });
-      data = clone(initial);
+      const base = defaultDataByStore();
+      await setDoc(cfgCatsRef(), { data: base, updatedAt: serverTimestamp() }, { merge:false });
+      data = clone(base);
     } else {
       const remote = catsSnap.data().data;
-      data = (remote && typeof remote === "object") ? remote : (isBogadosStore() ? { [BOGADOS_EMPLOYEE]: {} } : clone(defaultData));
+      data = (remote && typeof remote === "object") ? remote : clone(defaultDataByStore());
     }
 
-    unsubs.push(onSnapshot(cfgCatsRef(), (snap)=>{
-      const remote = snap.data().data;
+    onSnapshot(cfgCatsRef(), (snap)=>{
+      const remote = snap.data()?.data;
       if (remote && typeof remote === "object"){
         data = remote;
-        if (currentUser && !isUserManager(currentUser)) renderEmployee();
-        if (isUserManager(currentUser)) renderManager();
+        if (currentUser && currentUser !== managerName()) renderEmployee();
+        if (currentUser === managerName()) renderManager();
       }
-    }));
+    });
 
-    // scores live
-    unsubs.push(onSnapshot(scoresRef(), (snap)=>{
+    onSnapshot(scoresRef(), (snap)=>{
       scoresDoc = snap.data() || {};
       if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
 
-      if (currentUser && !isUserManager(currentUser)){
+      if (currentUser && currentUser !== managerName()){
         const pts = getMonthPoints(currentUser);
         $("monthPointsInline").innerText = pts;
         $("monthPointsTop").innerText = pts;
       }
       renderRanking();
       updateTopBar();
-    }));
+    });
 
-    // tasks & missing live (sem índice composto)
     const TASKS_LIMIT = 2500;
     const MISSING_LIMIT = 2500;
 
-    unsubs.push(onSnapshot(query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(TASKS_LIMIT)), (qs)=>{
+    const tasksQ = query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(TASKS_LIMIT));
+    onSnapshot(tasksQ, (qs)=>{
       tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
       const wk = normalizeWeekKeyLoose(currentWeekKey);
       tasksDone = tasksAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
 
-      if (isUserManager(currentUser)) renderManager();
-      if (currentUser && !isUserManager(currentUser)) renderEmployee();
+      if (currentUser === managerName()) renderManager();
+      if (currentUser && currentUser !== managerName()) renderEmployee();
 
-      if (isUserManager(currentUser) && tasksAll.length > 0 && tasksDone.length === 0){
+      if (currentUser === managerName() && tasksAll.length > 0 && tasksDone.length === 0){
         const samples = [...new Set(tasksAll.slice(0,50).map(t=>String(t.weekKey||"").trim()).filter(Boolean))].slice(0,8);
         if (samples.length) warnManager("Nenhuma tarefa encontrada nesta semana. Exemplos de weekKey existentes: " + samples.join(" | "));
       }
     }, (err)=>{
       console.error("Erro snapshot tasks:", err);
       warnManager("Erro ao carregar tasks (veja o console).");
-    }));
+    });
 
-    unsubs.push(onSnapshot(query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(MISSING_LIMIT)), (qs)=>{
+    const missQ = query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(MISSING_LIMIT));
+    onSnapshot(missQ, (qs)=>{
       missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
       const wk = normalizeWeekKeyLoose(currentWeekKey);
       missingReports = missingAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
-      if (isUserManager(currentUser)) renderManager();
+      if (currentUser === managerName()) renderManager();
     }, (err)=>{
       console.error("Erro snapshot missing:", err);
       warnManager("Erro ao carregar missing (veja o console).");
-    }));
+    });
 
-    // ✅ GLOBALS live (até 20 por semana) — sem índice composto
-    const GLOBALS_LIMIT = 200;
-    unsubs.push(onSnapshot(query(globalsColRef(), orderBy("createdAt","desc"), limit(GLOBALS_LIMIT)), (qs)=>{
-      globalsAll = qs.docs.map(d => ({ id: d.id, ...d.data() }));
-      const wk = normalizeWeekKeyLoose(currentWeekKey);
-      globalsWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey) === wk);
+    onSnapshot(globalRef(currentWeekKey), (snap)=>{
+      if (!snap.exists()) globalTask = null;
+      else globalTask = { id: snap.id, ...snap.data() };
 
-      if (currentUser && !isUserManager(currentUser)) renderEmployee();
-      if (isUserManager(currentUser)) renderManager();
-    }, (err)=>{
-      console.error("Erro snapshot globals:", err);
-      warnManager("Erro ao carregar GLOBAIS (veja o console).");
-    }));
+      if ($("globalStatus")) $("globalStatus").innerText = getGlobalStatusText();
+      if (currentUser && currentUser !== managerName()) renderEmployee();
+    });
 
-    // escala live
-    unsubs.push(onSnapshot(escalaRef(currentWeekKey), (snap)=>{
+    onSnapshot(escalaRef(currentWeekKey), (snap)=>{
       if (!snap.exists()) escala = null;
       else escala = { id: snap.id, ...snap.data() };
 
       renderEscalaViewer();
 
-      if (isUserManager(currentUser)){
+      if (currentUser === managerName()){
         escalaLocalGer = renderEscalaEditor("escalaEditorGer");
       }
-      if (currentUser && !isUserManager(currentUser)){
+      if (currentUser && currentUser !== managerName()){
         maybeSetupEscalaUI();
       }
-    }));
+    });
 
     renderEscalaViewer();
     renderRanking();
     updateTopBar();
   }
 
-  // ===== Bootstrap login list (sem precisar carregar tudo) =====
-  async function bootstrapLogin(){
-    // padrão: principal
-    if (!STORE_ID) STORE_ID = STORE_MAIN;
+  await cloudInit();
 
-    await ensureEmployeesConfig();
-    renderEmployeesUI();
-
-    // status prices UI sem logado não importa
-  }
-
-  // ===== Start =====
-  await bootstrapLogin();
-
-  // restaura sessão
+  // ===== Restaura sessão (respeita loja) =====
   const ses = getSession();
-  if (ses && ses.user && ses.storeId){
-    STORE_ID = ses.storeId;
-    currentUser = ses.user;
-
-    // garante loja coerente com usuário
-    const should = detectStoreByUser(currentUser);
-    if (should !== STORE_ID) STORE_ID = should;
-
-    await cloudInit();
-
-    if (isUserManager(currentUser)){
-      renderManager();
-      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-      $("btnSaveEscalaGer").onclick = async ()=>{
-        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        await saveEscala(escalaLocalGer);
-      };
-      show("gerente");
+  if (ses && ses.user){
+    // se sessão é de outra loja, troca e recarrega
+    if (ses.storeId && ses.storeId !== STORE_ID){
+      setSavedStore(ses.storeId);
+      location.reload();
     } else {
-      if (!isBogadosStore()){
-        if (!isEmployeeActive(currentUser) && currentUser !== "Claudia"){
-          clearSession();
-          currentUser = "";
-          show("login");
-        } else {
-          renderEmployee();
-          maybeSetupEscalaUI();
-          renderEscalaViewer();
-          show("funcionario");
-        }
+      currentUser = ses.user;
+      await loadUserRole(currentUser);
+
+      setupPriceModuleVisibility();
+
+      if (currentUser === managerName()){
+        renderManager();
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+        $("btnSaveEscalaGer").onclick = async ()=>{
+          if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+          await saveEscala(escalaLocalGer);
+        };
+        show("gerente");
       } else {
-        if (currentUser !== BOGADOS_EMPLOYEE){
+        if (!isEmployeeActive(currentUser)){
           clearSession();
           currentUser = "";
           show("login");
