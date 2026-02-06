@@ -43,6 +43,11 @@
   </div>
 </header>
 
+<!-- TOAST -->
+<div id="toastWrap" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 hidden">
+  <div id="toastBox" class="bg-gray-900 text-white text-sm px-4 py-2 rounded-xl shadow-lg"></div>
+</div>
+
 <section id="login" class="max-w-3xl mx-auto bg-white p-4 rounded-xl shadow">
   <h2 class="text-lg font-semibold mb-3">Entrar</h2>
 
@@ -76,20 +81,16 @@
       </button>
     </div>
   </div>
-
-  <div class="mt-4 text-xs text-gray-500">
-    <b>Dica:</b> Usuários “BOGADOS - GERENTE” e “bogados” são uma loja separada (não mistura com a loja principal).
-  </div>
 </section>
 
 <section id="funcionario" class="hidden max-w-3xl mx-auto">
 
-  <!-- PRODUTOS & PREÇOS (Consulta em todos perfis) -->
+  <!-- PRODUTOS & PREÇOS (consulta para todos; edição só gerente/Claudia/BOGADOS-gerente) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
         <h2 class="text-lg font-semibold">Produtos & Preços</h2>
-        <p class="text-xs text-gray-500">Pesquisa rápida (todos podem consultar)</p>
+        <p class="text-xs text-gray-500">Consultar preços (digite para aparecer)</p>
       </div>
       <button id="btnTogglePricesEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
         Minimizar
@@ -100,7 +101,6 @@
       <input id="priceSearchEmp" class="w-full border rounded p-2" placeholder="Digite as primeiras letras do produto..." />
       <div id="priceResultsEmp" class="mt-3 space-y-2 text-sm"></div>
 
-      <!-- Editor (somente gerente/Claudia) -->
       <div id="priceEditorEmpWrap" class="hidden mt-4 border-t pt-4">
         <div class="flex items-center justify-between">
           <div class="font-semibold text-sm">Adicionar / Atualizar</div>
@@ -113,11 +113,11 @@
             Salvar
           </button>
         </div>
-        <p class="text-xs text-gray-500 mt-2">Dica: use ponto para centavos (9.99). O app formata para R$.</p>
       </div>
     </div>
   </div>
 
+  <!-- ESCALA -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -158,6 +158,7 @@
     </div>
   </div>
 
+  <!-- PERFIL -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
       <div>
@@ -215,19 +216,19 @@
     <div id="managerWarn" class="hidden mt-3 text-xs bg-yellow-50 border border-yellow-200 text-yellow-900 rounded p-2"></div>
   </div>
 
-  <!-- PRODUTOS & PREÇOS (Gerenciar) -->
+  <!-- PRODUTOS & PREÇOS (Gerenciar/Consultar) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
         <h3 class="font-semibold">Produtos & Preços</h3>
-        <p class="text-xs text-gray-500">Gerenciar e consultar</p>
+        <p class="text-xs text-gray-500">Gerenciar e consultar (digite para aparecer)</p>
       </div>
       <button id="btnTogglePricesGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
         Expandir
       </button>
     </div>
 
-    <!-- começa minimizado -->
+    <!-- sempre inicia minimizado -->
     <div id="pricesGerContent" class="mt-3 hidden">
       <input id="priceSearchGer" class="w-full border rounded p-2" placeholder="Pesquisar produto..." />
       <div id="priceResultsGer" class="mt-3 space-y-2 text-sm"></div>
@@ -245,12 +246,11 @@
             Salvar
           </button>
         </div>
-
-        <p class="text-xs text-gray-500 mt-2">Gerente e Claudia podem editar preços (na loja principal). No BOGADOS, apenas “BOGADOS - GERENTE” edita.</p>
       </div>
     </div>
   </div>
 
+  <!-- RANKING -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -267,12 +267,12 @@
     </div>
   </div>
 
+  <!-- GLOBAIS (templates + publicar sem limite até 20/semana) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <h3 class="font-semibold mb-2">Tarefas GLOBAIS salvas (Templates)</h3>
     <p class="text-xs text-gray-500 mb-3">
-      Crie templates de GLOBAL e depois publique.
+      Crie templates e publique quantas GLOBAIS quiser (até <b>20 por semana</b>).
       Quem concluir primeiro “trava” e some dos demais.
-      <br><b>Limite:</b> até 20 GLOBAIS por semana.
     </p>
 
     <div class="grid md:grid-cols-4 gap-2">
@@ -288,15 +288,9 @@
     </div>
 
     <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold mb-2">Status GLOBAIS desta semana</div>
-      <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
-
-      <!-- ✅ LISTA + EXCLUIR GLOBAIS ABERTAS -->
-      <div class="mt-3">
-        <div class="text-sm font-semibold mb-2">GLOBAIS publicadas (semana)</div>
-        <div id="globalsListGer" class="space-y-2 text-sm"></div>
-        <p class="text-xs text-gray-500 mt-2">Você pode excluir apenas as GLOBAIS <b>abertas</b> (ativas).</p>
-      </div>
+      <div class="text-sm font-semibold mb-2">GLOBAIS desta semana (até 20)</div>
+      <div id="globalsWeekList" class="text-sm space-y-2">Carregando...</div>
+      <p class="text-xs text-gray-500 mt-2">Você pode excluir GLOBAIS publicadas (inclusive ativas) por aqui.</p>
     </div>
 
     <div class="mt-4 border-t pt-4">
@@ -314,6 +308,7 @@
     </div>
   </div>
 
+  <!-- ESCALA GERENTE -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between">
       <div>
@@ -363,7 +358,6 @@
     </div>
   </div>
 
-  <!-- Gestão de funcionários (desliga no BOGADOS) -->
   <div id="employeesAdminBox" class="bg-white p-4 rounded-xl shadow mt-4">
     <h3 class="font-semibold mb-2">Funcionários (Ativar / Bloquear)</h3>
     <p class="text-xs text-gray-500 mb-3">
@@ -406,7 +400,7 @@
     </div>
 
     <p class="text-xs text-gray-500 mt-2">
-      PIN mestre inicial: <b>1234</b> só se o gerente ainda não tiver PIN criado.
+      PIN mestre inicial do gerente: <b>1234</b> só se o gerente ainda não tiver PIN criado.
     </p>
   </div>
 </section>
@@ -415,7 +409,7 @@
   // =========================
   // ✅ ANTI-CACHE (PWA / SW)
   // =========================
-  const BUILD_ID = "2026-02-06-fix-popup-and-delete-globals-1";
+  const BUILD_ID = "2026-02-06-all-changes-20-globals-prices-hide-1";
   console.log("BUILD_ID", BUILD_ID);
 
   try {
@@ -484,17 +478,15 @@
     appId: "1:198254465545:web:dce028792e2c2c57161ed8"
   };
 
-  // ✅ Duas lojas (separadas)
+  // ===== Lojas =====
   const STORE_MAIN = "loja_principal";
   const STORE_BOGADOS = "loja_bogados";
 
-  // ✅ Usuários da loja BOGADOS (isolados)
   const BOGADOS_MANAGER = "BOGADOS - GERENTE";
   const BOGADOS_EMPLOYEE = "bogados";
   const BOGADOS_USERS = new Set([BOGADOS_MANAGER, BOGADOS_EMPLOYEE]);
 
-  // Sessão
-  const SESSION_KEY = "mdl_session_v2";
+  const SESSION_KEY = "mdl_session_v3";
   const MASTER_MANAGER_PIN = "1234";
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -509,13 +501,16 @@
 
   const $ = (id) => document.getElementById(id);
 
-  // ✅ FIX POPUP: evita alert duplicado por múltiplos handlers
-  let __toastLock = false;
+  // ===== Toast (sem alert travando) =====
+  let toastTimer = null;
   function toast(msg){
-    if (__toastLock) return;
-    __toastLock = true;
-    alert(msg);
-    __toastLock = false;
+    const wrap = $("toastWrap");
+    const box = $("toastBox");
+    if (!wrap || !box) return;
+    box.innerText = String(msg || "");
+    wrap.classList.remove("hidden");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> wrap.classList.add("hidden"), 1800);
   }
 
   function warnManager(msg){
@@ -535,13 +530,13 @@
     $(section).classList.remove("hidden");
     updateTopBar();
   }
+
   function isValidPin(p){ return /^[0-9]{4}$/.test(String(p || "")); }
   function nowHuman(){ return new Date().toLocaleString(); }
   function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
   function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
   function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
 
-  // ✅ Normaliza weekKey antigo "2026-W5" para "2026-W05"
   function normalizeWeekKeyLoose(wk){
     const s = String(wk || "").trim();
     const m = s.match(/^(\d{4})-W(\d{1,2})$/i);
@@ -551,8 +546,8 @@
     return `${y}-W${w}`;
   }
 
-  // ====== State ======
-  let STORE_ID = STORE_MAIN;            // loja atual
+  // ===== State =====
+  let STORE_ID = STORE_MAIN;
   let data = {};
   let scoresDoc = {};
   let tasksAll = [];
@@ -564,25 +559,28 @@
   let employees = [];
   let escala = null;
 
-  // GLOBALS (até 20 por semana)
-  let globalsAll = [];
-  let globalsWeek = [];
-
-  // Templates
+  // GLOBAIS (agora: coleção, até 20 por semana)
   let globalTemplates = [];
+  let globalsAll = [];     // últimos N
+  let globalsWeek = [];    // filtrado por weekKey
+  const MAX_GLOBALS_PER_WEEK = 20;
 
-  // Produtos & preços (1 doc config)
-  let priceItems = []; // [{name, price, updatedAtHuman, updatedBy}]
+  // Preços
+  let priceItems = [];
   let pricesLoaded = false;
 
-  // unsubscribers pra não “lixar” listeners quando troca loja
+  // Local escala
+  let escalaLocalEmployee = null;
+  let escalaLocalGer = null;
+
+  // listeners cleanup
   let unsubs = [];
   function clearListeners(){
     unsubs.forEach(fn => { try{ fn(); }catch(e){} });
     unsubs = [];
   }
 
-  // ===== Refs (dependem de STORE_ID atual) =====
+  // ===== Refs =====
   const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
   const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
   const cfgGlobalTplRef = () => doc(db,"stores",STORE_ID,"config","global_templates");
@@ -592,8 +590,23 @@
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
   const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
 
-  // ✅ GLOBALS agora é coleção (até 20 por semana)
   const globalsColRef = () => collection(db,"stores",STORE_ID,"globals");
+
+  // ===== Store/user rules =====
+  function isBogadosStore(){ return STORE_ID === STORE_BOGADOS; }
+  function isUserManager(user){
+    if (isBogadosStore()) return user === BOGADOS_MANAGER;
+    return user === "GERENTE";
+  }
+  function canEditEscala(){
+    return isUserManager(currentUser) || (!isBogadosStore() && currentUser === "Claudia");
+  }
+  function canEditPrices(){
+    return isUserManager(currentUser) || (!isBogadosStore() && currentUser === "Claudia");
+  }
+  function canManageEmployees(){
+    return isUserManager(currentUser) && !isBogadosStore();
+  }
 
   // ===== Top bar =====
   function monthKey(date){
@@ -619,18 +632,16 @@
       return;
     }
 
-    const isManager = isUserManager(currentUser);
-
-    if (isManager){
+    if (isUserManager(currentUser)){
       topTitle.innerText = "Gerente";
-      topSubtitle.innerText = STORE_ID === STORE_BOGADOS ? "Painel BOGADOS" : "Painel administrativo";
+      topSubtitle.innerText = isBogadosStore() ? "Painel BOGADOS" : "Painel administrativo";
       pointsBox.classList.add("hidden");
       pointsBox.classList.remove("flex");
       return;
     }
 
     topTitle.innerText = currentUser;
-    topSubtitle.innerText = STORE_ID === STORE_BOGADOS ? "BOGADOS" : "Acompanhe suas tarefas";
+    topSubtitle.innerText = isBogadosStore() ? "BOGADOS" : "Acompanhe suas tarefas";
     const pts = getMonthPoints(currentUser);
     $("monthPointsTop").innerText = pts;
     pointsBox.classList.remove("hidden");
@@ -675,9 +686,7 @@
   }
 
   // ===== Sessão =====
-  function saveSession(user, storeId){
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ user, storeId, at: Date.now() }));
-  }
+  function saveSession(user, storeId){ localStorage.setItem(SESSION_KEY, JSON.stringify({ user, storeId, at: Date.now() })); }
   function clearSession(){ localStorage.removeItem(SESSION_KEY); }
   function getSession(){
     try{
@@ -686,23 +695,6 @@
       const obj = JSON.parse(raw);
       return obj && obj.user && obj.storeId ? obj : null;
     } catch(e){ return null; }
-  }
-
-  // ===== Permissões =====
-  function isBogadosStore(){ return STORE_ID === STORE_BOGADOS; }
-  function isUserManager(user){
-    if (isBogadosStore()) return user === BOGADOS_MANAGER;
-    return user === "GERENTE";
-  }
-  function canEditEscala(){
-    // ✅ Claudia pode editar escala na loja principal
-    if (!isBogadosStore() && currentUser === "Claudia") return true;
-    return isUserManager(currentUser);
-  }
-  function canEditPrices(){
-    // ✅ Claudia também pode adicionar preços (loja principal)
-    if (!isBogadosStore() && currentUser === "Claudia") return true;
-    return isUserManager(currentUser);
   }
 
   // ===== Funcionários =====
@@ -722,15 +714,17 @@
   }
 
   async function ensureEmployeesConfig(){
-    // ✅ Loja BOGADOS fixa
+    const snap = await getDoc(cfgAppRef());
+
+    // BOGADOS: fixa
     if (isBogadosStore()){
       const fixed = [{ name: BOGADOS_EMPLOYEE, active: true }];
-      await setDoc(cfgAppRef(), { employees: fixed, updatedAt: serverTimestamp() }, { merge:true });
+      if (!snap.exists() || JSON.stringify(snap.data()?.employees||[]) !== JSON.stringify(fixed)){
+        await setDoc(cfgAppRef(), { employees: fixed, updatedAt: serverTimestamp() }, { merge:true });
+      }
       employees = fixed;
       return;
     }
-
-    const snap = await getDoc(cfgAppRef());
 
     if (!snap.exists()){
       await setDoc(cfgAppRef(), { employees: defaultEmployees, updatedAt: serverTimestamp() }, { merge:true });
@@ -762,11 +756,10 @@
   }
 
   async function setEmployees(next){
-    if (isBogadosStore()) return toast("BOGADOS: lista fixa (sem adicionar).");
-
+    if (!canManageEmployees()) return toast("Apenas o gerente (loja principal).");
     const cleaned = next
       .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name && x.name.toUpperCase() !== "GERENTE");
+      .filter(x => x.name && x.name.toUpperCase() !== "GERENTE" && !BOGADOS_USERS.has(x.name));
 
     const seen = new Set();
     const unique = cleaned.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
@@ -775,10 +768,11 @@
   }
 
   async function addEmployee(name){
-    if (isBogadosStore()) return toast("BOGADOS: lista fixa (sem adicionar).");
+    if (!canManageEmployees()) return toast("Apenas o gerente (loja principal).");
     name = normalizeName(name);
     if (!name) return toast("Digite um nome.");
     if (name.toUpperCase() === "GERENTE") return toast("Nome inválido.");
+    if (BOGADOS_USERS.has(name)) return toast("Nome reservado.");
     if (employees.some(e => e.name === name)) return toast("Esse funcionário já existe.");
 
     const next = employees.concat([{ name, active: true }]);
@@ -790,26 +784,20 @@
     toast("Funcionário adicionado (ativo).");
   }
 
-  function storeLabel(){
-    return isBogadosStore() ? "BOGADOS" : "PRINCIPAL";
-  }
-
   function renderEmployeesUI(){
     const loginSel = $("userSelect");
     loginSel.innerHTML = "";
     loginSel.appendChild(new Option("Selecione", ""));
 
-    if (isBogadosStore()){
-      loginSel.appendChild(new Option("BOGADOS - Gerente", BOGADOS_MANAGER));
-      loginSel.appendChild(new Option("bogados", BOGADOS_EMPLOYEE));
-    } else {
-      loginSel.appendChild(new Option("Gerente", "GERENTE"));
+    // Sempre mostrar BOGADOS logins + loja principal
+    loginSel.appendChild(new Option("Gerente (Loja Principal)", "GERENTE"));
+    if (!isBogadosStore()){
       activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
-      // também deixa os bogados disponíveis
-      loginSel.appendChild(new Option("BOGADOS - Gerente", BOGADOS_MANAGER));
-      loginSel.appendChild(new Option("bogados", BOGADOS_EMPLOYEE));
     }
+    loginSel.appendChild(new Option("BOGADOS - Gerente", BOGADOS_MANAGER));
+    loginSel.appendChild(new Option("bogados", BOGADOS_EMPLOYEE));
 
+    // selects do painel gerente
     const namesAll = allNames();
     const addUser = $("addUser");
     const pinUser = $("pinUser");
@@ -830,8 +818,7 @@
       }
     }
 
-    renderEmployeeTable();
-
+    // esconder admin em BOGADOS
     const box = $("employeesAdminBox");
     if (box) box.classList.toggle("hidden", isBogadosStore());
   }
@@ -840,11 +827,6 @@
     const wrap = $("employeeTable");
     if (!wrap) return;
     wrap.innerHTML = "";
-
-    if (isBogadosStore()){
-      wrap.innerHTML = `<div class="text-sm text-gray-500">BOGADOS: lista fixa (somente "${BOGADOS_EMPLOYEE}").</div>`;
-      return;
-    }
 
     const ordered = employees.slice().sort((a,b)=>a.name.localeCompare(b.name));
     if (!ordered.length){
@@ -865,7 +847,7 @@
         : "bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm";
       btn.innerText = e.active ? "Bloquear" : "Ativar";
       btn.onclick = async ()=>{
-        if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+        if (!canManageEmployees()) return toast("Apenas o gerente.");
         const next = employees.map(x => x.name===e.name ? ({...x, active: !x.active}) : x);
         await setEmployees(next);
       };
@@ -921,7 +903,7 @@
   async function verifyUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (!snap.exists()){
-      if ((user === "GERENTE" || user === BOGADOS_MANAGER) && pin === MASTER_MANAGER_PIN){
+      if (isUserManager(user) && pin === MASTER_MANAGER_PIN){
         await ensureUserPin(user, pin);
         return { ok:true, usedMaster:true };
       }
@@ -964,7 +946,191 @@
     await updateDoc(scoresRef(), updates);
   }
 
-  // ===== GLOBAL TEMPLATES =====
+  // ===== Preços =====
+  async function ensurePricesDoc(){
+    const snap = await getDoc(cfgPricesRef());
+    if (!snap.exists()){
+      await setDoc(cfgPricesRef(), { items: [], updatedAt: serverTimestamp() }, { merge:true });
+      priceItems = [];
+      pricesLoaded = true;
+      return;
+    }
+    const raw = snap.data().items;
+    priceItems = Array.isArray(raw) ? raw : [];
+    pricesLoaded = true;
+  }
+
+  function parsePrice(raw){
+    const s = String(raw||"").trim().replace(",", ".");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+  function formatBRL(n){
+    try{
+      return n.toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
+    } catch(e){
+      return "R$ " + String(n);
+    }
+  }
+  function normalizeProductName(s){
+    return normalizeCat(s).toLowerCase();
+  }
+
+  async function saveOrUpdatePrice(name, price){
+    if (!canEditPrices()) return toast("Sem permissão para editar preços.");
+
+    const cleanName = normalizeCat(name);
+    if (!cleanName) return toast("Nome do produto vazio.");
+    const p = parsePrice(price);
+    if (p == null) return toast("Preço inválido.");
+
+    const nkey = normalizeProductName(cleanName);
+    const next = (priceItems || []).slice();
+
+    const idx = next.findIndex(x => normalizeProductName(x?.name) === nkey);
+    const item = {
+      name: cleanName,
+      price: p,
+      updatedAtHuman: nowHuman(),
+      updatedBy: currentUser
+    };
+
+    if (idx >= 0) next[idx] = item;
+    else next.push(item);
+
+    next.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+
+    await setDoc(cfgPricesRef(), { items: next, updatedAt: serverTimestamp() }, { merge:false });
+    toast("Preço salvo.");
+  }
+
+  async function deletePriceByName(name){
+    if (!canEditPrices()) return toast("Sem permissão.");
+    const cleanName = normalizeCat(name);
+    if (!cleanName) return;
+
+    const nkey = normalizeProductName(cleanName);
+    const next = (priceItems || []).filter(x => normalizeProductName(x?.name) !== nkey);
+    await setDoc(cfgPricesRef(), { items: next, updatedAt: serverTimestamp() }, { merge:false });
+    toast("Produto removido.");
+  }
+
+  // ✅ NÃO listar nada se campo vazio
+  function renderPriceResults(containerId, queryText, allowDelete){
+    const box = $(containerId);
+    if (!box) return;
+
+    const raw = String(queryText || "");
+    const trimmed = raw.trim();
+    const q = normalizeProductName(trimmed);
+
+    if (!pricesLoaded){
+      box.innerHTML = `<div class="text-gray-500">Carregando...</div>`;
+      return;
+    }
+
+    if (!trimmed){
+      box.innerHTML = `<div class="text-gray-500">Digite para pesquisar.</div>`;
+      return;
+    }
+
+    const list = (priceItems || [])
+      .filter(x => normalizeProductName(x?.name).includes(q))
+      .slice(0, 25);
+
+    if (!list.length){
+      box.innerHTML = `<div class="text-gray-500">Nenhum produto encontrado.</div>`;
+      return;
+    }
+
+    box.innerHTML = "";
+    list.forEach((it)=>{
+      const row = document.createElement("div");
+      row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
+
+      const left = document.createElement("div");
+      left.innerHTML = `
+        <div class="font-semibold">${it.name}</div>
+        <div class="text-xs text-gray-600">${formatBRL(Number(it.price||0))} • Atualizado por ${it.updatedBy || "-"} (${it.updatedAtHuman || "-"})</div>
+      `;
+      row.appendChild(left);
+
+      if (allowDelete){
+        const btn = document.createElement("button");
+        btn.className = "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs";
+        btn.innerText = "Excluir";
+        btn.onclick = async ()=>{
+          if (!confirm(\`Excluir "\${it.name}"?\`)) return;
+          await deletePriceByName(it.name);
+        };
+        row.appendChild(btn);
+      }
+
+      box.appendChild(row);
+    });
+  }
+
+  function setupPricesUI(){
+    if ($("pricePermEmp")) $("pricePermEmp").innerText = canEditPrices() ? "Pode editar" : "Somente consulta";
+    if ($("pricePermGer")) $("pricePermGer").innerText = canEditPrices() ? "Pode editar" : "Somente consulta";
+
+    const empEditor = $("priceEditorEmpWrap");
+    if (empEditor) empEditor.classList.toggle("hidden", !canEditPrices());
+
+    const inpEmp = $("priceSearchEmp");
+    const inpGer = $("priceSearchGer");
+
+    if (inpEmp){
+      inpEmp.oninput = ()=> renderPriceResults("priceResultsEmp", inpEmp.value, false);
+      renderPriceResults("priceResultsEmp", inpEmp.value, false);
+    }
+    if (inpGer){
+      inpGer.oninput = ()=> renderPriceResults("priceResultsGer", inpGer.value, true);
+      renderPriceResults("priceResultsGer", inpGer.value, true);
+    }
+
+    const btnEmp = $("btnSavePriceEmp");
+    if (btnEmp){
+      btnEmp.onclick = async ()=>{
+        if (!canEditPrices()) return toast("Sem permissão.");
+        btnEmp.disabled = true;
+        btnEmp.classList.add("opacity-50");
+        try{
+          await saveOrUpdatePrice($("priceNameEmp").value, $("priceValueEmp").value);
+          $("priceNameEmp").value = "";
+          $("priceValueEmp").value = "";
+        } catch(e){
+          console.error(e);
+          toast("Erro ao salvar preço.");
+        } finally {
+          btnEmp.disabled = false;
+          btnEmp.classList.remove("opacity-50");
+        }
+      };
+    }
+
+    const btnGer = $("btnSavePriceGer");
+    if (btnGer){
+      btnGer.onclick = async ()=>{
+        if (!canEditPrices()) return toast("Sem permissão.");
+        btnGer.disabled = true;
+        btnGer.classList.add("opacity-50");
+        try{
+          await saveOrUpdatePrice($("priceNameGer").value, $("priceValueGer").value);
+          $("priceNameGer").value = "";
+          $("priceValueGer").value = "";
+        } catch(e){
+          console.error(e);
+          toast("Erro ao salvar preço.");
+        } finally {
+          btnGer.disabled = false;
+          btnGer.classList.remove("opacity-50");
+        }
+      };
+    }
+  }
+
+  // ===== GLOBAIS (Coleção, até 20 semana) =====
   function sanitizeItemsFromInput(raw){
     return raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : [];
   }
@@ -1018,41 +1184,43 @@
     return (globalTemplates || []).find(t=>t.id === id);
   }
 
-  // ===== GLOBALS (até 20 por semana) =====
-  async function publishGlobalTaskFromTemplate(tpl){
-    if (!isUserManager(currentUser)) throw new Error("Apenas o gerente.");
-
-    const recentSnap = await getDocs(query(globalsColRef(), orderBy("createdAt","desc"), limit(250)));
+  function globalsForWeek(){
     const wk = normalizeWeekKeyLoose(currentWeekKey);
-    const countThisWeek = recentSnap.docs
-      .map(d => d.data())
-      .filter(g => normalizeWeekKeyLoose(g.weekKey) === wk)
-      .length;
-
-    if (countThisWeek >= 20) throw new Error("Limite de 20 GLOBAIS nesta semana atingido.");
-
-    await addDoc(globalsColRef(), {
-      weekKey: currentWeekKey,
-      status: "open",
-      name: tpl.name,
-      items: Array.isArray(tpl.items) ? tpl.items : [],
-      templateId: tpl.id || "",
-      createdBy: currentUser,
-      createdAt: serverTimestamp(),
-      createdAtHuman: nowHuman()
-    });
+    return (globalsAll || []).filter(g => normalizeWeekKeyLoose(g.weekKey) === wk);
   }
 
-  async function completeGlobalTaskAsFirst(globalId, user, itensQtd){
-    const gRef = doc(db,"stores",STORE_ID,"globals", globalId);
+  async function publishGlobalFromTemplate(tpl){
+    if (!isUserManager(currentUser)) return toast("Apenas o gerente publica.");
+
+    const wk = normalizeWeekKeyLoose(currentWeekKey);
+    const count = globalsWeek.length;
+    if (count >= MAX_GLOBALS_PER_WEEK){
+      return toast(`Limite de ${MAX_GLOBALS_PER_WEEK} GLOBAIS por semana atingido.`);
+    }
+
+    await addDoc(globalsColRef(), {
+      weekKey: wk,
+      status: "open",
+      name: tpl.name,
+      items: tpl.items || [],
+      templateId: tpl.id || "",
+      createdAt: serverTimestamp(),
+      createdAtHuman: nowHuman(),
+      createdBy: currentUser
+    });
+
+    toast("GLOBAL publicada.");
+  }
+
+  async function completeGlobalAsFirst(globalId, user, itensQtd){
+    const ref = doc(db, "stores", STORE_ID, "globals", globalId);
 
     await runTransaction(db, async (tx)=>{
-      const snap = await tx.get(gRef);
+      const snap = await tx.get(ref);
       if (!snap.exists()) throw new Error("GLOBAL não existe.");
       const g = snap.data();
       if (g.status !== "open") throw new Error("GLOBAL já foi concluída.");
-
-      tx.update(gRef, {
+      tx.update(ref, {
         status: "completed",
         completedBy: user,
         completedAt: serverTimestamp(),
@@ -1062,26 +1230,75 @@
 
     await addDoc(collection(db,"stores",STORE_ID,"tasks"), {
       user,
-      categoria: "[GLOBAL] " + String(globalsWeek.find(x=>x.id===globalId)?.name || "GLOBAL"),
+      categoria: "[GLOBAL] " + String(itensQtd?(""):"") + (globalsAll.find(x=>x.id===globalId)?.name || "GLOBAL"),
       itens: itensQtd || {},
       when: nowHuman(),
-      weekKey: currentWeekKey,
+      weekKey: normalizeWeekKeyLoose(currentWeekKey),
       createdAt: serverTimestamp()
     });
 
     await bumpMonthlyScore(user, 10);
   }
 
-  // ✅ EXCLUIR GLOBAL ABERTA (ativa)
-  async function deleteOpenGlobal(globalId){
+  async function deleteGlobalById(globalId){
     if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
-    const ref = doc(db,"stores",STORE_ID,"globals", globalId);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return toast("GLOBAL não encontrada.");
-    const g = snap.data();
-    if (g.status !== "open") return toast("Só é possível excluir GLOBAL aberta (ativa).");
-    await deleteDoc(ref);
-    toast("GLOBAL excluída.");
+    if (!confirm("Excluir esta GLOBAL?")) return;
+    try{
+      await deleteDoc(doc(db, "stores", STORE_ID, "globals", globalId));
+      toast("GLOBAL excluída.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir GLOBAL.");
+    }
+  }
+
+  function renderGlobalsWeekManager(){
+    const box = $("globalsWeekList");
+    if (!box) return;
+
+    if (!globalsWeek || globalsWeek.length === 0){
+      box.innerHTML = `<div class="text-gray-500">Nenhuma GLOBAL publicada nesta semana.</div>`;
+      return;
+    }
+
+    const ordered = globalsWeek.slice().sort((a,b)=>{
+      const sa = a.status === "open" ? 0 : 1;
+      const sb = b.status === "open" ? 0 : 1;
+      if (sa !== sb) return sa - sb;
+      return String(a.name||"").localeCompare(String(b.name||""));
+    });
+
+    box.innerHTML = "";
+    ordered.forEach((g, idx)=>{
+      const div = document.createElement("div");
+      div.className = "border rounded p-2 bg-gray-50";
+
+      const statusTxt = g.status === "open"
+        ? `<span class="text-amber-700 font-semibold">ABERTA</span>`
+        : `<span class="text-emerald-700 font-semibold">CONCLUÍDA</span> por <b>${g.completedBy || "-"}</b>`;
+
+      div.innerHTML = `
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <div class="font-semibold truncate">${idx+1}. ${g.name || "(sem nome)"}</div>
+            <div class="text-xs text-gray-600">Status: ${statusTxt}</div>
+            <div class="text-xs text-gray-600">Criada por ${g.createdBy || "-"} em ${g.createdAtHuman || "-"}</div>
+          </div>
+          <button data-del="${g.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">
+            Excluir
+          </button>
+        </div>
+      `;
+
+      div.querySelector("button[data-del]")?.addEventListener("click", ()=> deleteGlobalById(g.id));
+      box.appendChild(div);
+    });
+
+    // contador
+    const info = document.createElement("div");
+    info.className = "text-xs text-gray-600";
+    info.innerHTML = `Total nesta semana: <b>${globalsWeek.length}</b> / ${MAX_GLOBALS_PER_WEEK}`;
+    box.appendChild(info);
   }
 
   // ===== ESCALA =====
@@ -1090,7 +1307,7 @@
   function emptyEscala(){
     const days = {};
     for (const d of DAYS) days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
-    return { weekKey: currentWeekKey, days };
+    return { weekKey: normalizeWeekKeyLoose(currentWeekKey), days };
   }
 
   function validateEscala(obj){
@@ -1122,12 +1339,13 @@
   }
 
   async function saveEscala(obj){
+    if (!canEditEscala()) return toast("Sem permissão.");
     const err = validateEscala(obj);
     if (err) return toast(err);
 
-    await setDoc(escalaRef(currentWeekKey), {
+    await setDoc(escalaRef(normalizeWeekKeyLoose(currentWeekKey)), {
       exists: true,
-      weekKey: currentWeekKey,
+      weekKey: normalizeWeekKeyLoose(currentWeekKey),
       days: obj.days,
       updatedAt: serverTimestamp(),
       updatedAtHuman: nowHuman(),
@@ -1141,9 +1359,9 @@
     if (!canEditEscala()) return toast("Sem permissão.");
     if (!confirm("Limpar a escala desta semana?")) return;
 
-    await setDoc(escalaRef(currentWeekKey), {
+    await setDoc(escalaRef(normalizeWeekKeyLoose(currentWeekKey)), {
       exists: true,
-      weekKey: currentWeekKey,
+      weekKey: normalizeWeekKeyLoose(currentWeekKey),
       days: emptyEscala().days,
       updatedAt: serverTimestamp(),
       updatedAtHuman: nowHuman(),
@@ -1154,8 +1372,9 @@
   }
 
   function renderEscalaViewer(){
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    $("weekKeyLabelEscala").innerText = normalizeWeekKeyLoose(currentWeekKey);
     const view = $("escalaViewer");
+    if (!view) return;
     view.innerHTML = "";
 
     const s = escala && escala.exists ? escala : null;
@@ -1296,11 +1515,11 @@
         day.folga[0] = normalizeName(f1.value);
       };
 
-      m1.onchange = sync;
-      m2.onchange = sync;
-      t1.onchange = sync;
-      t2.onchange = sync;
-      f1.onchange = sync;
+      m1.addEventListener("change", sync);
+      m2.addEventListener("change", sync);
+      t1.addEventListener("change", sync);
+      t2.addEventListener("change", sync);
+      f1.addEventListener("change", sync);
 
       sync();
     }
@@ -1308,11 +1527,8 @@
     return local;
   }
 
-  let escalaLocalEmployee = null;
-  let escalaLocalGer = null;
-
   function maybeSetupEscalaUI(){
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
+    $("weekKeyLabelEscala").innerText = normalizeWeekKeyLoose(currentWeekKey);
 
     const can = canEditEscala();
     $("escalaPermLabel").innerText = can ? "Você pode editar" : "Somente leitura";
@@ -1332,184 +1548,13 @@
     }
   }
 
-  // ===== Produtos & Preços =====
-  function parsePrice(raw){
-    const s = String(raw||"").trim().replace(",", ".");
-    const n = Number(s);
-    return Number.isFinite(n) ? n : null;
-  }
-  function formatBRL(n){
-    try{
-      return n.toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
-    } catch(e){
-      return "R$ " + String(n);
-    }
-  }
-  function normalizeProductName(s){
-    return normalizeCat(s).toLowerCase();
-  }
-
-  async function ensurePricesDoc(){
-    const snap = await getDoc(cfgPricesRef());
-    if (!snap.exists()){
-      await setDoc(cfgPricesRef(), { items: [], updatedAt: serverTimestamp() }, { merge:true });
-      priceItems = [];
-      pricesLoaded = true;
-      return;
-    }
-    const raw = snap.data().items;
-    priceItems = Array.isArray(raw) ? raw : [];
-    pricesLoaded = true;
-  }
-
-  async function saveOrUpdatePrice(name, price){
-    if (!canEditPrices()) return toast("Sem permissão para editar preços.");
-
-    const cleanName = normalizeCat(name);
-    if (!cleanName) return toast("Nome do produto vazio.");
-    const p = parsePrice(price);
-    if (p == null) return toast("Preço inválido.");
-
-    const nkey = normalizeProductName(cleanName);
-    const next = (priceItems || []).slice();
-
-    const idx = next.findIndex(x => normalizeProductName(x?.name) === nkey);
-    const item = {
-      name: cleanName,
-      price: p,
-      updatedAtHuman: nowHuman(),
-      updatedBy: currentUser
-    };
-
-    if (idx >= 0) next[idx] = item;
-    else next.push(item);
-
-    next.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
-
-    await setDoc(cfgPricesRef(), { items: next, updatedAt: serverTimestamp() }, { merge:false });
-    toast("Preço salvo.");
-  }
-
-  async function deletePriceByName(name){
-    if (!canEditPrices()) return toast("Sem permissão.");
-    const cleanName = normalizeCat(name);
-    if (!cleanName) return;
-
-    const nkey = normalizeProductName(cleanName);
-    const next = (priceItems || []).filter(x => normalizeProductName(x?.name) !== nkey);
-    await setDoc(cfgPricesRef(), { items: next, updatedAt: serverTimestamp() }, { merge:false });
-    toast("Produto removido.");
-  }
-
-  function renderPriceResults(containerId, queryText, allowDelete){
-    const box = $(containerId);
-    if (!box) return;
-    const q = normalizeProductName(queryText);
-
-    const list = (priceItems || [])
-      .filter(x => {
-        const nm = normalizeProductName(x?.name);
-        return !q ? true : nm.includes(q);
-      })
-      .slice(0, 25);
-
-    if (!pricesLoaded){
-      box.innerHTML = `<div class="text-gray-500">Carregando...</div>`;
-      return;
-    }
-
-    if (!list.length){
-      box.innerHTML = `<div class="text-gray-500">Nenhum produto encontrado.</div>`;
-      return;
-    }
-
-    box.innerHTML = "";
-    list.forEach((it)=>{
-      const row = document.createElement("div");
-      row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
-
-      const left = document.createElement("div");
-      left.innerHTML = `
-        <div class="font-semibold">${it.name}</div>
-        <div class="text-xs text-gray-600">${formatBRL(Number(it.price||0))} • Atualizado por ${it.updatedBy || "-"} (${it.updatedAtHuman || "-"})</div>
-      `;
-
-      row.appendChild(left);
-
-      if (allowDelete){
-        const btn = document.createElement("button");
-        btn.className = "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs";
-        btn.innerText = "Excluir";
-        btn.onclick = async ()=>{
-          if (!confirm(`Excluir "${it.name}"?`)) return;
-          await deletePriceByName(it.name);
-        };
-        row.appendChild(btn);
-      }
-
-      box.appendChild(row);
-    });
-  }
-
-  // ✅ FIX POPUP: setupPricesUI agora usa .onclick/.oninput (não acumula listeners)
-  function setupPricesUI(){
-    if ($("pricePermEmp")) $("pricePermEmp").innerText = canEditPrices() ? "Pode editar" : "Somente consulta";
-    if ($("pricePermGer")) $("pricePermGer").innerText = canEditPrices() ? "Pode editar" : "Somente consulta";
-
-    const empEditor = $("priceEditorEmpWrap");
-    if (empEditor) empEditor.classList.toggle("hidden", !canEditPrices());
-
-    const inpEmp = $("priceSearchEmp");
-    const inpGer = $("priceSearchGer");
-
-    if (inpEmp){
-      inpEmp.oninput = ()=> renderPriceResults("priceResultsEmp", inpEmp.value, false);
-      renderPriceResults("priceResultsEmp", inpEmp.value, false);
-    }
-    if (inpGer){
-      inpGer.oninput = ()=> renderPriceResults("priceResultsGer", inpGer.value, true);
-      renderPriceResults("priceResultsGer", inpGer.value, true);
-    }
-
-    const btnEmp = $("btnSavePriceEmp");
-    if (btnEmp){
-      btnEmp.onclick = async ()=>{
-        btnEmp.disabled = true;
-        btnEmp.classList.add("opacity-50");
-        try{
-          await saveOrUpdatePrice($("priceNameEmp").value, $("priceValueEmp").value);
-          $("priceNameEmp").value = "";
-          $("priceValueEmp").value = "";
-        } finally {
-          btnEmp.disabled = false;
-          btnEmp.classList.remove("opacity-50");
-        }
-      };
-    }
-
-    const btnGer = $("btnSavePriceGer");
-    if (btnGer){
-      btnGer.onclick = async ()=>{
-        btnGer.disabled = true;
-        btnGer.classList.add("opacity-50");
-        try{
-          await saveOrUpdatePrice($("priceNameGer").value, $("priceValueGer").value);
-          $("priceNameGer").value = "";
-          $("priceValueGer").value = "";
-        } finally {
-          btnGer.disabled = false;
-          btnGer.classList.remove("opacity-50");
-        }
-      };
-    }
-  }
-
   // ===== Ranking mensal (gerente) =====
   function renderRanking(){
     const mk = monthKey(new Date());
     $("monthKeyLabelGer").innerText = mk;
 
     const list = $("rankingList");
+    if (!list) return;
     list.innerHTML = "";
 
     const active = activeNames();
@@ -1549,17 +1594,15 @@
 
   // ===== Render funcionário =====
   function renderEmployee(){
-    if (!isBogadosStore()){
-      if (!isEmployeeActive(currentUser) && currentUser !== "Claudia"){
-        clearSession();
-        currentUser = "";
-        show("login");
-        return;
-      }
+    if (!isBogadosStore() && !isEmployeeActive(currentUser) && !BOGADOS_USERS.has(currentUser)){
+      clearSession();
+      currentUser = "";
+      show("login");
+      return;
     }
 
     $("userName").innerText = currentUser;
-    $("weekKeyLabel").innerText = currentWeekKey;
+    $("weekKeyLabel").innerText = normalizeWeekKeyLoose(currentWeekKey);
 
     const mp = getMonthPoints(currentUser);
     $("monthPointsInline").innerText = mp;
@@ -1571,73 +1614,77 @@
     const container = $("tasks");
     container.innerHTML = "";
 
+    // GLOBAIS ABERTAS DA SEMANA (todas que estiverem open)
     const openGlobals = (globalsWeek || []).filter(g => g.status === "open");
-    openGlobals.forEach((g)=>{
-      const card = document.createElement("div");
-      card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
+    if (openGlobals.length){
+      openGlobals.forEach((g)=>{
+        const card = document.createElement("div");
+        card.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
 
-      const title = document.createElement("div");
-      title.className = "flex items-center justify-between gap-2";
-      title.innerHTML = `<h3 class="font-semibold">[GLOBAL] ${g.name || "Tarefa Global"}</h3><span class="text-xs text-gray-500">+10 (primeiro que concluir)</span>`;
-      card.appendChild(title);
+        const title = document.createElement("div");
+        title.className = "flex items-center justify-between gap-2";
+        title.innerHTML = `<h3 class="font-semibold">[GLOBAL] ${g.name || "Tarefa Global"}</h3><span class="text-xs text-gray-500">+10 (primeiro que concluir)</span>`;
+        card.appendChild(title);
 
-      const body = document.createElement("div");
-      body.className = "mt-3 space-y-2";
+        const body = document.createElement("div");
+        body.className = "mt-3 space-y-2";
 
-      const itens = Array.isArray(g.items) ? g.items : [];
-      itens.forEach((item)=>{
-        const row = document.createElement("div");
-        row.className = "flex items-center justify-between gap-2";
-        row.innerHTML =
-          "<span class='text-sm text-gray-800'>" + item + "</span>" +
-          "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
-        body.appendChild(row);
-      });
+        const itens = Array.isArray(g.items) ? g.items : [];
+        itens.forEach((item)=>{
+          const row = document.createElement("div");
+          row.className = "flex items-center justify-between gap-2";
+          row.innerHTML =
+            "<span class='text-sm text-gray-800'>" + item + "</span>" +
+            "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
+          body.appendChild(row);
+        });
 
-      const warn = document.createElement("p");
-      warn.className = "text-xs text-gray-500 mt-2";
-      warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
-      body.appendChild(warn);
+        const warn = document.createElement("p");
+        warn.className = "text-xs text-gray-500 mt-2";
+        warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
+        body.appendChild(warn);
 
-      const btn = document.createElement("button");
-      btn.className = "mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded";
-      btn.innerText = "Concluir GLOBAL";
+        const btn = document.createElement("button");
+        btn.className = "mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded";
+        btn.innerText = "Concluir GLOBAL";
 
-      btn.onclick = async ()=>{
-        const itensQtd = {};
-        const inputs = Array.from(body.querySelectorAll("input[type=number]"));
-        for (const inp of inputs){
-          const name = decodeURIComponent(inp.getAttribute("data-item"));
-          if (inp.value === ""){
-            toast("Preencha todos os itens. Se for zero, digite 0.");
-            inp.focus();
-            return;
+        btn.addEventListener("click", async ()=>{
+          const itensQtd = {};
+          const inputs = Array.from(body.querySelectorAll("input[type=number]"));
+          for (const inp of inputs){
+            const name = decodeURIComponent(inp.getAttribute("data-item"));
+            if (inp.value === ""){
+              toast("Preencha todos os itens. Se for zero, digite 0.");
+              inp.focus();
+              return;
+            }
+            const val = Number(inp.value);
+            itensQtd[name] = Number.isFinite(val) ? val : 0;
           }
-          const val = Number(inp.value);
-          itensQtd[name] = Number.isFinite(val) ? val : 0;
-        }
 
-        btn.disabled = true;
-        btn.classList.add("opacity-50");
-        btn.innerText = "Tentando concluir...";
-
-        try{
-          await completeGlobalTaskAsFirst(g.id, currentUser, itensQtd);
-          toast("Você concluiu essa GLOBAL primeiro!");
-        } catch(e){
-          console.error(e);
-          toast("Essa GLOBAL já foi concluída por outra pessoa.");
-        } finally {
           btn.disabled = true;
-          btn.innerText = "Encerrada";
-        }
-      };
+          btn.classList.add("opacity-50");
+          btn.innerText = "Tentando concluir...";
 
-      card.appendChild(body);
-      card.appendChild(btn);
-      container.appendChild(card);
-    });
+          try{
+            await completeGlobalAsFirst(g.id, currentUser, itensQtd);
+            toast("Você concluiu a GLOBAL primeiro!");
+          } catch(e){
+            console.error(e);
+            toast("GLOBAL já foi concluída por outra pessoa.");
+          } finally {
+            btn.disabled = true;
+            btn.innerText = "Encerrada";
+          }
+        });
 
+        card.appendChild(body);
+        card.appendChild(btn);
+        container.appendChild(card);
+      });
+    }
+
+    // Categorias
     const cats = data[currentUser] || {};
     const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
     if (!catNames.length){
@@ -1683,7 +1730,7 @@
       btn.disabled = done;
       if (done) btn.classList.add("opacity-50");
 
-      btn.onclick = async ()=>{
+      btn.addEventListener("click", async ()=>{
         if (btn.disabled) return;
 
         const itensQtd = {};
@@ -1715,7 +1762,7 @@
             categoria: cat,
             itens: itensQtd,
             when: nowHuman(),
-            weekKey: currentWeekKey,
+            weekKey: normalizeWeekKeyLoose(currentWeekKey),
             createdAt: serverTimestamp()
           });
 
@@ -1730,7 +1777,7 @@
           btn.classList.remove("opacity-50");
           btn.innerText = "Concluir";
         }
-      };
+      });
 
       card.appendChild(body);
       card.appendChild(btn);
@@ -1738,76 +1785,15 @@
     });
   }
 
-  // ✅ Render lista de globais no gerente (com excluir abertas)
-  function renderGlobalsManagerList(){
-    const wrap = $("globalsListGer");
-    if (!wrap) return;
-    wrap.innerHTML = "";
-
-    const ordered = (globalsWeek || []).slice().sort((a,b)=>{
-      const aa = a.createdAtHuman || "";
-      const bb = b.createdAtHuman || "";
-      return bb.localeCompare(aa);
-    });
-
-    if (!ordered.length){
-      wrap.innerHTML = `<div class="text-gray-500">Nenhuma GLOBAL publicada nesta semana.</div>`;
-      return;
-    }
-
-    ordered.slice(0, 30).forEach((g, idx)=>{
-      const row = document.createElement("div");
-      row.className = "border rounded p-2 bg-gray-50 flex items-start justify-between gap-2";
-
-      const left = document.createElement("div");
-      const status = g.status === "open" ? "ABERTA" : "CONCLUÍDA";
-      const meta = g.status === "completed"
-        ? `Concluída por ${g.completedBy || "-"} (${g.completedAtHuman || "-"})`
-        : `Criada por ${g.createdBy || "-"} (${g.createdAtHuman || "-"})`;
-
-      left.innerHTML = `
-        <div class="font-semibold">${idx+1}. ${g.name || "GLOBAL"}</div>
-        <div class="text-xs text-gray-600">Status: <b>${status}</b> • ${meta}</div>
-      `;
-
-      row.appendChild(left);
-
-      if (g.status === "open"){
-        const btn = document.createElement("button");
-        btn.className = "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-xs shrink-0";
-        btn.innerText = "Excluir";
-        btn.onclick = async ()=>{
-          if (!confirm(`Excluir GLOBAL aberta "${g.name}"?`)) return;
-          await deleteOpenGlobal(g.id);
-        };
-        row.appendChild(btn);
-      } else {
-        const tag = document.createElement("div");
-        tag.className = "text-xs px-2 py-1 rounded bg-white border text-gray-700 shrink-0";
-        tag.innerText = "Trancada";
-        row.appendChild(tag);
-      }
-
-      wrap.appendChild(row);
-    });
-  }
-
   // ===== Render gerente =====
   function renderManager(){
-    $("weekKeyLabelGer").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
-    $("storeLabelGer").innerText = storeLabel();
+    $("weekKeyLabelGer").innerText = normalizeWeekKeyLoose(currentWeekKey);
+    $("weekKeyLabelEscalaGer").innerText = normalizeWeekKeyLoose(currentWeekKey);
+    $("storeLabelGer").innerText = isBogadosStore() ? "BOGADOS" : "LOJA PRINCIPAL";
 
     setupPricesUI();
     renderRanking();
-
-    if ($("globalStatus")){
-      const openCount = globalsWeek.filter(g=>g.status==="open").length;
-      const doneCount = globalsWeek.filter(g=>g.status==="completed").length;
-      $("globalStatus").innerText = `GLOBAIS desta semana: ${globalsWeek.length}/20 • Abertas: ${openCount} • Concluídas: ${doneCount}`;
-    }
-
-    renderGlobalsManagerList();
+    renderGlobalsWeekManager();
 
     const t = $("gerTasks");
     t.innerHTML = "";
@@ -1896,18 +1882,17 @@
         });
       });
     }
+
+    if (!isBogadosStore()){
+      renderEmployeeTable();
+    }
   }
 
-  // ===== Collapse helpers =====
-  function setupCollapse(btnId, contentId, defaultHidden=false){
+  // ===== Collapse =====
+  function setupCollapse(btnId, contentId){
     const btn = $(btnId);
     const content = $(contentId);
     if (!btn || !content) return;
-
-    if (defaultHidden){
-      content.classList.add("hidden");
-      btn.innerText = "Expandir";
-    }
 
     btn.addEventListener("click", ()=>{
       const hidden = content.classList.toggle("hidden");
@@ -1919,11 +1904,15 @@
   setupCollapse("btnToggleEscalaGer", "escalaGerContent");
   setupCollapse("btnToggleRanking", "rankingContent");
   setupCollapse("btnTogglePricesEmp", "pricesEmpContent");
-  setupCollapse("btnTogglePricesGer", "pricesGerContent", true);
+  setupCollapse("btnTogglePricesGer", "pricesGerContent");
+
+  // ✅ Por pedido: "Produtos & Preços" no gerente inicia minimizado
+  if ($("pricesGerContent")) $("pricesGerContent").classList.add("hidden");
+  if ($("btnTogglePricesGer")) $("btnTogglePricesGer").innerText = "Expandir";
 
   // ===== Missing =====
-  $("btnMissing")?.addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
-  $("missingSave")?.addEventListener("click", async ()=>{
+  $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
+  $("missingSave").addEventListener("click", async ()=>{
     const raw = $("missingInput").value.trim();
     if (!raw) return toast("Digite o item em falta.");
 
@@ -1931,7 +1920,7 @@
       user: currentUser,
       item: raw,
       when: nowHuman(),
-      weekKey: currentWeekKey,
+      weekKey: normalizeWeekKeyLoose(currentWeekKey),
       createdAt: serverTimestamp()
     });
 
@@ -1940,8 +1929,8 @@
     toast("Registrado!");
   });
 
-  // ===== Templates =====
-  $("btnSaveTpl")?.addEventListener("click", async ()=>{
+  // ===== Templates / GLOBAIS =====
+  $("btnSaveTpl").addEventListener("click", async ()=>{
     if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
     const name = normalizeCat($("tplName").value);
     const items = sanitizeItemsFromInput($("tplItems").value.trim());
@@ -1958,7 +1947,7 @@
     }
   });
 
-  $("btnDeleteTpl")?.addEventListener("click", async ()=>{
+  $("btnDeleteTpl").addEventListener("click", async ()=>{
     if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
     const id = $("globalTplSelect").value;
     if (!id) return toast("Selecione um template.");
@@ -1974,40 +1963,40 @@
     }
   });
 
-  $("btnPublishGlobalFromTpl")?.addEventListener("click", async ()=>{
+  $("btnPublishGlobalFromTpl").addEventListener("click", async ()=>{
     if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
     const id = $("globalTplSelect").value;
     if (!id) return toast("Selecione um template.");
     const tpl = findTemplateById(id);
     if (!tpl) return toast("Template não encontrado.");
 
-    if (!confirm(`Publicar GLOBAL desta semana usando "${tpl.name}"?`)) return;
+    if (!confirm(`Publicar GLOBAL desta semana usando "${tpl.name}"?\n(Até ${MAX_GLOBALS_PER_WEEK} por semana)`)) return;
 
     try{
-      await publishGlobalTaskFromTemplate(tpl);
-      toast("GLOBAL publicada para esta semana.");
+      await publishGlobalFromTemplate(tpl);
     } catch(e){
       console.error(e);
       toast(String(e?.message || "Erro ao publicar GLOBAL."));
     }
   });
 
-  // ===== Funcionários (admin) =====
-  $("btnAddEmployee")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+  // ===== Employees =====
+  $("btnAddEmployee").addEventListener("click", async ()=>{
+    if (!canManageEmployees()) return toast("Apenas o gerente (loja principal).");
     const name = $("newEmployeeName").value;
     $("newEmployeeName").value = "";
     try{ await addEmployee(name); }catch(e){ console.error(e); toast("Erro ao adicionar funcionário."); }
   });
 
-  $("btnRefreshEmployees")?.addEventListener("click", ()=>{
+  $("btnRefreshEmployees").addEventListener("click", ()=>{
     renderEmployeesUI();
+    renderEmployeeTable();
     toast("Lista recarregada.");
   });
 
-  // ===== Categorias (admin) =====
-  $("btnAddCategory")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+  // ===== Categorias =====
+  $("btnAddCategory").addEventListener("click", async ()=>{
+    if (!isUserManager(currentUser) || isBogadosStore()) return toast("Apenas o gerente (loja principal).");
     const u = $("addUser").value;
     const cat = normalizeCat($("categoriaNome").value);
     const items = $("itensCategoria").value.trim();
@@ -2024,8 +2013,8 @@
     toast("Categoria atualizada.");
   });
 
-  // ===== PINs =====
-  $("btnSetPin")?.addEventListener("click", async ()=>{
+  // ===== PIN set =====
+  $("btnSetPin").addEventListener("click", async ()=>{
     if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
     const u = $("pinUser").value;
     const p = $("pinNew").value.trim();
@@ -2044,7 +2033,7 @@
   });
 
   // ===== Export =====
-  $("btnExport")?.addEventListener("click", ()=>{
+  $("btnExport").addEventListener("click", ()=>{
     if (!isUserManager(currentUser)) return toast("Apenas o gerente exporta.");
 
     const header = ["tipo","usuario","categoria","quando","detalhes"];
@@ -2060,7 +2049,7 @@
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "relatorio_" + currentWeekKey + ".csv";
+    a.download = "relatorio_" + normalizeWeekKeyLoose(currentWeekKey) + ".csv";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -2072,11 +2061,48 @@
     return s;
   }
 
-  // ===== Deletes =====
+  // ===== Reset week =====
+  $("btnResetWeek").addEventListener("click", async ()=>{
+    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
+    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
+
+    try{
+      await deleteByWeek("tasks", normalizeWeekKeyLoose(currentWeekKey));
+      await deleteByWeek("missing", normalizeWeekKeyLoose(currentWeekKey));
+
+      // Escala
+      try{ await deleteDoc(escalaRef(normalizeWeekKeyLoose(currentWeekKey))); }catch(e){}
+
+      // Globais da semana
+      try{
+        const wk = normalizeWeekKeyLoose(currentWeekKey);
+        const qs = await getDocs(query(globalsColRef(), where("weekKey","==",wk), limit(450)));
+        if (!qs.empty){
+          let batch = writeBatch(db);
+          let count = 0;
+          for (const d of qs.docs){
+            batch.delete(d.ref);
+            count++;
+            if (count % 450 === 0){
+              await batch.commit();
+              batch = writeBatch(db);
+            }
+          }
+          await batch.commit();
+        }
+      } catch(e){ console.warn(e); }
+
+      toast("Semana zerada.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao zerar semana.");
+    }
+  });
+
   async function deleteByWeek(colName, wk){
     const colRef = collection(db, "stores", STORE_ID, colName);
-    const q = query(colRef, where("weekKey","==",wk), limit(450));
-    const snap = await getDocs(q);
+    const qy = query(colRef, where("weekKey","==",wk), limit(450));
+    const snap = await getDocs(qy);
     if (snap.empty) return;
 
     let batch = writeBatch(db);
@@ -2093,41 +2119,7 @@
     if (snap.docs.length === 450) await deleteByWeek(colName, wk);
   }
 
-  async function deleteGlobalsByWeek(wk){
-    const snap = await getDocs(query(globalsColRef(), orderBy("createdAt","desc"), limit(400)));
-    const targets = snap.docs.filter(d => normalizeWeekKeyLoose(d.data()?.weekKey) === normalizeWeekKeyLoose(wk));
-    if (!targets.length) return;
-
-    let batch = writeBatch(db);
-    let count = 0;
-    for (const d of targets){
-      batch.delete(d.ref);
-      count++;
-      if (count % 450 === 0){
-        await batch.commit();
-        batch = writeBatch(db);
-      }
-    }
-    await batch.commit();
-  }
-
-  $("btnResetWeek")?.addEventListener("click", async ()=>{
-    if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
-    if (!confirm("ATENÇÃO: Apaga tarefas, faltas, GLOBAIS e escala da semana atual. Confirmar?")) return;
-
-    try{
-      await deleteByWeek("tasks", currentWeekKey);
-      await deleteByWeek("missing", currentWeekKey);
-      await deleteGlobalsByWeek(currentWeekKey);
-      try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
-      toast("Semana zerada.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao zerar semana.");
-    }
-  });
-
-  $("btnResetStars")?.addEventListener("click", async ()=>{
+  $("btnResetStars").addEventListener("click", async ()=>{
     if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
     if (!confirm("Zerar estrelas/pontos do mês para todos os funcionários ativos?")) return;
     try{
@@ -2139,11 +2131,11 @@
     }
   });
 
-  $("btnDeleteAllTasksWeek")?.addEventListener("click", async ()=>{
+  $("btnDeleteAllTasksWeek").addEventListener("click", async ()=>{
     if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODAS as tarefas concluídas desta semana?")) return;
     try{
-      await deleteByWeek("tasks", currentWeekKey);
+      await deleteByWeek("tasks", normalizeWeekKeyLoose(currentWeekKey));
       toast("Tarefas da semana excluídas.");
     } catch(e){
       console.error(e);
@@ -2151,11 +2143,11 @@
     }
   });
 
-  $("btnDeleteAllMissingWeek")?.addEventListener("click", async ()=>{
+  $("btnDeleteAllMissingWeek").addEventListener("click", async ()=>{
     if (!isUserManager(currentUser)) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODOS os itens em falta desta semana?")) return;
     try{
-      await deleteByWeek("missing", currentWeekKey);
+      await deleteByWeek("missing", normalizeWeekKeyLoose(currentWeekKey));
       toast("Faltas da semana excluídas.");
     } catch(e){
       console.error(e);
@@ -2166,67 +2158,48 @@
   $("btnClearEscala")?.addEventListener("click", clearEscala);
   $("btnClearEscalaGer")?.addEventListener("click", clearEscala);
 
-  // ===== Logout =====
-  $("btnLogout1")?.addEventListener("click", doLogout);
-  $("btnLogout2")?.addEventListener("click", doLogout);
-
-  function doLogout(){
-    currentUser = "";
-    clearSession();
-    clearListeners();
-    STORE_ID = STORE_MAIN;
-    show("login");
-    bootstrapLogin();
-  }
+  $("btnLogout1").addEventListener("click", doLogout);
+  $("btnLogout2").addEventListener("click", doLogout);
 
   // ===== Login =====
-  function detectStoreByUser(user){
-    return BOGADOS_USERS.has(user) ? STORE_BOGADOS : STORE_MAIN;
+  function chooseStoreForUser(u){
+    if (BOGADOS_USERS.has(u)) return STORE_BOGADOS;
+    return STORE_MAIN;
   }
 
-  $("btnLogin")?.addEventListener("click", async ()=>{
+  $("btnLogin").addEventListener("click", async ()=>{
     const u = $("userSelect").value;
     const p = $("pin").value;
     if (!u) return toast("Selecione o usuário.");
     if (!isValidPin(p)) return toast("PIN precisa ter 4 dígitos.");
 
-    const nextStore = detectStoreByUser(u);
+    // Troca de loja conforme o usuário
+    const nextStore = chooseStoreForUser(u);
     if (STORE_ID !== nextStore){
       STORE_ID = nextStore;
       clearListeners();
+      await cloudInit(true); // reinit com nova loja
     }
 
-    await ensureWeekKey();
-    await ensureEmployeesConfig();
-
-    if (!isBogadosStore()){
-      if (u !== "GERENTE" && !isEmployeeActive(u)){
-        return toast("Usuário bloqueado. Fale com o gerente.");
-      }
-    } else {
-      if (!BOGADOS_USERS.has(u)){
-        return toast("Usuário não permitido no BOGADOS.");
-      }
+    if (!isBogadosStore() && u !== "GERENTE" && !BOGADOS_USERS.has(u) && !isEmployeeActive(u)){
+      return toast("Usuário bloqueado. Fale com o gerente.");
     }
 
     const check = await verifyUserPin(u, p);
     if (check.noUser){
       await ensureUserPin(u, p);
       toast("PIN criado! Você já está logado.");
-      await doLogin(u);
+      doLogin(u);
       return;
     }
     if (!check.ok) return toast("PIN incorreto.");
-
-    await doLogin(u);
+    doLogin(u);
   });
 
-  async function doLogin(u){
+  function doLogin(u){
     currentUser = u;
     $("pin").value = "";
     saveSession(u, STORE_ID);
-
-    await cloudInit();
 
     if (isUserManager(u)){
       renderManager();
@@ -2246,29 +2219,33 @@
     updateTopBar();
   }
 
-  // ===== Cloud init (por loja atual) =====
-  async function cloudInit(){
-    clearListeners();
+  function doLogout(){
+    currentUser = "";
+    clearSession();
+    show("login");
+  }
 
+  // ===== Init cloud =====
+  async function cloudInit(isReinit=false){
     await ensureWeekKey();
 
-    $("weekKeyLabel").innerText = currentWeekKey;
-    $("weekKeyLabelGer").innerText = currentWeekKey;
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+    // week labels
+    $("weekKeyLabel").innerText = normalizeWeekKeyLoose(currentWeekKey);
+    $("weekKeyLabelGer").innerText = normalizeWeekKeyLoose(currentWeekKey);
+    $("weekKeyLabelEscala").innerText = normalizeWeekKeyLoose(currentWeekKey);
+    $("weekKeyLabelEscalaGer").innerText = normalizeWeekKeyLoose(currentWeekKey);
 
     await ensureEmployeesConfig();
     renderEmployeesUI();
 
     await ensureScoresDoc();
+    await ensurePricesDoc();
     updateTopBar();
 
     await ensureGlobalTemplatesDoc();
     renderGlobalTplDropdown();
 
-    await ensurePricesDoc();
-    setupPricesUI();
-
+    // Templates snapshot
     unsubs.push(onSnapshot(cfgGlobalTplRef(), (snap)=>{
       if (!snap.exists()){
         globalTemplates = [];
@@ -2279,10 +2256,11 @@
       renderGlobalTplDropdown();
     }));
 
+    // Employees snapshot (principal)
     unsubs.push(onSnapshot(cfgAppRef(), (snap)=>{
       if (!snap.exists()) return;
-      const raw = snap.data().employees;
 
+      const raw = snap.data().employees;
       employees = (Array.isArray(raw) ? raw : [])
         .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
         .filter(x => x.name);
@@ -2291,34 +2269,50 @@
       employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
 
       renderEmployeesUI();
+      if (!isBogadosStore()) renderEmployeeTable();
 
-      if (!isBogadosStore()){
-        if (currentUser && !isUserManager(currentUser) && !isEmployeeActive(currentUser)){
-          clearSession();
-          currentUser = "";
-          toast("Usuário bloqueado. Faça login novamente.");
-          show("login");
-        }
+      if (currentUser && !isUserManager(currentUser) && !BOGADOS_USERS.has(currentUser) && !isEmployeeActive(currentUser)){
+        clearSession();
+        currentUser = "";
+        toast("Usuário bloqueado. Faça login novamente.");
+        show("login");
+      }
+
+      if (isUserManager(currentUser)){
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+      } else if (currentUser){
+        maybeSetupEscalaUI();
       }
 
       renderRanking();
     }));
 
+    // Prices snapshot
     unsubs.push(onSnapshot(cfgPricesRef(), (snap)=>{
-      const raw = snap.exists() ? snap.data().items : [];
-      priceItems = Array.isArray(raw) ? raw : [];
-      pricesLoaded = true;
+      if (!snap.exists()){
+        priceItems = [];
+        pricesLoaded = true;
+      } else {
+        const raw = snap.data().items;
+        priceItems = Array.isArray(raw) ? raw : [];
+        pricesLoaded = true;
+      }
       setupPricesUI();
-    }, (err)=>{
-      console.error("Erro snapshot prices:", err);
-      warnManager("Erro ao carregar preços (veja o console).");
+      // re-render results (mantém “Digite para pesquisar” se vazio)
+      renderPriceResults("priceResultsEmp", $("priceSearchEmp")?.value || "", false);
+      renderPriceResults("priceResultsGer", $("priceSearchGer")?.value || "", true);
     }));
 
+    // Cats load
     const catsSnap = await getDoc(cfgCatsRef());
     if (!catsSnap.exists()){
-      const initial = isBogadosStore() ? { [BOGADOS_EMPLOYEE]: {} } : defaultData;
-      await setDoc(cfgCatsRef(), { data: initial, updatedAt: serverTimestamp() }, { merge:false });
-      data = clone(initial);
+      if (isBogadosStore()){
+        await setDoc(cfgCatsRef(), { data: { [BOGADOS_EMPLOYEE]: {} }, updatedAt: serverTimestamp() }, { merge:false });
+        data = { [BOGADOS_EMPLOYEE]: {} };
+      } else {
+        await setDoc(cfgCatsRef(), { data: defaultData, updatedAt: serverTimestamp() }, { merge:false });
+        data = clone(defaultData);
+      }
     } else {
       const remote = catsSnap.data().data;
       data = (remote && typeof remote === "object") ? remote : (isBogadosStore() ? { [BOGADOS_EMPLOYEE]: {} } : clone(defaultData));
@@ -2333,6 +2327,7 @@
       }
     }));
 
+    // scores snapshot
     unsubs.push(onSnapshot(scoresRef(), (snap)=>{
       scoresDoc = snap.data() || {};
       if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
@@ -2346,50 +2341,65 @@
       updateTopBar();
     }));
 
+    // tasks/missing snapshots
     const TASKS_LIMIT = 2500;
     const MISSING_LIMIT = 2500;
 
-    unsubs.push(onSnapshot(query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(TASKS_LIMIT)), (qs)=>{
-      tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-      const wk = normalizeWeekKeyLoose(currentWeekKey);
-      tasksDone = tasksAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
+    unsubs.push(onSnapshot(
+      query(collection(db,"stores",STORE_ID,"tasks"), orderBy("createdAt","desc"), limit(TASKS_LIMIT)),
+      (qs)=>{
+        tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+        const wk = normalizeWeekKeyLoose(currentWeekKey);
+        tasksDone = tasksAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
 
-      if (isUserManager(currentUser)) renderManager();
-      if (currentUser && !isUserManager(currentUser)) renderEmployee();
+        if (isUserManager(currentUser)) renderManager();
+        if (currentUser && !isUserManager(currentUser)) renderEmployee();
 
-      if (isUserManager(currentUser) && tasksAll.length > 0 && tasksDone.length === 0){
-        const samples = [...new Set(tasksAll.slice(0,50).map(t=>String(t.weekKey||"").trim()).filter(Boolean))].slice(0,8);
-        if (samples.length) warnManager("Nenhuma tarefa encontrada nesta semana. Exemplos de weekKey existentes: " + samples.join(" | "));
+        if (isUserManager(currentUser) && tasksAll.length > 0 && tasksDone.length === 0){
+          const samples = [...new Set(tasksAll.slice(0,50).map(t=>String(t.weekKey||"").trim()).filter(Boolean))].slice(0,8);
+          if (samples.length) warnManager("Nenhuma tarefa encontrada nesta semana. Exemplos de weekKey existentes: " + samples.join(" | "));
+        }
+      },
+      (err)=>{
+        console.error("Erro snapshot tasks:", err);
+        warnManager("Erro ao carregar tasks (veja o console).");
       }
-    }, (err)=>{
-      console.error("Erro snapshot tasks:", err);
-      warnManager("Erro ao carregar tasks (veja o console).");
-    }));
+    ));
 
-    unsubs.push(onSnapshot(query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(MISSING_LIMIT)), (qs)=>{
-      missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-      const wk = normalizeWeekKeyLoose(currentWeekKey);
-      missingReports = missingAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
-      if (isUserManager(currentUser)) renderManager();
-    }, (err)=>{
-      console.error("Erro snapshot missing:", err);
-      warnManager("Erro ao carregar missing (veja o console).");
-    }));
+    unsubs.push(onSnapshot(
+      query(collection(db,"stores",STORE_ID,"missing"), orderBy("createdAt","desc"), limit(MISSING_LIMIT)),
+      (qs)=>{
+        missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+        const wk = normalizeWeekKeyLoose(currentWeekKey);
+        missingReports = missingAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
+        if (isUserManager(currentUser)) renderManager();
+      },
+      (err)=>{
+        console.error("Erro snapshot missing:", err);
+        warnManager("Erro ao carregar missing (veja o console).");
+      }
+    ));
 
-    const GLOBALS_LIMIT = 250;
-    unsubs.push(onSnapshot(query(globalsColRef(), orderBy("createdAt","desc"), limit(GLOBALS_LIMIT)), (qs)=>{
-      globalsAll = qs.docs.map(d => ({ id: d.id, ...d.data() }));
-      const wk = normalizeWeekKeyLoose(currentWeekKey);
-      globalsWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey) === wk);
+    // ✅ GLOBAIS snapshot (últimos 500; filtra semana no JS)
+    const GLOBALS_LIMIT = 500;
+    unsubs.push(onSnapshot(
+      query(globalsColRef(), orderBy("createdAt","desc"), limit(GLOBALS_LIMIT)),
+      (qs)=>{
+        globalsAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+        globalsWeek = globalsForWeek();
 
-      if (currentUser && !isUserManager(currentUser)) renderEmployee();
-      if (isUserManager(currentUser)) renderManager();
-    }, (err)=>{
-      console.error("Erro snapshot globals:", err);
-      warnManager("Erro ao carregar GLOBAIS (veja o console).");
-    }));
+        // Atualiza telas
+        if (isUserManager(currentUser)) renderGlobalsWeekManager();
+        if (currentUser && !isUserManager(currentUser)) renderEmployee();
+      },
+      (err)=>{
+        console.error("Erro snapshot globals:", err);
+        warnManager("Erro ao carregar GLOBAIS (veja o console).");
+      }
+    ));
 
-    unsubs.push(onSnapshot(escalaRef(currentWeekKey), (snap)=>{
+    // escala snapshot
+    unsubs.push(onSnapshot(escalaRef(normalizeWeekKeyLoose(currentWeekKey)), (snap)=>{
       if (!snap.exists()) escala = null;
       else escala = { id: snap.id, ...snap.data() };
 
@@ -2403,62 +2413,45 @@
       }
     }));
 
+    // UI post
     renderEscalaViewer();
     renderRanking();
     updateTopBar();
+    setupPricesUI();
+
+    // se reinit e estava logado, não forçar logout aqui; o login controla
   }
 
-  // ===== Bootstrap login list =====
-  async function bootstrapLogin(){
-    if (!STORE_ID) STORE_ID = STORE_MAIN;
-    await ensureEmployeesConfig();
-    renderEmployeesUI();
-  }
+  await cloudInit(false);
 
-  // ===== Start =====
-  await bootstrapLogin();
-
+  // Autologin
   const ses = getSession();
   if (ses && ses.user && ses.storeId){
     STORE_ID = ses.storeId;
+    clearListeners();
+    await cloudInit(true);
+
     currentUser = ses.user;
 
-    const should = detectStoreByUser(currentUser);
-    if (should !== STORE_ID) STORE_ID = should;
-
-    await cloudInit();
-
-    if (isUserManager(currentUser)){
-      renderManager();
-      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-      $("btnSaveEscalaGer").onclick = async ()=>{
-        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        await saveEscala(escalaLocalGer);
-      };
-      show("gerente");
+    // validar usuário ainda ativo (principal)
+    if (!isBogadosStore() && !isUserManager(currentUser) && !BOGADOS_USERS.has(currentUser) && !isEmployeeActive(currentUser)){
+      clearSession();
+      currentUser = "";
+      show("login");
     } else {
-      if (!isBogadosStore()){
-        if (!isEmployeeActive(currentUser) && currentUser !== "Claudia"){
-          clearSession();
-          currentUser = "";
-          show("login");
-        } else {
-          renderEmployee();
-          maybeSetupEscalaUI();
-          renderEscalaViewer();
-          show("funcionario");
-        }
+      if (isUserManager(currentUser)){
+        renderManager();
+        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+        $("btnSaveEscalaGer").onclick = async ()=>{
+          if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
+          await saveEscala(escalaLocalGer);
+        };
+        show("gerente");
       } else {
-        if (currentUser !== BOGADOS_EMPLOYEE){
-          clearSession();
-          currentUser = "";
-          show("login");
-        } else {
-          renderEmployee();
-          maybeSetupEscalaUI();
-          renderEscalaViewer();
-          show("funcionario");
-        }
+        renderEmployee();
+        maybeSetupEscalaUI();
+        renderEscalaViewer();
+        show("funcionario");
       }
     }
   } else {
@@ -2466,7 +2459,6 @@
   }
 
   updateTopBar();
-
   console.log("BUILD OK", BUILD_ID);
   window.__BUILD_OK__ = true;
 </script>
