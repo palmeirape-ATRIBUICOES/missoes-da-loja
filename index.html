@@ -2178,150 +2178,146 @@ async function publishGlobalFromTemplate(tpl){
 
   // ===== Render gerente =====
   function renderManager(){
-    $("weekKeyLabelGer").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
-    $("storeLabelGer").innerText = (storeKey === "loja_bogados") ? "Bogados" : "Loja Principal";
 
-    renderRanking();
+  $("weekKeyLabelGer").innerText = currentWeekKey;
+  $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
+  $("storeLabelGer").innerText =
+    (storeKey === "loja_bogados") ? "Bogados" : "Loja Principal";
 
-    // status globals
-    if ($("globalStatus")) $("globalStatus").innerText = globalsStatusText();
+  renderRanking();
 
-  
+  // ===== STATUS GLOBAIS =====
+  if ($("globalStatus")){
+    $("globalStatus").innerText = globalsStatusText();
+  }
 
-  const wk = normalizeWeekKeyLoose(currentWeekKey);
-  list.forEach(g=>{
+  // ===== LISTA DE GLOBAIS (GERENCIAR) =====
+  const gList = $("globalsManageList");
+  if (gList){
+    gList.innerHTML = "";
 
-  const card = document.createElement("div");
-  card.className = "border rounded p-4 bg-gray-50 space-y-3";
+    const wk = normalizeWeekKeyLoose(currentWeekKey);
+    const list = globalsAll
+      .filter(g => normalizeWeekKeyLoose(g.weekKey) === wk)
+      .sort((a,b)=> (b.createdAtMs||0) - (a.createdAtMs||0));
 
-  const header = document.createElement("div");
-  header.className = "flex justify-between items-center";
+    if (!list.length){
+      gList.innerHTML =
+        `<div class="text-gray-500">Nenhuma GLOBAL nesta semana.</div>`;
+    }
 
-  header.innerHTML = `
-    <input value="${g.name}"
-           class="font-semibold border-b outline-none bg-transparent w-full mr-3"
-           data-id="${g.id}">
-    <button class="bg-red-600 text-white px-2 py-1 text-xs rounded">
-      Excluir
-    </button>
-  `;
+    list.forEach(g=>{
 
-  const nameInput = header.querySelector("input");
-  const delBtn = header.querySelector("button");
+      const card = document.createElement("div");
+      card.className =
+        "border rounded p-4 bg-gray-50 space-y-3";
 
-  nameInput.onblur = async ()=>{
-    await updateDoc(doc(db,"stores",STORE_ID,"globals",g.id),{
-      name:nameInput.value.trim(),
-      updatedAt:serverTimestamp()
-    });
-  };
+      // HEADER
+      const header = document.createElement("div");
+      header.className =
+        "flex justify-between items-center gap-2";
 
-  delBtn.onclick = ()=> deleteGlobalDoc(g.id);
-
-  card.appendChild(header);
-
-  (g.items || []).forEach((item,index)=>{
-
-    const row = document.createElement("div");
-    row.className = "flex justify-between items-center border rounded p-2";
-
-    const statusClass =
-      item.status === "bought" ? "line-through text-green-600" :
-      item.status === "no_stock" ? "line-through text-red-600" :
-      "";
-
-    row.innerHTML = `
-      <div class="flex items-center gap-2">
-        <input type="checkbox" ${item.status==="bought"?"checked":""}>
-        <span contenteditable="true"
-              class="${statusClass}">
-              ${item.name}
-        </span>
-      </div>
-      <div class="flex gap-2">
-        <button class="bg-yellow-500 text-white px-2 text-xs rounded">
-          Não tem
+      header.innerHTML = `
+        <input value="${g.name}"
+               class="font-semibold border-b outline-none bg-transparent w-full mr-3"
+               data-id="${g.id}">
+        <button class="bg-red-600 text-white px-3 py-1 text-xs rounded">
+          Excluir
         </button>
-        <button class="bg-red-600 text-white px-2 text-xs rounded">
-          X
+      `;
+
+      const nameInput = header.querySelector("input");
+      const delBtn = header.querySelector("button");
+
+      nameInput.onblur = async ()=>{
+        await updateDoc(
+          doc(db,"stores",STORE_ID,"globals",g.id),
+          { name:nameInput.value.trim(), updatedAt:serverTimestamp() }
+        );
+      };
+
+      delBtn.onclick = ()=> deleteGlobalDoc(g.id);
+
+      card.appendChild(header);
+
+      // ITENS
+      (g.items || []).forEach((item,index)=>{
+
+        const row = document.createElement("div");
+        row.className =
+          "flex justify-between items-center border rounded p-2";
+
+        row.innerHTML = `
+          <span contenteditable="true"
+                class="flex-1 outline-none">${item.name}</span>
+          <button class="bg-red-600 text-white px-2 text-xs rounded ml-2">
+            X
+          </button>
+        `;
+
+        const span = row.querySelector("span");
+        const delItem = row.querySelector("button");
+
+        span.onblur = async ()=>{
+          g.items[index].name = span.innerText.trim();
+          await updateDoc(
+            doc(db,"stores",STORE_ID,"globals",g.id),
+            { items:g.items }
+          );
+        };
+
+        delItem.onclick = async ()=>{
+          g.items.splice(index,1);
+          await updateDoc(
+            doc(db,"stores",STORE_ID,"globals",g.id),
+            { items:g.items }
+          );
+        };
+
+        card.appendChild(row);
+      });
+
+      // ADICIONAR ITEM
+      const addRow = document.createElement("div");
+      addRow.className = "flex gap-2";
+
+      addRow.innerHTML = `
+        <input class="border p-2 rounded flex-1"
+               placeholder="Adicionar item...">
+        <button class="bg-blue-600 text-white px-3 rounded">
+          +
         </button>
-      </div>
-    `;
+      `;
 
-    const checkbox = row.querySelector("input");
-    const span = row.querySelector("span");
-    const noBtn = row.querySelectorAll("button")[0];
-    const delBtnItem = row.querySelectorAll("button")[1];
+      const addInput = addRow.querySelector("input");
+      const addBtn = addRow.querySelector("button");
 
-    checkbox.onchange = async ()=>{
-      g.items[index].status =
-        checkbox.checked ? "bought" : "pending";
+      addBtn.onclick = async ()=>{
+        const val = addInput.value.trim();
+        if (!val) return;
 
-      await updateDoc(doc(db,"stores",STORE_ID,"globals",g.id),{
-        items:g.items
-      });
-    };
+        g.items.push({ name:val, status:"pending" });
 
-    noBtn.onclick = async ()=>{
-      g.items[index].status = "no_stock";
+        await updateDoc(
+          doc(db,"stores",STORE_ID,"globals",g.id),
+          { items:g.items }
+        );
 
-      await updateDoc(doc(db,"stores",STORE_ID,"globals",g.id),{
-        items:g.items
-      });
-    };
+        addInput.value = "";
+      };
 
-    delBtnItem.onclick = async ()=>{
-      g.items.splice(index,1);
-
-      await updateDoc(doc(db,"stores",STORE_ID,"globals",g.id),{
-        items:g.items
-      });
-    };
-
-    span.onblur = async ()=>{
-      g.items[index].name = span.innerText.trim();
-
-      await updateDoc(doc(db,"stores",STORE_ID,"globals",g.id),{
-        items:g.items
-      });
-    };
-
-    card.appendChild(row);
-  });
-
-  const addRow = document.createElement("div");
-  addRow.className = "flex gap-2";
-
-  addRow.innerHTML = `
-    <input class="border p-2 rounded flex-1"
-           placeholder="Adicionar item...">
-    <button class="bg-blue-600 text-white px-3 rounded">
-      +
-    </button>
-  `;
-
-  const addInput = addRow.querySelector("input");
-  const addBtn = addRow.querySelector("button");
-
-  addBtn.onclick = async ()=>{
-    const val = addInput.value.trim();
-    if(!val) return;
-
-    g.items.push({ name:val, status:"pending" });
-
-    await updateDoc(doc(db,"stores",STORE_ID,"globals",g.id),{
-      items:g.items
+      card.appendChild(addRow);
+      gList.appendChild(card);
     });
+  }
 
-    addInput.value = "";
-  };
+  // ===== PRODUTOS =====
+  if (!($("manageListGerWrap")?.classList.contains("hidden"))){
+    renderProductList("prodListGer");
+  }
+}
 
-  card.appendChild(addRow);
-
-  gList.appendChild(card);
-});
-
+// -- -- ---- - -- - - - - - --- - - - -
 
       const editBtn = div.querySelectorAll("button")[0];
       const delBtn  = div.querySelectorAll("button")[1];
