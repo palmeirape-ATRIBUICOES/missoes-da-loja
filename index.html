@@ -1345,72 +1345,134 @@ async function publishGlobalFromTemplate(tpl){
     
 // -- -- ---- ---- ---- ---- --
     function openEditGlobal(global){
-  const form = document.createElement("div");
-  form.className = "fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50";
 
-  form.innerHTML = `
-    <div class="bg-white p-6 rounded-xl shadow max-w-lg w-full">
-      <h3 class="font-semibold mb-3">Editar GLOBAL</h3>
+  const overlay = document.createElement("div");
+  overlay.className = "fixed inset-0 bg-black/40 flex items-center justify-center z-50";
 
-      <label class="text-sm">Nome</label>
-      <input id="editGlobalName" class="w-full border p-2 rounded mb-3" value="${global.name}">
+  overlay.innerHTML = `
+    <div class="bg-white w-full max-w-xl rounded-xl shadow-lg p-6 space-y-4">
 
-      <label class="text-sm">Itens (um por linha)</label>
-      <textarea id="editGlobalItems" class="w-full border p-2 rounded h-32 mb-4">${
-        (global.items||[]).map(i=>i.name).join("\n")
-      }</textarea>
-
-      <div class="flex justify-end gap-2">
-        <button id="cancelEdit" class="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
-        <button id="saveEdit" class="px-4 py-2 bg-blue-600 text-white rounded">Salvar</button>
+      <div class="flex justify-between items-center">
+        <input id="editGlobalTitle"
+               class="text-lg font-semibold border-b w-full outline-none"
+               value="${global.name}">
+        <button id="closeEditGlobal"
+                class="text-gray-500 hover:text-black text-xl ml-2">&times;</button>
       </div>
+
+      <div id="editGlobalItemsWrap" class="space-y-2 max-h-64 overflow-auto"></div>
+
+      <div class="flex gap-2">
+        <input id="newGlobalItemInput"
+               class="flex-1 border p-2 rounded"
+               placeholder="Adicionar novo item...">
+        <button id="addGlobalItemBtn"
+                class="bg-blue-600 text-white px-4 rounded">
+          Adicionar
+        </button>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t">
+        <button id="saveGlobalChanges"
+                class="bg-emerald-600 text-white px-4 py-2 rounded">
+          Salvar alterações
+        </button>
+      </div>
+
     </div>
   `;
 
-  document.body.appendChild(form);
+  document.body.appendChild(overlay);
 
-  $("cancelEdit").onclick = ()=> form.remove();
+  const itemsWrap = overlay.querySelector("#editGlobalItemsWrap");
+  let itemsLocal = JSON.parse(JSON.stringify(global.items || []));
 
-  $("saveEdit").onclick = async ()=>{
-    const newName = $("editGlobalName").value.trim();
-    const newItems = $("editGlobalItems").value
-      .split("\n")
-      .map(i=>i.trim())
-      .filter(Boolean)
-      .map(i=>({ name:i, status:"pending" }));
+  function renderItems(){
+    itemsWrap.innerHTML = "";
+
+    itemsLocal.forEach((item,index)=>{
+
+      const statusClass =
+        item.status === "bought" ? "line-through text-green-600" :
+        item.status === "no_stock" ? "line-through text-red-600" :
+        "";
+
+      const row = document.createElement("div");
+      row.className = "flex justify-between items-center border rounded p-2";
+
+      row.innerHTML = `
+        <div class="flex items-center gap-2">
+          <input type="checkbox" ${item.status==="bought"?"checked":""}>
+          <span contenteditable="true"
+                class="outline-none ${statusClass}">
+                ${item.name}
+          </span>
+        </div>
+        <div class="flex gap-2">
+          <button class="bg-yellow-500 text-white px-2 rounded text-xs">
+            Não tem
+          </button>
+          <button class="bg-red-600 text-white px-2 rounded text-xs">
+            X
+          </button>
+        </div>
+      `;
+
+      const checkbox = row.querySelector("input");
+      const span = row.querySelector("span");
+      const noBtn = row.querySelectorAll("button")[0];
+      const delBtn = row.querySelectorAll("button")[1];
+
+      checkbox.onchange = ()=>{
+        item.status = checkbox.checked ? "bought" : "pending";
+        renderItems();
+      };
+
+      noBtn.onclick = ()=>{
+        item.status = "no_stock";
+        renderItems();
+      };
+
+      delBtn.onclick = ()=>{
+        itemsLocal.splice(index,1);
+        renderItems();
+      };
+
+      span.onblur = ()=>{
+        item.name = span.innerText.trim();
+      };
+
+      itemsWrap.appendChild(row);
+    });
+  }
+
+  renderItems();
+
+  overlay.querySelector("#addGlobalItemBtn").onclick = ()=>{
+    const val = overlay.querySelector("#newGlobalItemInput").value.trim();
+    if(!val) return;
+
+    itemsLocal.push({ name:val, status:"pending" });
+    overlay.querySelector("#newGlobalItemInput").value = "";
+    renderItems();
+  };
+
+  overlay.querySelector("#saveGlobalChanges").onclick = async ()=>{
+    const newName = overlay.querySelector("#editGlobalTitle").value.trim();
 
     await updateDoc(doc(db,"stores",STORE_ID,"globals",global.id),{
-      name: newName,
-      items: newItems,
-      updatedAt: serverTimestamp()
+      name:newName,
+      items:itemsLocal,
+      updatedAt:serverTimestamp()
     });
 
-    form.remove();
+    overlay.remove();
     toast("GLOBAL atualizada.");
   };
-}
 
-async function toggleGlobalItem(id,index){
-  const g = globalsAll.find(x=>x.id===id);
-  if (!g) return;
-
-  g.items[index].status =
-    g.items[index].status==="bought" ? "pending" : "bought";
-
-  await updateDoc(doc(db,"stores",STORE_ID,"globals",id),{
-    items: g.items
-  });
-}
-
-async function markGlobalNoStock(id,index){
-  const g = globalsAll.find(x=>x.id===id);
-  if (!g) return;
-
-  g.items[index].status = "no_stock";
-
-  await updateDoc(doc(db,"stores",STORE_ID,"globals",id),{
-    items: g.items
-  });
+  overlay.querySelector("#closeEditGlobal").onclick = ()=>{
+    overlay.remove();
+  };
 }
 
 
