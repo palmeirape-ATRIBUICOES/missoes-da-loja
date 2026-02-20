@@ -474,6 +474,32 @@
       PIN mestre inicial do gerente: <b>1234</b> só se o gerente ainda não tiver PIN criado.
     </p>
   </div>
+
+  <!-- ========================= -->
+<!-- 🛒 LISTAS DE COMPRAS -->
+<!-- ========================= -->
+<div class="bg-white p-4 rounded-xl shadow mt-4">
+  <div class="flex items-center justify-between">
+    <div>
+      <h3 class="font-semibold">Listas de Compras</h3>
+      <p class="text-xs text-gray-500">Separado por loja</p>
+    </div>
+  </div>
+
+  <div class="flex gap-2 mt-3">
+    <input id="newShoppingListName" 
+           class="border p-2 rounded flex-1"
+           placeholder="Nome da nova lista (ex: Atacadão Segunda)">
+    <button id="btnCreateShoppingList"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+      Criar
+    </button>
+  </div>
+
+  <div id="shoppingListsWrap" class="mt-4 space-y-4"></div>
+</div>
+
+  
 </section>
 
 <!-- Toast (sem alert bugado) -->
@@ -696,6 +722,161 @@
   const colTasks   = () => collection(db,"stores",STORE_ID,"tasks");
   const colMissing = () => collection(db,"stores",STORE_ID,"missing");
   const colGlobals = () => collection(db,"stores",STORE_ID,"globals"); // ✅ multi-globals
+  // ============================
+// 🛒 SHOPPING LISTS (POR LOJA)
+// ============================
+
+const colShopping = () => collection(db,"stores",STORE_ID,"shopping_lists");
+
+let shoppingLists = [];
+
+// Watcher
+function watchShoppingLists(){
+  const q = query(colShopping(), orderBy("createdAt","desc"), limit(200));
+  onSnapshot(q, (snap)=>{
+    shoppingLists = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    if (isManager()) renderShoppingLists();
+  });
+}
+
+function renderShoppingLists(){
+  const wrap = $("shoppingListsWrap");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+
+  if (!shoppingLists.length){
+    wrap.innerHTML = `<div class="text-gray-500 text-sm">Nenhuma lista criada.</div>`;
+    return;
+  }
+
+  shoppingLists.forEach(list=>{
+    const card = document.createElement("div");
+    card.className = "border rounded p-3 bg-gray-50";
+
+    const header = document.createElement("div");
+    header.className = "flex justify-between items-center";
+
+    header.innerHTML = `
+      <div class="font-semibold">${list.name}</div>
+      <div class="flex gap-2">
+        <button class="bg-blue-600 text-white px-2 py-1 text-xs rounded">Editar</button>
+        <button class="bg-red-600 text-white px-2 py-1 text-xs rounded">Excluir</button>
+      </div>
+    `;
+
+    const editBtn = header.querySelectorAll("button")[0];
+    const delBtn  = header.querySelectorAll("button")[1];
+
+    editBtn.onclick = ()=> editShoppingList(list.id);
+    delBtn.onclick  = ()=> deleteShoppingList(list.id);
+
+    card.appendChild(header);
+
+    const body = document.createElement("div");
+    body.className = "mt-3 space-y-2";
+
+    (list.items || []).forEach((item, index)=>{
+      const row = document.createElement("div");
+      row.className = "flex justify-between items-center border-b pb-1";
+
+      const statusClass =
+        item.status === "bought" ? "line-through text-green-600" :
+        item.status === "no_stock" ? "line-through text-red-600" :
+        "";
+
+      row.innerHTML = `
+        <div>
+          <input type="checkbox" ${item.status==="bought"?"checked":""}>
+          <span class="${statusClass}">${item.name}</span>
+        </div>
+        <button class="bg-yellow-500 text-white px-2 py-1 text-xs rounded">
+          Não tem
+        </button>
+      `;
+
+      const checkbox = row.querySelector("input");
+      const noBtn = row.querySelector("button");
+
+      checkbox.onchange = ()=> toggleItemStatus(list.id, index);
+      noBtn.onclick = ()=> markNoStock(list.id, index);
+
+      body.appendChild(row);
+    });
+
+    card.appendChild(body);
+    wrap.appendChild(card);
+  });
+}
+
+// Criar lista
+$("btnCreateShoppingList")?.addEventListener("click", async ()=>{
+  if (!isManager()) return toast("Apenas o gerente.");
+
+  const name = $("newShoppingListName").value.trim();
+  if (!name) return toast("Digite o nome da lista.");
+
+  await addDoc(colShopping(),{
+    name,
+    items: [],
+    createdAt: serverTimestamp(),
+    createdAtHuman: nowHuman(),
+    createdBy: currentUser
+  });
+
+  $("newShoppingListName").value = "";
+  toast("Lista criada.");
+});
+
+// Editar lista
+async function editShoppingList(id){
+  const novo = prompt("Digite os itens separados por vírgula:");
+  if (!novo) return;
+
+  const items = novo.split(",").map(i=>({
+    name: i.trim(),
+    status: "pending"
+  })).filter(i=>i.name);
+
+  await updateDoc(doc(db,"stores",STORE_ID,"shopping_lists",id),{
+    items,
+    updatedAt: serverTimestamp()
+  });
+
+  toast("Lista atualizada.");
+}
+
+// Excluir lista
+async function deleteShoppingList(id){
+  if (!confirm("Excluir esta lista?")) return;
+  await deleteDoc(doc(db,"stores",STORE_ID,"shopping_lists",id));
+  toast("Lista excluída.");
+}
+
+// Toggle comprado
+async function toggleItemStatus(listId,index){
+  const list = shoppingLists.find(l=>l.id===listId);
+  if (!list) return;
+
+  list.items[index].status =
+    list.items[index].status === "bought" ? "pending" : "bought";
+
+  await updateDoc(doc(db,"stores",STORE_ID,"shopping_lists",listId),{
+    items: list.items
+  });
+}
+
+// Marcar como não tem
+async function markNoStock(listId,index){
+  const list = shoppingLists.find(l=>l.id===listId);
+  if (!list) return;
+
+  list.items[index].status = "no_stock";
+
+  await updateDoc(doc(db,"stores",STORE_ID,"shopping_lists",listId),{
+    items: list.items
+  });
+}
+
 
   // ===== Top bar =====
   function monthKey(date){
@@ -2399,6 +2580,9 @@
   async function cloudInit(){
     try{
       await ensureWeekKey();
+
+      watchShoppingLists();
+
 
       // labels
       $("weekKeyLabel").innerText = currentWeekKey;
