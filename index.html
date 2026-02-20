@@ -1346,44 +1346,7 @@ async function publishGlobalFromTemplate(tpl){
 
     
 // -- -- ---- ---- ---- ---- --
-    function openEditGlobal(global){
-
-  const overlay = document.createElement("div");
-  overlay.className = "fixed inset-0 bg-black/40 flex items-center justify-center z-50";
-
-  overlay.innerHTML = `
-    <div class="bg-white w-full max-w-xl rounded-xl shadow-lg p-6 space-y-4">
-
-      <div class="flex justify-between items-center">
-        <input id="editGlobalTitle"
-               class="text-lg font-semibold border-b w-full outline-none"
-               value="${global.name}">
-        <button id="closeEditGlobal"
-                class="text-gray-500 hover:text-black text-xl ml-2">&times;</button>
-      </div>
-
-      <div id="editGlobalItemsWrap" class="space-y-2 max-h-64 overflow-auto"></div>
-
-      <div class="flex gap-2">
-        <input id="newGlobalItemInput"
-               class="flex-1 border p-2 rounded"
-               placeholder="Adicionar novo item...">
-        <button id="addGlobalItemBtn"
-                class="bg-blue-600 text-white px-4 rounded">
-          Adicionar
-        </button>
-      </div>
-
-      <div class="flex justify-end gap-2 pt-3 border-t">
-        <button id="saveGlobalChanges"
-                class="bg-emerald-600 text-white px-4 py-2 rounded">
-          Salvar alterações
-        </button>
-      </div>
-
-    </div>
-  `;
-
+  
   document.body.appendChild(overlay);
 
   const itemsWrap = overlay.querySelector("#editGlobalItemsWrap");
