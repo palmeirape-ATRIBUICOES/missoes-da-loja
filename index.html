@@ -2317,49 +2317,6 @@ async function publishGlobalFromTemplate(tpl){
   }
 }
 
-// -- -- ---- - -- - - - - - --- - - - -
-
-      const editBtn = div.querySelectorAll("button")[0];
-      const delBtn  = div.querySelectorAll("button")[1];
-
-      editBtn.onclick = ()=> openEditGlobal(g);
-      delBtn.onclick  = ()=> deleteGlobalDoc(g.id);
-
-      const itemsWrap = div.querySelector(`#items-${g.id}`);
-
-      (g.items || []).forEach((item, index)=>{
-        const row = document.createElement("div");
-        row.className = "flex justify-between items-center border-b pb-1";
-
-        const statusClass =
-          item.status === "bought" ? "line-through text-green-600" :
-          item.status === "no_stock" ? "line-through text-red-600" :
-          "";
-
-        row.innerHTML = `
-          <div>
-            <input type="checkbox" ${item.status==="bought"?"checked":""}>
-            <span class="${statusClass}">${item.name}</span>
-          </div>
-          <button class="bg-yellow-500 text-white px-2 py-1 text-xs rounded">
-            Não tem
-          </button>
-        `;
-
-        const checkbox = row.querySelector("input");
-        const noBtn = row.querySelector("button");
-
-        checkbox.onchange = ()=> toggleGlobalItem(g.id, index);
-        noBtn.onclick = ()=> markGlobalNoStock(g.id, index);
-
-        itemsWrap.appendChild(row);
-      });
-
-      gList.appendChild(div);
-    });
-  }
-}
-
 
     // produtos
     if (!($("manageListGerWrap")?.classList.contains("hidden"))){
