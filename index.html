@@ -1,3055 +1,358 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Missoes</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Missões</title>
 
-  <meta name="theme-color" content="#2563eb" />
+<meta name="theme-color" content="#2563eb"/>
 
-  <link id="appIcon" rel="icon" type="image/svg+xml" href="" />
-  <link id="appAppleIcon" rel="apple-touch-icon" href="" />
-  <link id="appManifest" rel="manifest" href="" />
-
-  <!-- ✅ Tailwind CDN (aviso no console é normal; não quebra o app) -->
-  <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100 min-h-screen p-4">
 
-<header class="max-w-4xl mx-auto mb-4">
-  <div class="bg-white rounded-xl shadow p-4 flex items-center justify-between gap-3">
-    <div class="min-w-0 flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-700" viewBox="0 0 24 24" fill="currentColor" aria-label="Logo">
-          <path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 .001-16.001A8 8 0 0 1 12 20zm0-14a6 6 0 1 0 .001 12.001A6 6 0 0 0 12 6zm0 10a4 4 0 1 1 .001-8.001A4 4 0 0 1 12 16zm0-6a2 2 0 1 0 .001 4.001A2 2 0 0 0 12 10z"/>
-        </svg>
-      </div>
-
-      <div class="min-w-0">
-        <div id="topTitle" class="text-xl font-bold truncate">Entrar</div>
-        <div id="topSubtitle" class="text-sm text-gray-600 truncate">Login por PIN</div>
-      </div>
-    </div>
-
-    <div id="topPointsBox" class="hidden items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 17.27l5.18 3.04-1.39-5.99 4.64-4.02-6.12-.53L12 4l-2.31 5.77-6.12.53 4.64 4.02-1.39 5.99L12 17.27z"/>
-      </svg>
-      <div class="text-sm">
-        <div class="font-semibold leading-4">Pontos do mês</div>
-        <div class="text-lg font-bold leading-5"><span id="monthPointsTop">0</span></div>
-      </div>
-    </div>
-  </div>
+<!-- ================= HEADER ================= -->
+<header class="max-w-5xl mx-auto mb-4">
+<div class="bg-white rounded-xl shadow p-4 flex justify-between items-center">
+<div>
+<h1 class="text-xl font-bold">Missões</h1>
+<p id="headerSubtitle" class="text-sm text-gray-500">Login</p>
+</div>
+<div id="headerPoints" class="hidden text-right">
+<div class="text-xs text-gray-500">Pontos do mês</div>
+<div id="headerPointsValue" class="text-lg font-bold">0</div>
+</div>
+</div>
 </header>
 
-<!-- LOGIN -->
-<section id="login" class="max-w-3xl mx-auto bg-white p-4 rounded-xl shadow">
-  <h2 class="text-lg font-semibold mb-3">Entrar</h2>
+<!-- ================= LOGIN ================= -->
+<section id="loginSection" class="max-w-4xl mx-auto bg-white p-4 rounded-xl shadow">
+<h2 class="font-semibold mb-3">Entrar</h2>
 
-  <div class="grid md:grid-cols-4 gap-3">
-    <div class="md:col-span-1">
-      <label class="text-sm text-gray-700">Loja</label>
-      <select id="storeSelect" class="w-full border p-2 rounded">
-        <option value="loja_principal">Loja Principal</option>
-        <option value="loja_bogados">Bogados</option>
-      </select>
-      <p class="text-xs text-gray-500 mt-1">
-        Bogados é um sistema separado (usuários não misturam).
-      </p>
-    </div>
+<div class="grid md:grid-cols-4 gap-3">
+<div>
+<label class="text-sm">Loja</label>
+<select id="storeSelect" class="w-full border p-2 rounded">
+<option value="principal">Loja Principal</option>
+<option value="bogados">Bogados</option>
+</select>
+</div>
 
-    <div class="md:col-span-1">
-      <label class="text-sm text-gray-700">Usuário</label>
-      <select id="userSelect" class="w-full border p-2 rounded">
-        <option value="">Carregando...</option>
-      </select>
-      <p class="text-xs text-gray-500 mt-1">
-        Primeiro acesso: digite um PIN e clique em <b>Entrar</b> para criar.
-      </p>
-      <p class="text-xs text-gray-500 mt-1">
-        Usuários bloqueados não aparecem aqui.
-      </p>
-    </div>
+<div>
+<label class="text-sm">Usuário</label>
+<select id="userSelect" class="w-full border p-2 rounded">
+<option value="">Carregando...</option>
+</select>
+</div>
 
-    <div class="md:col-span-1">
-      <label class="text-sm text-gray-700">PIN (4 dígitos)</label>
-      <input id="pin" inputmode="numeric" maxlength="4" placeholder="1234"
-             class="w-full border p-2 rounded" />
-      <p class="text-xs text-gray-500 mt-1">
-        O PIN é salvo com hash no Firestore.
-      </p>
-    </div>
+<div>
+<label class="text-sm">PIN</label>
+<input id="pinInput" maxlength="4" class="w-full border p-2 rounded" placeholder="1234"/>
+</div>
 
-    <div class="md:col-span-1 flex items-end">
-      <button id="btnLogin"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
-        Entrar
-      </button>
-    </div>
-  </div>
+<div class="flex items-end">
+<button id="loginBtn" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+Entrar
+</button>
+</div>
+</div>
 
-  <div id="loginErrorBox" class="hidden mt-4 text-xs bg-red-50 border border-red-200 text-red-900 rounded p-2"></div>
+<div id="loginError" class="hidden mt-3 text-red-600 text-sm"></div>
 </section>
 
-<!-- FUNCIONÁRIO -->
-<section id="funcionario" class="hidden max-w-3xl mx-auto">
+<!-- ================= FUNCIONARIO ================= -->
+<section id="employeeSection" class="hidden max-w-5xl mx-auto space-y-4">
 
-  <!-- Produtos & preços (consulta para todos; gerente/Claudia gerenciam) -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h2 class="text-lg font-semibold">Produtos & Preços</h2>
-        <p class="text-xs text-gray-500">Consulta para todos • Gerência: gerente e Claudia</p>
-      </div>
-      <button id="btnTogglePricesEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-        Minimizar
-      </button>
-    </div>
+<div class="bg-white p-4 rounded-xl shadow flex justify-between">
+<div>
+<h2 class="font-semibold">Usuário: <span id="employeeName"></span></h2>
+<p class="text-sm text-gray-500">Semana: <span id="weekLabel"></span></p>
+</div>
+<button id="logoutBtn1" class="bg-gray-200 px-3 py-2 rounded">Sair</button>
+</div>
 
-    <div id="pricesEmpContent" class="mt-3">
-      <div class="grid md:grid-cols-3 gap-2">
-        <div class="md:col-span-2">
-          <input id="priceSearchEmp" class="w-full border rounded p-2" placeholder="Digite o nome do produto..." />
-          <div id="priceSuggestEmp" class="mt-2 border rounded bg-white hidden max-h-56 overflow-auto"></div>
-          <p class="text-xs text-gray-500 mt-2">Dica: digite poucas letras para aparecer a lista.</p>
-        </div>
-        <div class="md:col-span-1">
-          <div class="border rounded p-3 bg-gray-50">
-            <div class="text-xs text-gray-600">Preço encontrado</div>
-            <div class="text-2xl font-bold mt-1" id="priceFoundEmp">—</div>
-            <div class="text-xs text-gray-500 mt-1" id="priceMetaEmp">—</div>
-          </div>
-        </div>
-      </div>
+<div id="employeeTasks"></div>
 
-      <!-- Gerência (aparece só para gerente/Claudia) -->
-      <div id="pricesManageEmp" class="hidden mt-4 border-t pt-4">
-        <div class="flex items-center justify-between">
-          <div class="font-semibold">Gerenciar preços</div>
-          <div class="text-xs text-gray-500">Você tem permissão para cadastrar/alterar.</div>
-        </div>
-
-        <div class="grid md:grid-cols-4 gap-2 mt-2">
-          <input id="prodNameEmp" class="border p-2 rounded md:col-span-2" placeholder="Nome do produto (ex: Coca 2L)" />
-          <input id="prodPriceEmp" class="border p-2 rounded" inputmode="decimal" placeholder="Preço (ex: 9,99)" />
-          <button id="btnSaveProdEmp" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
-            Salvar / Atualizar
-          </button>
-        </div>
-
-        <div class="mt-3">
-          <button id="btnToggleManageListEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-            Expandir lista (gerenciar)
-          </button>
-
-          <div id="manageListEmpWrap" class="hidden mt-3">
-            <div id="prodListEmp" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Escala -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h2 class="text-lg font-semibold">Escala da Semana</h2>
-        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscala">-</span></p>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <div class="text-xs text-gray-500">
-          <span id="escalaPermLabel">Somente leitura</span>
-        </div>
-        <button id="btnToggleEscalaEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-          Minimizar
-        </button>
-      </div>
-    </div>
-
-    <div id="escalaEmpContent" class="mt-3">
-      <div id="escalaViewer" class="text-sm space-y-2"></div>
-
-      <div id="escalaEditorWrap" class="hidden mt-4 border-t pt-4">
-        <div class="flex items-center justify-between">
-          <div class="font-semibold text-sm">Editar escala</div>
-          <div class="flex gap-2">
-            <button id="btnClearEscala" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-              Limpar escala
-            </button>
-            <button id="btnSaveEscala" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
-              Salvar escala
-            </button>
-          </div>
-        </div>
-        <p class="text-xs text-gray-500 mt-2">
-          Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
-        </p>
-        <div id="escalaEditor" class="mt-3 space-y-3"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Header usuário -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-      <div>
-        <h2 class="text-xl font-semibold">Usuário: <span id="userName"></span></h2>
-        <p class="text-sm text-gray-700">Pontos do mês: <span id="monthPointsInline">0</span></p>
-        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabel">-</span></p>
-      </div>
-      <div class="flex gap-2">
-        <button id="btnMissing" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
-          Cliente pediu e não tem
-        </button>
-        <button id="btnLogout1" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-          Sair
-        </button>
-      </div>
-    </div>
-
-    <div id="missingBox" class="hidden mt-4 border-t pt-4">
-      <label class="text-sm text-gray-700">O que o cliente pediu e não temos?</label>
-      <div class="flex gap-2 mt-2">
-        <input id="missingInput" class="flex-1 border rounded p-2" placeholder="Digite o item em falta" />
-        <button id="missingSave" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
-          Salvar
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div id="tasks" class="space-y-4"></div>
 </section>
 
-<!-- GERENTE -->
-<section id="gerente" class="hidden max-w-4xl mx-auto">
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-      <div>
-        <h2 class="text-xl font-semibold">Painel do Gerente</h2>
-        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelGer">-</span></p>
-        <p class="text-xs text-gray-500">Loja: <span id="storeLabelGer">-</span></p>
-      </div>
-      <div class="flex gap-2 flex-wrap">
-        <button id="btnResetWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
-          Zerar semana (tudo)
-        </button>
-        <button id="btnResetStars" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
-          Zerar estrelas do mês
-        </button>
-        <button id="btnExport" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded">
-          Exportar CSV
-        </button>
-        <button id="btnLogout2" class="bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-          Sair
-        </button>
-      </div>
-    </div>
-    <div id="managerWarn" class="hidden mt-3 text-xs bg-yellow-50 border border-yellow-200 text-yellow-900 rounded p-2"></div>
-  </div>
+<!-- ================= GERENTE ================= -->
+<section id="managerSection" class="hidden max-w-6xl mx-auto space-y-4">
 
-  <!-- Produtos & preços (gerente e Claudia podem gerenciar) -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h3 class="font-semibold">Produtos & Preços</h3>
-        <p class="text-xs text-gray-500">Consulta para todos • Cadastro/edição: gerente e Claudia</p>
-      </div>
-      <button id="btnTogglePricesGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-        Minimizar
-      </button>
-    </div>
-
-    <div id="pricesGerContent" class="mt-3">
-      <div class="grid md:grid-cols-3 gap-2">
-        <div class="md:col-span-2">
-          <input id="priceSearchGer" class="w-full border rounded p-2" placeholder="Digite o nome do produto..." />
-          <div id="priceSuggestGer" class="mt-2 border rounded bg-white hidden max-h-56 overflow-auto"></div>
-          <p class="text-xs text-gray-500 mt-2">Dica: digite poucas letras para aparecer a lista.</p>
-        </div>
-        <div class="md:col-span-1">
-          <div class="border rounded p-3 bg-gray-50">
-            <div class="text-xs text-gray-600">Preço encontrado</div>
-            <div class="text-2xl font-bold mt-1" id="priceFoundGer">—</div>
-            <div class="text-xs text-gray-500 mt-1" id="priceMetaGer">—</div>
-          </div>
-        </div>
-      </div>
-
-      <div id="pricesManageGer" class="mt-4 border-t pt-4">
-        <div class="flex items-center justify-between">
-          <div class="font-semibold">Cadastrar / Atualizar</div>
-          <div class="text-xs text-gray-500">Evita lixo no banco (1 doc único).</div>
-        </div>
-
-        <div class="grid md:grid-cols-4 gap-2 mt-2">
-          <input id="prodNameGer" class="border p-2 rounded md:col-span-2" placeholder="Nome do produto (ex: Coca 2L)" />
-          <input id="prodPriceGer" class="border p-2 rounded" inputmode="decimal" placeholder="Preço (ex: 9,99)" />
-          <button id="btnSaveProdGer" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
-            Salvar / Atualizar
-          </button>
-        </div>
-
-        <div class="mt-3">
-          <button id="btnToggleManageListGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-            Expandir lista (gerenciar)
-          </button>
-
-          <div id="manageListGerWrap" class="hidden mt-3">
-            <div id="prodListGer" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Ranking -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h3 class="font-semibold">Ranking do mês</h3>
-        <p class="text-xs text-gray-500">Mês: <span id="monthKeyLabelGer">-</span></p>
-      </div>
-      <button id="btnToggleRanking" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-        Minimizar
-      </button>
-    </div>
-
-    <div id="rankingContent" class="mt-3">
-      <div id="rankingList" class="space-y-2 text-sm"></div>
-    </div>
-  </div>
-
-  <!-- GLOBAIS (até 20 por semana) -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <h3 class="font-semibold mb-2">Tarefas GLOBAIS (até 20 por semana)</h3>
-    <p class="text-xs text-gray-500 mb-3">
-      Crie templates e publique quantas quiser, respeitando o limite de 20 na semana.
-      Cada GLOBAL trava quando alguém conclui (some dos demais).
-    </p>
-
-    <div class="grid md:grid-cols-4 gap-2">
-      <select id="globalTplSelect" class="border p-2 rounded md:col-span-2">
-        <option value="">Carregando templates...</option>
-      </select>
-      <button id="btnPublishGlobalFromTpl" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
-        Publicar GLOBAL (semana)
-      </button>
-      <button id="btnDeleteTpl" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded">
-        Excluir template
-      </button>
-    </div>
-
-    <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold mb-2">Status das GLOBAIS desta semana</div>
-      <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
-
-      
-        <div id="globalsManageWrap" class="hidden mt-3">
-          <div id="globalsManageList" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
-          <p class="text-xs text-gray-500 mt-2">
-            Você pode excluir GLOBAIS ativas (abertas/zeradas) ou qualquer outra se quiser.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="mt-4 border-t pt-4">
-      <div class="flex items-center justify-between">
-        <div class="font-semibold text-sm">Criar novo template GLOBAL</div>
-        <button id="btnSaveTpl" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
-          Salvar template
-        </button>
-      </div>
-
-      <div class="grid md:grid-cols-4 gap-2 mt-2">
-        <input id="tplName" class="border p-2 rounded md:col-span-2" placeholder="Nome do template (ex: Conferir geladeira)" />
-        <input id="tplItems" class="border p-2 rounded md:col-span-2" placeholder="Itens separados por vírgula (ex: Coca, Guaraná...)" />
-      </div>
-    </div>
-  </div>
-
-  <!-- Escala -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between">
-      <div>
-        <h3 class="font-semibold">Escala da Semana</h3>
-        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscalaGer">-</span></p>
-      </div>
-      <div class="flex items-center gap-2">
-        <button id="btnToggleEscalaGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-          Minimizar
-        </button>
-        <button id="btnClearEscalaGer" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-          Limpar escala
-        </button>
-        <button id="btnSaveEscalaGer" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
-          Salvar escala
-        </button>
-      </div>
-    </div>
-    <p class="text-xs text-gray-500 mt-2">
-      Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
-    </p>
-
-    <div id="escalaGerContent" class="mt-3">
-      <div id="escalaEditorGer" class="space-y-3"></div>
-    </div>
-  </div>
-
-  <div class="grid md:grid-cols-2 gap-4">
-    <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
-      <div class="flex gap-2 mb-3">
-        <button id="btnDeleteAllTasksWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-          Excluir TODAS tarefas (semana)
-        </button>
-      </div>
-      <div id="gerTasks" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
-    </div>
-
-    <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Itens em falta</h3>
-      <div class="flex gap-2 mb-3">
-        <button id="btnDeleteAllMissingWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-          Excluir TODAS faltas (semana)
-        </button>
-      </div>
-      <div id="gerMissing" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
-    </div>
-  </div>
-
-  <div class="bg-white p-4 rounded-xl shadow mt-4">
-    <div class="flex justify-between items-center">
-  <h3 class="font-semibold">Funcionários (Ativar / Bloquear)</h3>
-  <button id="btnToggleEmployees" class="text-sm bg-gray-200 px-3 py-2 rounded">
-    Expandir
-  </button>
+<div class="bg-white p-4 rounded-xl shadow flex justify-between">
+<div>
+<h2 class="font-semibold">Painel do Gerente</h2>
+<p class="text-sm text-gray-500">Semana: <span id="managerWeekLabel"></span></p>
 </div>
-<div id="employeesContent" class="hidden">
+<button id="logoutBtn2" class="bg-gray-200 px-3 py-2 rounded">Sair</button>
 </div>
 
-    <p class="text-xs text-gray-500 mb-3">
-      Bloqueado não aparece no login.
-    </p>
-
-    <div class="grid md:grid-cols-3 gap-2">
-      <input id="newEmployeeName" class="border p-2 rounded" placeholder="Nome do funcionário (ex: Ingrid)" />
-      <button id="btnAddEmployee" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
-        Adicionar (Ativo)
-      </button>
-      <button id="btnRefreshEmployees" class="bg-gray-900 hover:bg-black text-white p-2 rounded">
-        Recarregar lista
-      </button>
-    </div>
-
-    <div id="employeeTable" class="mt-3 space-y-2"></div>
-  </div>
-
-  <div class="bg-white p-4 rounded-xl shadow mt-4">
-    <h3 class="font-semibold mb-2">Adicionar / Atualizar categoria (individual)</h3>
-    <div class="grid md:grid-cols-4 gap-2">
-      <select id="addUser" class="border p-2 rounded"></select>
-      <input id="categoriaNome" placeholder="Nome da categoria" class="border p-2 rounded" />
-      <input id="itensCategoria" placeholder="Itens separados por vírgula" class="border p-2 rounded md:col-span-2" />
-    </div>
-    <button id="btnAddCategory" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded w-full">
-      Adicionar / Atualizar categoria
-    </button>
-  </div>
-
-  <div class="bg-white p-4 rounded-xl shadow mt-4">
-    <h3 class="font-semibold mb-2">PINs</h3>
-    <div class="grid md:grid-cols-3 gap-2 mt-2">
-      <select id="pinUser" class="border p-2 rounded"></select>
-      <input id="pinNew" class="border p-2 rounded" inputmode="numeric" maxlength="4" placeholder="Novo PIN (4 dígitos)" />
-      <button id="btnSetPin" class="bg-gray-900 hover:bg-black text-white p-2 rounded">
-        Definir / Resetar PIN
-      </button>
-    </div>
-
-    <p class="text-xs text-gray-500 mt-2">
-      PIN mestre inicial do gerente: <b>1234</b> só se o gerente ainda não tiver PIN criado.
-    </p>
-  </div>
-
-  <!-- ========================= -->
-<!-- 🛒 LISTAS DE COMPRAS -->
-<!-- ========================= -->
-<div class="bg-white p-4 rounded-xl shadow mt-4">
-  <div class="flex items-center justify-between">
-    <div>
-      <h3 class="font-semibold">Listas de Compras</h3>
-      <p class="text-xs text-gray-500">Separado por loja</p>
-    </div>
-  </div>
-
-  <div class="flex gap-2 mt-3">
-    <input id="newShoppingListName" 
-           class="border p-2 rounded flex-1"
-           placeholder="Nome da nova lista (ex: Atacadão Segunda)">
-    <button id="btnCreateShoppingList"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-      Criar
-    </button>
-  </div>
-
-  <div id="shoppingListsWrap" class="mt-4 space-y-4"></div>
+<!-- Ranking -->
+<div class="bg-white p-4 rounded-xl shadow">
+<h3 class="font-semibold mb-2">Ranking do mês</h3>
+<div id="rankingList"></div>
 </div>
 
-  
+<!-- Funcionários -->
+<div class="bg-white p-4 rounded-xl shadow">
+<h3 class="font-semibold mb-2">Funcionários</h3>
+
+<div class="flex gap-2 mb-3">
+<input id="newEmployeeName" class="border p-2 rounded flex-1" placeholder="Nome do funcionário"/>
+<button id="addEmployeeBtn" class="bg-blue-600 text-white px-3 rounded">Adicionar</button>
+</div>
+
+<div id="employeeList"></div>
+</div>
+
+<!-- Globais -->
+<div class="bg-white p-4 rounded-xl shadow">
+<h3 class="font-semibold mb-3">Tarefas Globais (até 20 por semana)</h3>
+
+<div class="flex gap-2 mb-3">
+<input id="newGlobalName" class="border p-2 rounded flex-1" placeholder="Nome da GLOBAL"/>
+<input id="newGlobalItems" class="border p-2 rounded flex-1" placeholder="Itens separados por vírgula"/>
+<button id="createGlobalBtn" class="bg-blue-600 text-white px-3 rounded">Criar</button>
+</div>
+
+<div id="globalList"></div>
+</div>
+
 </section>
 
-<!-- Toast (sem alert bugado) -->
-<div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 hidden z-50">
-  <div id="toastBox" class="bg-gray-900 text-white px-4 py-3 rounded-xl shadow-lg text-sm"></div>
-</div>
+<!-- ================= TOAST ================= -->
+<div id="toast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-xl text-sm"></div>
 
 <script type="module">
-  // =========================
-  // ✅ ANTI-CACHE (PWA / SW)
-  // =========================
-  const BUILD_ID = "2026-02-07-full-1";
-  console.log("BUILD_ID", BUILD_ID);
 
-  try {
-    if ("serviceWorker" in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      for (const r of regs) await r.unregister();
-    }
-    if ("caches" in window) {
-      const keys = await caches.keys();
-      for (const k of keys) await caches.delete(k);
-    }
-  } catch (e) {
-    console.warn("Anti-cache falhou (não é crítico):", e);
-  }
+// ================= FIREBASE =================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+getFirestore, doc, getDoc, setDoc, updateDoc,
+collection, addDoc, onSnapshot,
+query, orderBy, limit, deleteDoc, serverTimestamp, increment
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  // ====== PWA: Manifest + Icon ======
-  const TARGET_SVG = `
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-    <defs>
-      <radialGradient id="g" cx="50%" cy="50%" r="55%">
-        <stop offset="0%" stop-color="#ffffff"/>
-        <stop offset="65%" stop-color="#dbeafe"/>
-        <stop offset="100%" stop-color="#93c5fd"/>
-      </radialGradient>
-    </defs>
-    <rect width="512" height="512" rx="96" fill="url(#g)"/>
-    <circle cx="256" cy="256" r="170" fill="none" stroke="#1d4ed8" stroke-width="28"/>
-    <circle cx="256" cy="256" r="110" fill="none" stroke="#1d4ed8" stroke-width="28"/>
-    <circle cx="256" cy="256" r="52" fill="#1d4ed8"/>
-  </svg>`.trim();
+const firebaseConfig = {
+apiKey: "AIzaSyDsWJ9VVMSIsQNtifkLVnRNnbzU7favF7s",
+authDomain: "missoes-drive.firebaseapp.com",
+projectId: "missoes-drive",
+storageBucket: "missoes-drive.firebasestorage.app",
+messagingSenderId: "198254465545",
+appId: "1:198254465545:web:dce028792e2c2c57161ed8"
+};
 
-  function svgDataUrl(svg){
-    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-  }
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  const iconUrl = svgDataUrl(TARGET_SVG);
-  const $icon = document.getElementById("appIcon");
-  const $apple = document.getElementById("appAppleIcon");
-  if ($icon) $icon.href = iconUrl;
-  if ($apple) $apple.href = iconUrl;
+// ================= STATE =================
+let currentUser = null;
+let currentStore = "principal";
+let employees = [];
+let globals = [];
+let scores = {};
 
-  const manifest = {
-    name: "Missoes",
-    short_name: "Missoes",
-    start_url: ".",
-    display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#2563eb",
-    icons: [
-      { src: iconUrl, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
-      { src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
-    ]
-  };
-  const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-  const manifestUrl = URL.createObjectURL(manifestBlob);
-  const $m = document.getElementById("appManifest");
-  if ($m) $m.href = manifestUrl;
+const managerName = {
+principal: "GERENTE",
+bogados: "BOGADOS - GERENTE"
+};
 
-  // ====== Firebase ======
-  const firebaseConfig = {
-    apiKey: "AIzaSyDsWJ9VVMSIsQNtifkLVnRNnbzU7favF7s",
-    authDomain: "missoes-drive.firebaseapp.com",
-    projectId: "missoes-drive",
-    storageBucket: "missoes-drive.firebasestorage.app",
-    messagingSenderId: "198254465545",
-    appId: "1:198254465545:web:dce028792e2c2c57161ed8"
-  };
+// ================= UTIL =================
+const $ = id => document.getElementById(id);
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import {
-    getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc,
-    onSnapshot, query, orderBy, limit, serverTimestamp, increment,
-    deleteDoc, getDocs, writeBatch, where, runTransaction
-  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const $ = (id) => document.getElementById(id);
-
-  // ===== Toast (sem alert travado) =====
-  let toastTimer = null;
-  function toast(msg){
-    const wrap = $("toast");
-    const box = $("toastBox");
-    if (!wrap || !box) return;
-    box.textContent = String(msg || "");
-    wrap.classList.remove("hidden");
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=> wrap.classList.add("hidden"), 2200);
-  }
-
-  function showLoginError(msg){
-    const box = $("loginErrorBox");
-    if (!box) return;
-    if (!msg){
-      box.classList.add("hidden");
-      box.textContent = "";
-      return;
-    }
-    box.classList.remove("hidden");
-    box.textContent = msg;
-  }
-
-  function warnManager(msg){
-    const box = $("managerWarn");
-    if (!box) return;
-    if (!msg){
-      box.classList.add("hidden");
-      box.innerText = "";
-      return;
-    }
-    box.classList.remove("hidden");
-    box.innerText = msg;
-  }
-
-  // ===== Captura erros que travam o módulo (para não ficar "Carregando...") =====
-  function fatal(msg, err){
-    console.error("FATAL:", msg, err || "");
-    showLoginError(msg + (err?.message ? (" | " + err.message) : ""));
-    const sel = $("userSelect");
-    if (sel){
-      sel.innerHTML = "";
-      sel.appendChild(new Option("Erro ao carregar (abra o console)", ""));
-    }
-    toast("Erro ao carregar. Veja o console.");
-  }
-  window.addEventListener("error", (e)=> fatal("Erro no app.", e?.error || e));
-  window.addEventListener("unhandledrejection", (e)=> fatal("Falha ao conectar no banco.", e?.reason || e));
-
-  function show(section){
-    ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
-    $(section).classList.remove("hidden");
-    updateTopBar();
-  }
-  function isValidPin(p){ return /^[0-9]{4}$/.test(String(p || "")); }
-  function nowHuman(){ return new Date().toLocaleString(); }
-  function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
-  function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
-  function normalizeCat(name){ return String(name||"").trim().replace(/\s+/g," "); }
-
-  // ✅ Normaliza weekKey antigo "2026-W5" para "2026-W05"
-  function normalizeWeekKeyLoose(wk){
-    const s = String(wk || "").trim();
-    const m = s.match(/^(\d{4})-W(\d{1,2})$/i);
-    if (!m) return s;
-    const y = m[1];
-    const w = String(Number(m[2])).padStart(2,"0");
-    return `${y}-W${w}`;
-  }
-
-  // ====== LOJAS / SEPARAÇÃO BOGADOS ======
-  const STORE_MAP = {
-    loja_principal: {
-      id: "loja_principal",
-      managerUser: "GERENTE",
-      employeesLegacy: ["Sandra","Thauane","Ingrid","Claudia","DADA"]
-    },
-    loja_bogados: {
-      id: "loja_bogados",
-      managerUser: "BOGADOS - GERENTE",
-      employeesLegacy: ["bogados"] // apenas 1 funcionário
-    }
-  };
-
-  let storeKey = "loja_principal"; // chave do select
-  let STORE_ID = STORE_MAP[storeKey].id;
-
-  const SESSION_KEY = "mdl_session_v2_store";
-  const MASTER_MANAGER_PIN = "1234";
-
-  // ====== State ======
-  let data = {};
-  let scoresDoc = {};
-  let tasksAll = [];
-  let missingAll = [];
-  let tasksDone = [];
-  let missingReports = [];
-  let currentUser = "";
-  let currentWeekKey = "";
-  let employees = [];
-  let escala = null;
-
-  // GLOBAIS (multi)
-  let globalTemplates = [];
-  let globalsAll = [];
-  let globalsWeek = [];
-  let globalsOpen = [];
-
-  // Produtos/Preços
-  let products = []; // [{id,name,nameKey,price,updatedAtHuman,updatedBy}]
-  let productsIndex = new Map(); // nameKey -> product
-
-  let escalaLocalEmployee = null;
-  let escalaLocalGer = null;
-
-  // ===== Refs (sempre usando STORE_ID atual) =====
-  const cfgCatsRef = () => doc(db,"stores",STORE_ID,"config","categories");
-  const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
-  const cfgGlobalTplRef = () => doc(db,"stores",STORE_ID,"config","global_templates");
-  const cfgProductsRef = () => doc(db,"stores",STORE_ID,"config","products");
-  const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
-  const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
-  const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
-  const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
-
-  // collections
-  const colTasks   = () => collection(db,"stores",STORE_ID,"tasks");
-  const colMissing = () => collection(db,"stores",STORE_ID,"missing");
-  const colGlobals = () => collection(db,"stores",STORE_ID,"globals"); // ✅ multi-globals
-  // ============================
-// 🛒 SHOPPING LISTS (POR LOJA)
-// ============================
-
-const colShopping = () => collection(db,"stores",STORE_ID,"shopping_lists");
-
-let shoppingLists = [];
-
-// Watcher
-function watchShoppingLists(){
-  const q = query(colShopping(), orderBy("createdAt","desc"), limit(200));
-  onSnapshot(q, (snap)=>{
-    shoppingLists = snap.docs.map(d=>({ id:d.id, ...d.data() }));
-    if (isManager()) renderShoppingLists();
-  });
+function toast(msg){
+const t = $("toast");
+t.textContent = msg;
+t.classList.remove("hidden");
+setTimeout(()=> t.classList.add("hidden"),2000);
 }
 
-function renderShoppingLists(){
-  const wrap = $("shoppingListsWrap");
-  if (!wrap) return;
-  wrap.innerHTML = "";
-
-  if (!shoppingLists.length){
-    wrap.innerHTML = `<div class="text-gray-500 text-sm">Nenhuma lista criada.</div>`;
-    return;
-  }
-
-  shoppingLists.forEach(list=>{
-    const card = document.createElement("div");
-    card.className = "border rounded p-3 bg-gray-50";
-
-    const header = document.createElement("div");
-    header.className = "flex justify-between items-center";
-
-    header.innerHTML = `
-      <div class="font-semibold">${list.name}</div>
-      <div class="flex gap-2">
-        <button class="bg-blue-600 text-white px-2 py-1 text-xs rounded">Editar</button>
-        <button class="bg-red-600 text-white px-2 py-1 text-xs rounded">Excluir</button>
-      </div>
-    `;
-
-    const editBtn = header.querySelectorAll("button")[0];
-    const delBtn  = header.querySelectorAll("button")[1];
-
-    editBtn.onclick = ()=> editShoppingList(list.id);
-    delBtn.onclick  = ()=> deleteShoppingList(list.id);
-
-    card.appendChild(header);
-
-    const body = document.createElement("div");
-    body.className = "mt-3 space-y-2";
-
-    (list.items || []).forEach((item, index)=>{
-      const row = document.createElement("div");
-      row.className = "flex justify-between items-center border-b pb-1";
-
-      const statusClass =
-        item.status === "bought" ? "line-through text-green-600" :
-        item.status === "no_stock" ? "line-through text-red-600" :
-        "";
-
-      row.innerHTML = `
-        <div>
-          <input type="checkbox" ${item.status==="bought"?"checked":""}>
-          <span class="${statusClass}">${item.name}</span>
-        </div>
-        <button class="bg-yellow-500 text-white px-2 py-1 text-xs rounded">
-          Não tem
-        </button>
-      `;
-
-      const checkbox = row.querySelector("input");
-      const noBtn = row.querySelector("button");
-
-      checkbox.onchange = ()=> toggleItemStatus(list.id, index);
-      noBtn.onclick = ()=> markNoStock(list.id, index);
-
-      body.appendChild(row);
-    });
-
-    card.appendChild(body);
-    wrap.appendChild(card);
-  });
+function getWeekKey(){
+const d = new Date();
+const onejan = new Date(d.getFullYear(),0,1);
+return d.getFullYear()+"-W"+Math.ceil((((d - onejan) / 86400000) + onejan.getDay()+1)/7);
 }
 
-// Criar lista
-$("btnCreateShoppingList")?.addEventListener("click", async ()=>{
-  if (!isManager()) return toast("Apenas o gerente.");
+const currentWeek = getWeekKey();
+$("weekLabel").innerText = currentWeek;
+$("managerWeekLabel").innerText = currentWeek;
 
-  const name = $("newShoppingListName").value.trim();
-  if (!name) return toast("Digite o nome da lista.");
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Missões</title>
 
-  await addDoc(colShopping(),{
-    name,
-    items: [],
-    createdAt: serverTimestamp(),
-    createdAtHuman: nowHuman(),
-    createdBy: currentUser
-  });
+<meta name="theme-color" content="#2563eb"/>
 
-  $("newShoppingListName").value = "";
-  toast("Lista criada.");
-});
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-// Editar lista
-async function editShoppingList(id){
-  const novo = prompt("Digite os itens separados por vírgula:");
-  if (!novo) return;
+<body class="bg-gray-100 min-h-screen p-4">
 
-  const items = novo.split(",").map(i=>({
-    name: i.trim(),
-    status: "pending"
-  })).filter(i=>i.name);
+<!-- ================= HEADER ================= -->
+<header class="max-w-5xl mx-auto mb-4">
+<div class="bg-white rounded-xl shadow p-4 flex justify-between items-center">
+<div>
+<h1 class="text-xl font-bold">Missões</h1>
+<p id="headerSubtitle" class="text-sm text-gray-500">Login</p>
+</div>
+<div id="headerPoints" class="hidden text-right">
+<div class="text-xs text-gray-500">Pontos do mês</div>
+<div id="headerPointsValue" class="text-lg font-bold">0</div>
+</div>
+</div>
+</header>
 
-  await updateDoc(doc(db,"stores",STORE_ID,"shopping_lists",id),{
-    items,
-    updatedAt: serverTimestamp()
-  });
+<!-- ================= LOGIN ================= -->
+<section id="loginSection" class="max-w-4xl mx-auto bg-white p-4 rounded-xl shadow">
+<h2 class="font-semibold mb-3">Entrar</h2>
 
-  toast("Lista atualizada.");
+<div class="grid md:grid-cols-4 gap-3">
+<div>
+<label class="text-sm">Loja</label>
+<select id="storeSelect" class="w-full border p-2 rounded">
+<option value="principal">Loja Principal</option>
+<option value="bogados">Bogados</option>
+</select>
+</div>
+
+<div>
+<label class="text-sm">Usuário</label>
+<select id="userSelect" class="w-full border p-2 rounded">
+<option value="">Carregando...</option>
+</select>
+</div>
+
+<div>
+<label class="text-sm">PIN</label>
+<input id="pinInput" maxlength="4" class="w-full border p-2 rounded" placeholder="1234"/>
+</div>
+
+<div class="flex items-end">
+<button id="loginBtn" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+Entrar
+</button>
+</div>
+</div>
+
+<div id="loginError" class="hidden mt-3 text-red-600 text-sm"></div>
+</section>
+
+<!-- ================= FUNCIONARIO ================= -->
+<section id="employeeSection" class="hidden max-w-5xl mx-auto space-y-4">
+
+<div class="bg-white p-4 rounded-xl shadow flex justify-between">
+<div>
+<h2 class="font-semibold">Usuário: <span id="employeeName"></span></h2>
+<p class="text-sm text-gray-500">Semana: <span id="weekLabel"></span></p>
+</div>
+<button id="logoutBtn1" class="bg-gray-200 px-3 py-2 rounded">Sair</button>
+</div>
+
+<div id="employeeTasks"></div>
+
+</section>
+
+<!-- ================= GERENTE ================= -->
+<section id="managerSection" class="hidden max-w-6xl mx-auto space-y-4">
+
+<div class="bg-white p-4 rounded-xl shadow flex justify-between">
+<div>
+<h2 class="font-semibold">Painel do Gerente</h2>
+<p class="text-sm text-gray-500">Semana: <span id="managerWeekLabel"></span></p>
+</div>
+<button id="logoutBtn2" class="bg-gray-200 px-3 py-2 rounded">Sair</button>
+</div>
+
+<!-- Ranking -->
+<div class="bg-white p-4 rounded-xl shadow">
+<h3 class="font-semibold mb-2">Ranking do mês</h3>
+<div id="rankingList"></div>
+</div>
+
+<!-- Funcionários -->
+<div class="bg-white p-4 rounded-xl shadow">
+<h3 class="font-semibold mb-2">Funcionários</h3>
+
+<div class="flex gap-2 mb-3">
+<input id="newEmployeeName" class="border p-2 rounded flex-1" placeholder="Nome do funcionário"/>
+<button id="addEmployeeBtn" class="bg-blue-600 text-white px-3 rounded">Adicionar</button>
+</div>
+
+<div id="employeeList"></div>
+</div>
+
+<!-- Globais -->
+<div class="bg-white p-4 rounded-xl shadow">
+<h3 class="font-semibold mb-3">Tarefas Globais (até 20 por semana)</h3>
+
+<div class="flex gap-2 mb-3">
+<input id="newGlobalName" class="border p-2 rounded flex-1" placeholder="Nome da GLOBAL"/>
+<input id="newGlobalItems" class="border p-2 rounded flex-1" placeholder="Itens separados por vírgula"/>
+<button id="createGlobalBtn" class="bg-blue-600 text-white px-3 rounded">Criar</button>
+</div>
+
+<div id="globalList"></div>
+</div>
+
+</section>
+
+<!-- ================= TOAST ================= -->
+<div id="toast" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-xl text-sm"></div>
+
+<script type="module">
+
+// ================= FIREBASE =================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+getFirestore, doc, getDoc, setDoc, updateDoc,
+collection, addDoc, onSnapshot,
+query, orderBy, limit, deleteDoc, serverTimestamp, increment
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyDsWJ9VVMSIsQNtifkLVnRNnbzU7favF7s",
+authDomain: "missoes-drive.firebaseapp.com",
+projectId: "missoes-drive",
+storageBucket: "missoes-drive.firebasestorage.app",
+messagingSenderId: "198254465545",
+appId: "1:198254465545:web:dce028792e2c2c57161ed8"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ================= STATE =================
+let currentUser = null;
+let currentStore = "principal";
+let employees = [];
+let globals = [];
+let scores = {};
+
+const managerName = {
+principal: "GERENTE",
+bogados: "BOGADOS - GERENTE"
+};
+
+// ================= UTIL =================
+const $ = id => document.getElementById(id);
+
+function toast(msg){
+const t = $("toast");
+t.textContent = msg;
+t.classList.remove("hidden");
+setTimeout(()=> t.classList.add("hidden"),2000);
 }
 
-// Excluir lista
-async function deleteShoppingList(id){
-  if (!confirm("Excluir esta lista?")) return;
-  await deleteDoc(doc(db,"stores",STORE_ID,"shopping_lists",id));
-  toast("Lista excluída.");
+function getWeekKey(){
+const d = new Date();
+const onejan = new Date(d.getFullYear(),0,1);
+return d.getFullYear()+"-W"+Math.ceil((((d - onejan) / 86400000) + onejan.getDay()+1)/7);
 }
 
-// Toggle comprado
-async function toggleItemStatus(listId,index){
-  const list = shoppingLists.find(l=>l.id===listId);
-  if (!list) return;
+const currentWeek = getWeekKey();
+$("weekLabel").innerText = currentWeek;
+$("managerWeekLabel").innerText = currentWeek;
 
-  list.items[index].status =
-    list.items[index].status === "bought" ? "pending" : "bought";
-
-  await updateDoc(doc(db,"stores",STORE_ID,"shopping_lists",listId),{
-    items: list.items
-  });
-}
-
-// Marcar como não tem
-async function markNoStock(listId,index){
-  const list = shoppingLists.find(l=>l.id===listId);
-  if (!list) return;
-
-  list.items[index].status = "no_stock";
-
-  await updateDoc(doc(db,"stores",STORE_ID,"shopping_lists",listId),{
-    items: list.items
-  });
-}
-
-
-  // ===== Top bar =====
-  function monthKey(date){
-    const y = date.getFullYear();
-    const m = String(date.getMonth()+1).padStart(2,"0");
-    return `${y}-${m}`;
-  }
-  function getMonthPoints(user){
-    const mk = monthKey(new Date());
-    const ms = scoresDoc?.monthScores?.[mk] || {};
-    return Number(ms?.[user] || 0);
-  }
-
-  function updateTopBar(){
-    const topTitle = $("topTitle");
-    const topSubtitle = $("topSubtitle");
-    const pointsBox = $("topPointsBox");
-
-    if (!currentUser){
-      topTitle.innerText = "Entrar";
-      topSubtitle.innerText = "Login por PIN";
-      pointsBox.classList.add("hidden");
-      pointsBox.classList.remove("flex");
-      return;
-    }
-
-    const managerName = STORE_MAP[storeKey].managerUser;
-
-    if (currentUser === managerName){
-      topTitle.innerText = "Gerente";
-      topSubtitle.innerText = "Painel administrativo";
-      pointsBox.classList.add("hidden");
-      pointsBox.classList.remove("flex");
-      return;
-    }
-
-    topTitle.innerText = currentUser;
-    topSubtitle.innerText = "Acompanhe suas tarefas";
-    const pts = getMonthPoints(currentUser);
-    $("monthPointsTop").innerText = pts;
-    pointsBox.classList.remove("hidden");
-    pointsBox.classList.add("flex");
-  }
-
-  // ===== SHA-256 =====
-  async function sha256(str){
-    const enc = new TextEncoder().encode(str);
-    const buf = await crypto.subtle.digest("SHA-256", enc);
-    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
-  }
-
-  // ===== Semana ISO =====
-  function weekKey(date){
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    return d.getUTCFullYear() + "-W" + String(weekNo).padStart(2,"0");
-  }
-
-  async function ensureWeekKey(){
-    const snap = await getDoc(metaRef());
-    const today = new Date();
-    const wk = weekKey(today);
-
-    if (!snap.exists()){
-      await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
-      currentWeekKey = wk;
-      return;
-    }
-
-    const saved = snap.data().currentWeekKey || wk;
-    if (today.getDay() === 1 && saved !== wk){
-      await setDoc(metaRef(),{ currentWeekKey: wk, updatedAt: serverTimestamp() },{ merge:true });
-      currentWeekKey = wk;
-      return;
-    }
-    currentWeekKey = saved;
-  }
-
-  // ===== Sessão =====
-  function saveSession(user, storeKeyLocal){
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ user, storeKey: storeKeyLocal, at: Date.now() }));
-  }
-  function clearSession(){ localStorage.removeItem(SESSION_KEY); }
-  function getSession(){
-    try{
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (!raw) return null;
-      const obj = JSON.parse(raw);
-      return obj && obj.user && obj.storeKey ? obj : null;
-    } catch(e){ return null; }
-  }
-
-  // ===== Permissões =====
-  function getManagerUser(){ return STORE_MAP[storeKey].managerUser; }
-  function isManager(){ return currentUser === getManagerUser(); }
-  function canManagePrices(){
-    // ✅ gerente sempre + Claudia na loja principal
-    if (isManager()) return true;
-    if (storeKey === "loja_principal" && currentUser === "Claudia") return true;
-    return false;
-  }
-  function canEditEscala(){
-    // ✅ gerente sempre + Claudia (principal)
-    if (isManager()) return true;
-    if (storeKey === "loja_principal" && currentUser === "Claudia") return true;
-    return false;
-  }
-  function canManageGlobals(){
-    // ✅ somente gerente (para publicar/apagar várias)
-    return isManager();
-  }
-
-  // ===== Funcionários =====
-  function defaultEmployeesForStore(){
-    const base = STORE_MAP[storeKey].employeesLegacy;
-    return base.map(n => ({ name: n, active: true }));
-  }
-
-  function isEmployeeActive(name){
-    const n = normalizeName(name);
-    const e = employees.find(x => x.name === n);
-    return !!(e && e.active);
-  }
-  function activeNames(){
-    return employees.filter(e=>e.active).map(e=>e.name).sort((a,b)=>a.localeCompare(b));
-  }
-  function allNames(){
-    return employees.map(e=>e.name).sort((a,b)=>a.localeCompare(b));
-  }
-
-  async function ensureEmployeesConfig(){
-    const snap = await getDoc(cfgAppRef());
-    const managerUser = getManagerUser();
-    const defaults = defaultEmployeesForStore();
-
-    if (!snap.exists()){
-      await setDoc(cfgAppRef(), { employees: defaults, updatedAt: serverTimestamp() }, { merge:true });
-      employees = clone(defaults);
-      return;
-    }
-
-    const raw = snap.data().employees;
-
-    // migração string[] -> obj[]
-    if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "string"){
-      const migrated = raw.map(n => ({ name: normalizeName(n), active: true })).filter(x=>x.name);
-      await setDoc(cfgAppRef(), { employees: migrated, updatedAt: serverTimestamp() }, { merge:true });
-      employees = migrated;
-      return;
-    }
-
-    if (!Array.isArray(raw) || raw.length === 0){
-      await setDoc(cfgAppRef(), { employees: defaults, updatedAt: serverTimestamp() }, { merge:true });
-      employees = clone(defaults);
-      return;
-    }
-
-    employees = raw
-      .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name);
-
-    // não deixa o gerente virar funcionário
-    employees = employees.filter(e => e.name.toUpperCase() !== managerUser.toUpperCase());
-
-    const seen = new Set();
-    employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
-  }
-
-  async function setEmployees(next){
-    const managerUser = getManagerUser();
-    const cleaned = next
-      .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-      .filter(x => x.name && x.name.toUpperCase() !== managerUser.toUpperCase());
-
-    const seen = new Set();
-    const unique = cleaned.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
-    unique.sort((a,b)=>a.name.localeCompare(b.name));
-    await setDoc(cfgAppRef(), { employees: unique, updatedAt: serverTimestamp() }, { merge:true });
-  }
-
-  async function addEmployee(name){
-    if (!isManager()) return toast("Apenas o gerente.");
-    name = normalizeName(name);
-    const managerUser = getManagerUser();
-    if (!name) return toast("Digite um nome.");
-    if (name.toUpperCase() === managerUser.toUpperCase()) return toast("Nome inválido.");
-    if (employees.some(e => e.name === name)) return toast("Esse funcionário já existe.");
-
-    const next = employees.concat([{ name, active: true }]);
-    await setEmployees(next);
-
-    const newCats = clone(data || {});
-    if (!newCats[name]) newCats[name] = {};
-    await setDoc(cfgCatsRef(), { data: newCats, updatedAt: serverTimestamp() }, { merge:false });
-    toast("Funcionário adicionado (ativo).");
-  }
-
-  function renderEmployeesUI(){
-    showLoginError("");
-
-    const managerUser = getManagerUser();
-
-    const loginSel = $("userSelect");
-    loginSel.innerHTML = "";
-    loginSel.appendChild(new Option("Selecione", ""));
-    loginSel.appendChild(new Option("Gerente", managerUser));
-    activeNames().forEach(n => loginSel.appendChild(new Option(n, n)));
-
-    const namesAll = allNames();
-
-    // gerente panel selectors (só existem no gerente)
-    const addUser = $("addUser");
-    const pinUser = $("pinUser");
-
-    if (addUser){
-      addUser.innerHTML = "";
-      namesAll.forEach(n => addUser.appendChild(new Option(n,n)));
-    }
-
-    if (pinUser){
-      pinUser.innerHTML = "";
-      pinUser.appendChild(new Option(managerUser, managerUser));
-      namesAll.forEach(n => pinUser.appendChild(new Option(n,n)));
-    }
-
-    renderEmployeeTable();
-  }
-
-  function renderEmployeeTable(){
-    const wrap = $("employeeTable");
-    if (!wrap) return;
-    wrap.innerHTML = "";
-
-    const ordered = employees.slice().sort((a,b)=>a.name.localeCompare(b.name));
-    if (!ordered.length){
-      wrap.innerHTML = `<div class="text-sm text-gray-500">Sem funcionários.</div>`;
-      return;
-    }
-
-    ordered.forEach((e)=>{
-      const row = document.createElement("div");
-      row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
-
-      const left = document.createElement("div");
-      left.innerHTML = `<div class="font-semibold">${e.name}</div><div class="text-xs text-gray-600">${e.active ? "Ativo" : "Bloqueado"}</div>`;
-
-      const btn = document.createElement("button");
-      btn.className = e.active
-        ? "bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm"
-        : "bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm";
-      btn.innerText = e.active ? "Bloquear" : "Ativar";
-      btn.onclick = async ()=>{
-        if (!isManager()) return toast("Apenas o gerente.");
-        const next = employees.map(x => x.name===e.name ? ({...x, active: !x.active}) : x);
-        await setEmployees(next);
-      };
-
-      row.appendChild(left);
-      row.appendChild(btn);
-      wrap.appendChild(row);
-    });
-  }
-
-  // ===== Categorias base =====
-  const defaultDataPrincipal = {
-    Sandra: { "Pedido Itaipava (Segunda)": ["IT Guarana","Ita Laranja","IT Limao","IT Lemon Ice","IT Cola","Latao Lokal"] },
-    Thauane: {
-      "Ambev (Segunda)": [
-        "Cracudinha (cascos vazios completos)","Guarana Antarctica fora da geladeira","Sukita fora da geladeira",
-        "Guaraviton","Gatorade","Suco Tang - Laranja","Suco Tang - Morango","Suco Tang - Guarana","Suco Tang - Uva",
-        "Suco Tang - Limao","Suco Tang - Maracuja","Guaravita","Agua com gas 500ml","Agua com gas 1,5L",
-        "Agua sem gas 500ml","Agua sem gas 1,5L","Corona long","Stella long"
-      ],
-      "Coca-Cola (Retornaveis e Packs)": [
-        "Retornavel vazia completa","KS vazia completa","Packs completos de Coca-Cola 2L","Pack completo de Fanta Uva",
-        "Pack completo de Fanta Laranja","Guarana latinha (Coca)","Garrafinha de Coca 200ml","Garrafinha de Fanta 200ml"
-      ]
-    },
-    Ingrid: {
-      "Jardim America": ["Antarctica latao","Brahma latao","Imperio latao","Heineken latao","Heineken long"],
-      "Fotos (Check)": [
-        "Foto de todas as estantes arrumadas e abastecidas","Foto dos biscoitos","Foto das reservas",
-        "Foto dos doces","Foto do freezer com barras de chocolate"
-      ]
-    },
-    Claudia: {
-      "Sadia (Segunda)": ["Mortadela comum","Mortadela defumada","Presunto","Calabresa","Salsicha","Hamburguer"],
-      "Queijos": ["Queijo prato","Queijo mussarela","Queijo minas","Minas padrao"]
-    },
-    DADA: { "Mineirinho (Terca)": ["Mineirinho 2L","Mineirinho 350ml"] }
-  };
-
-  const defaultDataBogados = {
-    bogados: {
-      "Rotina": ["Abrir loja", "Conferir caixa", "Repor geladeira", "Limpar balcão"]
-    }
-  };
-
-  function defaultDataForStore(){
-    return storeKey === "loja_bogados" ? defaultDataBogados : defaultDataPrincipal;
-  }
-
-  // ===== PIN =====
-  async function ensureUserPin(user, pin){
-    const snap = await getDoc(userRef(user));
-    if (snap.exists()) return { created:false };
-    await setDoc(userRef(user), {
-      user,
-      role: (user === getManagerUser()) ? "manager" : "employee",
-      pinHash: await sha256(pin),
-      createdAt: serverTimestamp()
-    }, { merge:true });
-    return { created:true };
-  }
-
-  async function verifyUserPin(user, pin){
-    const snap = await getDoc(userRef(user));
-    if (!snap.exists()){
-      if (user === getManagerUser() && pin === MASTER_MANAGER_PIN){
-        await ensureUserPin(user, pin);
-        return { ok:true, usedMaster:true };
-      }
-      return { ok:false, noUser:true };
-    }
-    const pinHash = snap.data().pinHash || "";
-    return { ok: (await sha256(pin)) === pinHash, noUser:false };
-  }
-
-  function isCategoryDoneThisWeek(user, cat){
-    const wk = normalizeWeekKeyLoose(currentWeekKey);
-    return tasksDone.some(t => t.user === user && t.categoria === cat && normalizeWeekKeyLoose(t.weekKey) === wk);
-  }
-
-  // ===== Scores (MENSAL) =====
-  async function ensureScoresDoc(){
-    const sSnap = await getDoc(scoresRef());
-    if (!sSnap.exists()){
-      await setDoc(scoresRef(), { monthScores: {}, updatedAt: serverTimestamp() }, { merge:true });
-      scoresDoc = { monthScores: {} };
-      return;
-    }
-    scoresDoc = sSnap.data() || {};
-    if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
-  }
-
-  async function bumpMonthlyScore(user, delta){
-    const mk = monthKey(new Date());
-    await updateDoc(scoresRef(), {
-      ["monthScores."+mk+"."+user]: increment(delta),
-      updatedAt: serverTimestamp()
-    });
-  }
-
-  async function resetStarsThisMonth(){
-    const mk = monthKey(new Date());
-    const active = activeNames();
-    const updates = { updatedAt: serverTimestamp() };
-    active.forEach(u => updates["monthScores."+mk+"."+u] = 0);
-    await updateDoc(scoresRef(), updates);
-  }
-
-  // ===== GLOBAL TEMPLATES =====
-  function sanitizeItemsFromInput(raw){
-    return raw ? raw.split(",").map(s=>s.trim()).filter(Boolean) : [];
-  }
-
-  function renderGlobalTplDropdown(){
-    const sel = $("globalTplSelect");
-    if (!sel) return;
-    const prev = sel.value;
-
-    sel.innerHTML = "";
-    sel.appendChild(new Option("Selecione um template...", ""));
-    const ordered = (globalTemplates || []).slice().sort((a,b)=>a.name.localeCompare(b.name));
-    ordered.forEach(t => sel.appendChild(new Option(t.name, t.id)));
-
-    if (prev && ordered.some(t=>t.id===prev)) sel.value = prev;
-  }
-
-  async function ensureGlobalTemplatesDoc(){
-    const snap = await getDoc(cfgGlobalTplRef());
-    if (!snap.exists()){
-      await setDoc(cfgGlobalTplRef(), { templates: [], updatedAt: serverTimestamp() }, { merge:true });
-      globalTemplates = [];
-      return;
-    }
-    const raw = snap.data().templates;
-    globalTemplates = Array.isArray(raw) ? raw : [];
-  }
-
-  async function saveGlobalTemplate(name, items){
-    name = normalizeCat(name);
-    if (!name) throw new Error("Nome do template vazio.");
-    if (!Array.isArray(items) || items.length === 0) throw new Error("Template precisa ter itens.");
-
-    const id = "tpl_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8);
-    const next = (globalTemplates || []).concat([{
-      id,
-      name,
-      items,
-      createdAtHuman: nowHuman()
-    }]);
-
-    await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
-  }
-
-  async function deleteGlobalTemplateById(id){
-    const next = (globalTemplates || []).filter(t=>t.id !== id);
-    await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
-  }
-
-  function findTemplateById(id){
-    return (globalTemplates || []).find(t=>t.id === id);
-  }
-
-  // ===== MULTI-GLOBAIS =====
-  function globalsStatusText(){
-    const wk = normalizeWeekKeyLoose(currentWeekKey);
-    const total = globalsWeek.length;
-    const open = globalsWeek.filter(g=>normalizeWeekKeyLoose(g.weekKey)===wk && g.status==="open").length;
-    const done = globalsWeek.filter(g=>normalizeWeekKeyLoose(g.weekKey)===wk && g.status==="completed").length;
-    return `Publicadas: ${total} • Abertas: ${open} • Concluídas: ${done} • Limite semana: 20`;
-  }
-
-async function publishGlobalFromTemplate(tpl){
-  if (!canManageGlobals()) throw new Error("Apenas o gerente.");
-
-  const wk = normalizeWeekKeyLoose(currentWeekKey);
-  const countWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey)===wk).length;
-  if (countWeek >= 20) throw new Error("Limite de 20 GLOBAIS por semana atingido.");
-
-  await addDoc(colGlobals(), {
-    weekKey: currentWeekKey,
-    status: "open",
-    name: tpl.name,
-    items: (tpl.items || []).map(i=>({
-      name: i,
-      status: "pending"
-    })),
-    templateId: tpl.id || "",
-    createdAt: serverTimestamp(),
-    createdAtHuman: nowHuman(),
-    createdBy: currentUser
-  });
-}
-
-
-  async function deleteGlobalDoc(globalId){
-    if (!canManageGlobals()) return toast("Apenas o gerente.");
-    if (!confirm("Excluir esta GLOBAL?")) return;
-    try{
-      await deleteDoc(doc(db,"stores",STORE_ID,"globals", globalId));
-      toast("GLOBAL excluída.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao excluir GLOBAL.");
-    }
-  }
-
-  async function completeGlobalAsFirst(globalDocId, user, itensQtd){
-    const ref = doc(db,"stores",STORE_ID,"globals", globalDocId);
-
-    
-// -- -- ---- ---- ---- ---- --
-  
-  document.body.appendChild(overlay);
-
-  const itemsWrap = overlay.querySelector("#editGlobalItemsWrap");
-  let itemsLocal = JSON.parse(JSON.stringify(global.items || []));
-
-  function renderItems(){
-    itemsWrap.innerHTML = "";
-
-    itemsLocal.forEach((item,index)=>{
-
-      const statusClass =
-        item.status === "bought" ? "line-through text-green-600" :
-        item.status === "no_stock" ? "line-through text-red-600" :
-        "";
-
-      const row = document.createElement("div");
-      row.className = "flex justify-between items-center border rounded p-2";
-
-      row.innerHTML = `
-        <div class="flex items-center gap-2">
-          <input type="checkbox" ${item.status==="bought"?"checked":""}>
-          <span contenteditable="true"
-                class="outline-none ${statusClass}">
-                ${item.name}
-          </span>
-        </div>
-        <div class="flex gap-2">
-          <button class="bg-yellow-500 text-white px-2 rounded text-xs">
-            Não tem
-          </button>
-          <button class="bg-red-600 text-white px-2 rounded text-xs">
-            X
-          </button>
-        </div>
-      `;
-
-      const checkbox = row.querySelector("input");
-      const span = row.querySelector("span");
-      const noBtn = row.querySelectorAll("button")[0];
-      const delBtn = row.querySelectorAll("button")[1];
-
-      checkbox.onchange = ()=>{
-        item.status = checkbox.checked ? "bought" : "pending";
-        renderItems();
-      };
-
-      noBtn.onclick = ()=>{
-        item.status = "no_stock";
-        renderItems();
-      };
-
-      delBtn.onclick = ()=>{
-        itemsLocal.splice(index,1);
-        renderItems();
-      };
-
-      span.onblur = ()=>{
-        item.name = span.innerText.trim();
-      };
-
-      itemsWrap.appendChild(row);
-    });
-  }
-
-  renderItems();
-
-  overlay.querySelector("#addGlobalItemBtn").onclick = ()=>{
-    const val = overlay.querySelector("#newGlobalItemInput").value.trim();
-    if(!val) return;
-
-    itemsLocal.push({ name:val, status:"pending" });
-    overlay.querySelector("#newGlobalItemInput").value = "";
-    renderItems();
-  };
-
-  overlay.querySelector("#saveGlobalChanges").onclick = async ()=>{
-    const newName = overlay.querySelector("#editGlobalTitle").value.trim();
-
-    await updateDoc(doc(db,"stores",STORE_ID,"globals",global.id),{
-      name:newName,
-      items:itemsLocal,
-      updatedAt:serverTimestamp()
-    });
-
-    overlay.remove();
-    toast("GLOBAL atualizada.");
-  };
-
-  overlay.querySelector("#closeEditGlobal").onclick = ()=>{
-    overlay.remove();
-  };
-}
-
-
-    // --- -- ---- ---- --- ---- -
-
-    await runTransaction(db, async (tx)=>{
-      const snap = await tx.get(ref);
-      if (!snap.exists()) throw new Error("GLOBAL não existe.");
-      const g = snap.data();
-      if (g.status !== "open") throw new Error("GLOBAL já foi concluída.");
-      tx.update(ref, {
-        status: "completed",
-        completedBy: user,
-        completedAt: serverTimestamp(),
-        completedAtHuman: nowHuman()
-      });
-    });
-
-    // Registra como task
-    await addDoc(colTasks(), {
-      user,
-      categoria: "[GLOBAL] " + (globalsAll.find(x=>x.id===globalDocId)?.name || "GLOBAL"),
-      itens: itensQtd || {},
-      when: nowHuman(),
-      weekKey: currentWeekKey,
-      createdAt: serverTimestamp()
-    });
-
-    await bumpMonthlyScore(user, 10);
-  }
-
-  // ===== PRODUTOS & PREÇOS (1 doc único) =====
-  function normKey(s){
-    return String(s||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ");
-  }
-
-  function parsePriceBR(raw){
-    const s = String(raw||"").trim();
-    if (!s) return null;
-    const cleaned = s.replace(/\./g,"").replace(",",".").replace(/[^0-9.]/g,"");
-    const n = Number(cleaned);
-    if (!Number.isFinite(n)) return null;
-    return Math.round(n*100)/100;
-  }
-
-  function formatBRL(n){
-    if (!Number.isFinite(n)) return "—";
-    return n.toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
-  }
-
-  async function ensureProductsDoc(){
-    const snap = await getDoc(cfgProductsRef());
-    if (!snap.exists()){
-      await setDoc(cfgProductsRef(), { items: [], updatedAt: serverTimestamp() }, { merge:true });
-      products = [];
-      productsIndex = new Map();
-      return;
-    }
-    const raw = snap.data().items;
-    const arr = Array.isArray(raw) ? raw : [];
-    products = arr
-      .map(p => ({
-        id: String(p?.id || ""),
-        name: String(p?.name || "").trim(),
-        nameKey: String(p?.nameKey || normKey(p?.name || "")),
-        price: Number(p?.price),
-        updatedAtHuman: p?.updatedAtHuman || "",
-        updatedBy: p?.updatedBy || ""
-      }))
-      .filter(p => p.name && p.nameKey);
-
-    products.sort((a,b)=>a.name.localeCompare(b.name));
-    productsIndex = new Map(products.map(p=>[p.nameKey, p]));
-  }
-
-  async function upsertProduct(name, price){
-    if (!canManagePrices()) throw new Error("Sem permissão.");
-    name = String(name||"").trim();
-    if (!name) throw new Error("Nome do produto vazio.");
-    const p = parsePriceBR(price);
-    if (p == null) throw new Error("Preço inválido.");
-
-    const key = normKey(name);
-
-    // mantém id estável por chave
-    const existing = productsIndex.get(key);
-    const id = existing?.id || ("prod_" + key.replace(/[^a-z0-9]+/g,"_").slice(0,40));
-
-    const nextMap = new Map(products.map(x=>[x.nameKey, x]));
-    nextMap.set(key, {
-      id,
-      name,
-      nameKey: key,
-      price: p,
-      updatedAtHuman: nowHuman(),
-      updatedBy: currentUser
-    });
-
-    const next = Array.from(nextMap.values()).sort((a,b)=>a.name.localeCompare(b.name));
-    await setDoc(cfgProductsRef(), { items: next, updatedAt: serverTimestamp() }, { merge:false });
-  }
-
-  async function deleteProductByKey(nameKey){
-    if (!canManagePrices()) return toast("Sem permissão.");
-    if (!confirm("Excluir este produto?")) return;
-
-    const next = products.filter(p => p.nameKey !== nameKey);
-    try{
-      await setDoc(cfgProductsRef(), { items: next, updatedAt: serverTimestamp() }, { merge:false });
-      toast("Produto excluído.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao excluir produto.");
-    }
-  }
-
-  function renderProductList(containerId){
-    const wrap = $(containerId);
-    if (!wrap) return;
-    wrap.innerHTML = "";
-
-    if (!products.length){
-      wrap.innerHTML = `<div class="text-gray-500">Nenhum produto cadastrado.</div>`;
-      return;
-    }
-
-    products.forEach(p=>{
-      const div = document.createElement("div");
-      div.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
-      div.innerHTML = `
-        <div class="min-w-0">
-          <div class="font-semibold truncate">${p.name}</div>
-          <div class="text-xs text-gray-600">Preço: <b>${formatBRL(p.price)}</b> • ${p.updatedAtHuman || "-"} • ${p.updatedBy || "-"}</div>
-        </div>
-        <button class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
-      `;
-      div.querySelector("button")?.addEventListener("click", ()=> deleteProductByKey(p.nameKey));
-      wrap.appendChild(div);
-    });
-  }
-
-  function setupProductSearch(inputId, suggestId, foundId, metaId){
-    const inp = $(inputId);
-    const sug = $(suggestId);
-    const found = $(foundId);
-    const meta = $(metaId);
-    if (!inp || !sug || !found || !meta) return;
-
-    const hide = ()=>{ sug.classList.add("hidden"); sug.innerHTML=""; };
-    const showS = ()=>{ sug.classList.remove("hidden"); };
-
-    function pick(p){
-      found.textContent = formatBRL(p.price);
-      meta.textContent = `${p.updatedAtHuman || "-"} • ${p.updatedBy || "-"}`;
-      inp.value = p.name;
-      hide();
-    }
-
-    inp.addEventListener("input", ()=>{
-      const q = normKey(inp.value);
-      found.textContent = "—";
-      meta.textContent = "—";
-      if (!q){
-        hide();
-        return;
-      }
-
-      const matches = products.filter(p => p.nameKey.includes(q)).slice(0, 30);
-      if (!matches.length){
-        hide();
-        return;
-      }
-
-      sug.innerHTML = "";
-      matches.forEach(p=>{
-        const row = document.createElement("button");
-        row.type = "button";
-        row.className = "w-full text-left px-3 py-2 hover:bg-blue-50 border-b last:border-b-0";
-        row.innerHTML = `<div class="font-semibold">${p.name}</div><div class="text-xs text-gray-600">${formatBRL(p.price)}</div>`;
-        row.addEventListener("click", ()=> pick(p));
-        sug.appendChild(row);
-      });
-      showS();
-    });
-
-    inp.addEventListener("blur", ()=> setTimeout(hide, 180));
-  }
-
-  // ===== ESCALA =====
-  const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
-
-  function emptyEscala(){
-    const days = {};
-    for (const d of DAYS) days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
-    return { weekKey: currentWeekKey, days };
-  }
-
-  function validateEscala(obj){
-    for (const d of DAYS){
-      const day = obj?.days?.[d];
-      if (!day) return `Dia inválido: ${d}`;
-
-      const m1 = normalizeName(day.manha?.[0] || "");
-      const m2 = normalizeName(day.manha?.[1] || "");
-      const t1 = normalizeName(day.tarde?.[0] || "");
-      const t2 = normalizeName(day.tarde?.[1] || "");
-      const f  = normalizeName(day.folga?.[0] || "");
-
-      if (!m1 || !m2) return `${d}: Manhã precisa ter 2 funcionários.`;
-      if (m1 === m2) return `${d}: Manhã não pode repetir o mesmo funcionário.`;
-
-      if (!t1 || !t2) return `${d}: Tarde precisa ter 2 funcionários.`;
-      if (t1 === t2) return `${d}: Tarde não pode repetir o mesmo funcionário.`;
-
-      if (!f) return `${d}: Folga precisa ter 1 funcionário.`;
-
-      const setWork = new Set([m1,m2,t1,t2].filter(Boolean));
-      if (setWork.has(f)) return `${d}: Folga não pode ser alguém que trabalha no mesmo dia.`;
-
-      const setManha = new Set([m1,m2]);
-      if (setManha.has(t1) || setManha.has(t2)) return `${d}: Não é permitido dobrar (mesma pessoa manhã+tarde).`;
-    }
-    return null;
-  }
-
-  async function saveEscala(obj){
-    const err = validateEscala(obj);
-    if (err) return toast(err);
-
-    await setDoc(escalaRef(currentWeekKey), {
-      exists: true,
-      weekKey: currentWeekKey,
-      days: obj.days,
-      updatedAt: serverTimestamp(),
-      updatedAtHuman: nowHuman(),
-      updatedBy: currentUser
-    }, { merge:false });
-
-    toast("Escala salva.");
-  }
-
-  async function clearEscala(){
-    if (!canEditEscala()) return toast("Sem permissão.");
-    if (!confirm("Limpar a escala desta semana?")) return;
-
-    await setDoc(escalaRef(currentWeekKey), {
-      exists: true,
-      weekKey: currentWeekKey,
-      days: emptyEscala().days,
-      updatedAt: serverTimestamp(),
-      updatedAtHuman: nowHuman(),
-      updatedBy: currentUser
-    }, { merge:false });
-
-    toast("Escala limpa.");
-  }
-
-  function renderEscalaViewer(){
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
-    const view = $("escalaViewer");
-    view.innerHTML = "";
-
-    const s = escala && escala.exists ? escala : null;
-    if (!s){
-      view.innerHTML = `<div class="text-gray-500">Sem escala cadastrada ainda.</div>`;
-      return;
-    }
-
-    const box = document.createElement("div");
-    box.className = "border rounded p-2 bg-gray-50";
-
-    let html = `<div class="text-xs text-gray-600">Atualizada por <b>${s.updatedBy || "-"}</b> em ${s.updatedAtHuman || "-"}</div>`;
-    html += `<div class="mt-2 space-y-2">`;
-
-    for (const d of DAYS){
-      const day = s.days?.[d] || {};
-      const manha = (day.manha||[]).filter(Boolean).join(" + ") || "-";
-      const tarde = (day.tarde||[]).filter(Boolean).join(" + ") || "-";
-      const folga = (day.folga||[]).filter(Boolean).join(" + ") || "-";
-      html += `
-        <div class="border rounded bg-white p-2">
-          <div class="font-semibold">${d}</div>
-          <div class="text-sm mt-1"><b>Manhã:</b> ${manha}</div>
-          <div class="text-sm"><b>Tarde:</b> ${tarde}</div>
-          <div class="text-sm"><b>Folga:</b> ${folga}</div>
-        </div>
-      `;
-    }
-
-    html += `</div>`;
-    box.innerHTML = html;
-    view.appendChild(box);
-  }
-
-  // ===== ESCALA EDITOR =====
-  function buildSelect(options, value){
-    const sel = document.createElement("select");
-    sel.className = "border p-2 rounded w-full";
-    sel.appendChild(new Option("Selecione...", ""));
-    options.forEach(n => sel.appendChild(new Option(n, n)));
-    sel.value = value || "";
-    return sel;
-  }
-
-  function setSelectOptions(selectEl, options, keepValue){
-    const current = keepValue || "";
-    selectEl.innerHTML = "";
-    selectEl.appendChild(new Option("Selecione...", ""));
-    options.forEach(n => selectEl.appendChild(new Option(n, n)));
-    if (current && options.includes(current)) selectEl.value = current;
-    else selectEl.value = "";
-  }
-
-  function renderEscalaEditor(containerId){
-    const container = $(containerId);
-    if (!container) return null;
-
-    container.innerHTML = "";
-    const names = activeNames();
-    const base = (escala && escala.exists) ? escala : emptyEscala();
-    const local = clone(base);
-
-    for (const d of DAYS){
-      const day = local.days[d];
-
-      const row = document.createElement("div");
-      row.className = "border rounded p-3 bg-gray-50";
-
-      const title = document.createElement("div");
-      title.className = "font-semibold mb-2";
-      title.innerText = d;
-
-      const grid = document.createElement("div");
-      grid.className = "grid md:grid-cols-3 gap-2";
-
-      const mWrap = document.createElement("div");
-      mWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Manhã (2)</div>`;
-      const m1 = buildSelect(names, day.manha[0]);
-      const m2 = buildSelect(names, day.manha[1]);
-      mWrap.appendChild(m1);
-      mWrap.appendChild(document.createElement("div")).className = "h-2";
-      mWrap.appendChild(m2);
-
-      const tWrap = document.createElement("div");
-      tWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Tarde (2)</div>`;
-      const t1 = buildSelect(names, day.tarde[0]);
-      const t2 = buildSelect(names, day.tarde[1]);
-      tWrap.appendChild(t1);
-      tWrap.appendChild(document.createElement("div")).className = "h-2";
-      tWrap.appendChild(t2);
-
-      const fWrap = document.createElement("div");
-      fWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Folga (1)</div>`;
-      const f1 = buildSelect(names, day.folga[0]);
-      fWrap.appendChild(f1);
-
-      grid.appendChild(mWrap);
-      grid.appendChild(tWrap);
-      grid.appendChild(fWrap);
-
-      row.appendChild(title);
-      row.appendChild(grid);
-      container.appendChild(row);
-
-      const getPicked = () => {
-        const picked = new Set();
-        [m1.value, m2.value, t1.value, t2.value, f1.value].forEach(v=>{
-          const vv = normalizeName(v || "");
-          if (vv) picked.add(vv);
-        });
-        return picked;
-      };
-
-      const availableFor = (selfValue) => {
-        const picked = getPicked();
-        const me = normalizeName(selfValue || "");
-        if (me) picked.delete(me);
-        return names.filter(n => !picked.has(n));
-      };
-
-      const sync = () => {
-        day.manha[0] = normalizeName(m1.value);
-        day.manha[1] = normalizeName(m2.value);
-        day.tarde[0] = normalizeName(t1.value);
-        day.tarde[1] = normalizeName(t2.value);
-        day.folga[0] = normalizeName(f1.value);
-
-        setSelectOptions(m1, availableFor(m1.value), m1.value);
-        setSelectOptions(m2, availableFor(m2.value), m2.value);
-        setSelectOptions(t1, availableFor(t1.value), t1.value);
-        setSelectOptions(t2, availableFor(t2.value), t2.value);
-        setSelectOptions(f1, availableFor(f1.value), f1.value);
-
-        day.manha[0] = normalizeName(m1.value);
-        day.manha[1] = normalizeName(m2.value);
-        day.tarde[0] = normalizeName(t1.value);
-        day.tarde[1] = normalizeName(t2.value);
-        day.folga[0] = normalizeName(f1.value);
-      };
-
-      m1.addEventListener("change", sync);
-      m2.addEventListener("change", sync);
-      t1.addEventListener("change", sync);
-      t2.addEventListener("change", sync);
-      f1.addEventListener("change", sync);
-
-      sync();
-    }
-
-    return local;
-  }
-
-  function maybeSetupEscalaUI(){
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
-
-    const can = canEditEscala();
-    $("escalaPermLabel").innerText = can ? "Você pode editar" : "Somente leitura";
-
-    const editorWrap = $("escalaEditorWrap");
-    if (can){
-      editorWrap.classList.remove("hidden");
-      escalaLocalEmployee = renderEscalaEditor("escalaEditor");
-      $("btnSaveEscala").onclick = async ()=>{
-        if (!escalaLocalEmployee) escalaLocalEmployee = renderEscalaEditor("escalaEditor");
-        await saveEscala(escalaLocalEmployee);
-      };
-      $("btnClearEscala").onclick = clearEscala;
-    } else {
-      editorWrap.classList.add("hidden");
-      escalaLocalEmployee = null;
-    }
-  }
-
-  // ===== Ranking mensal (gerente) =====
-  function renderRanking(){
-    const mk = monthKey(new Date());
-    $("monthKeyLabelGer").innerText = mk;
-
-    const list = $("rankingList");
-    list.innerHTML = "";
-
-    const active = activeNames();
-    const ms = scoresDoc?.monthScores?.[mk] || {};
-
-    const rows = active.map(name => ({
-      name,
-      pts: Number(ms?.[name] || 0)
-    })).sort((a,b)=>{
-      if (b.pts !== a.pts) return b.pts - a.pts;
-      return a.name.localeCompare(b.name);
-    });
-
-    if (!rows.length){
-      list.innerHTML = `<div class="text-gray-500">Sem funcionários ativos.</div>`;
-      return;
-    }
-
-    rows.forEach((r, idx)=>{
-      const div = document.createElement("div");
-      div.className = "border rounded p-2 bg-gray-50 flex items-center justify-between";
-      div.innerHTML = `
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-full bg-white border flex items-center justify-center text-xs font-bold">${idx+1}</div>
-          <div class="font-semibold">${r.name}</div>
-        </div>
-        <div class="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 17.27l5.18 3.04-1.39-5.99 4.64-4.02-6.12-.53L12 4l-2.31 5.77-6.12.53 4.64 4.02-1.39 5.99L12 17.27z"/>
-          </svg>
-          <div class="font-bold text-lg">${r.pts}</div>
-        </div>
-      `;
-      list.appendChild(div);
-    });
-  }
-
-  // ===== Render funcionário =====
-  function renderEmployee(){
-    const managerUser = getManagerUser();
-
-    if (!isEmployeeActive(currentUser)){
-      clearSession();
-      currentUser = "";
-      show("login");
-      return;
-    }
-
-    $("userName").innerText = currentUser;
-    $("weekKeyLabel").innerText = currentWeekKey;
-
-    const mp = getMonthPoints(currentUser);
-    $("monthPointsInline").innerText = mp;
-    $("monthPointsTop").innerText = mp;
-    updateTopBar();
-
-    // produtos/perfis
-    $("pricesManageEmp").classList.toggle("hidden", !canManagePrices());
-
-    // render list manage (só quando aberto)
-    if (!($("manageListEmpWrap")?.classList.contains("hidden"))){
-      renderProductList("prodListEmp");
-    }
-
-    const container = $("tasks");
-    container.innerHTML = "";
-
-    // ✅ MULTI-GLOBAIS abertas (da semana) para funcionários
-    const wk = normalizeWeekKeyLoose(currentWeekKey);
-    const open = globalsAll
-      .filter(g => normalizeWeekKeyLoose(g.weekKey) === wk && g.status === "open")
-      .sort((a,b)=> (b.createdAtMs||0) - (a.createdAtMs||0));
-
-    if (open.length){
-      const box = document.createElement("div");
-      box.className = "bg-white p-4 rounded-xl shadow border-2 border-blue-200";
-      box.innerHTML = `
-        <div class="flex items-center justify-between gap-2">
-          <h3 class="font-semibold">GLOBAIS da semana</h3>
-          <span class="text-xs text-gray-500">+10 (primeiro a concluir cada GLOBAL)</span>
-        </div>
-        <div class="text-xs text-gray-500 mt-1">A GLOBAL some para os demais quando alguém conclui primeiro.</div>
-      `;
-      const list = document.createElement("div");
-      list.className = "mt-3 space-y-3";
-
-      open.forEach((g)=>{
-        const card = document.createElement("div");
-        card.className = "border rounded p-3 bg-gray-50";
-
-        const title = document.createElement("div");
-        title.className = "flex items-start justify-between gap-2";
-        title.innerHTML = `
-          <div>
-            <div class="font-semibold">${g.name || "GLOBAL"}</div>
-            <div class="text-xs text-gray-500">Publicada por ${g.createdBy || "-"} • ${g.createdAtHuman || "-"}</div>
-          </div>
-        `;
-        card.appendChild(title);
-
-        const body = document.createElement("div");
-        body.className = "mt-3 space-y-2";
-
-        const itens = Array.isArray(g.items) ? g.items : [];
-        itens.forEach((item)=>{
-          const row = document.createElement("div");
-          row.className = "flex items-center justify-between gap-2";
-          row.innerHTML =
-            "<span class='text-sm text-gray-800'>" + item + "</span>" +
-            "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
-          body.appendChild(row);
-        });
-
-        const warn = document.createElement("p");
-        warn.className = "text-xs text-gray-500 mt-2";
-        warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
-        body.appendChild(warn);
-
-        const btn = document.createElement("button");
-        btn.className = "mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded";
-        btn.innerText = "Concluir esta GLOBAL";
-
-        btn.addEventListener("click", async ()=>{
-          const itensQtd = {};
-          const inputs = Array.from(body.querySelectorAll("input[type=number]"));
-          for (const inp of inputs){
-            const name = decodeURIComponent(inp.getAttribute("data-item"));
-            if (inp.value === ""){
-              toast("Preencha todos os itens. Se for zero, digite 0.");
-              inp.focus();
-              return;
-            }
-            const val = Number(inp.value);
-            itensQtd[name] = Number.isFinite(val) ? val : 0;
-          }
-
-          btn.disabled = true;
-          btn.classList.add("opacity-50");
-          btn.innerText = "Tentando concluir...";
-
-          try{
-            await completeGlobalAsFirst(g.id, currentUser, itensQtd);
-            toast("Você concluiu essa GLOBAL primeiro!");
-          } catch(e){
-            console.error(e);
-            toast("Essa GLOBAL já foi concluída por outra pessoa.");
-          } finally {
-            btn.disabled = true;
-            btn.innerText = "Encerrada";
-          }
-        });
-
-        card.appendChild(body);
-        card.appendChild(btn);
-        list.appendChild(card);
-      });
-
-      box.appendChild(list);
-      container.appendChild(box);
-    }
-
-    // categorias pessoais
-    const cats = data[currentUser] || {};
-    const catNames = Object.keys(cats).sort((a,b)=>a.localeCompare(b));
-    if (!catNames.length){
-      const box = document.createElement("div");
-      box.className = "bg-white p-4 rounded-xl shadow text-gray-600";
-      box.innerText = "Sem categorias para este usuário.";
-      container.appendChild(box);
-      return;
-    }
-
-    catNames.forEach((cat)=>{
-      const card = document.createElement("div");
-      card.className = "bg-white p-4 rounded-xl shadow";
-
-      const done = isCategoryDoneThisWeek(currentUser, cat);
-
-      const title = document.createElement("div");
-      title.className = "flex items-center justify-between gap-2";
-      title.innerHTML = "<h3 class='font-semibold'>" + cat + "</h3><span class='text-xs text-gray-500'>+10</span>";
-      card.appendChild(title);
-
-      const body = document.createElement("div");
-      body.className = "mt-3 space-y-2";
-
-      const itens = cats[cat] || [];
-      itens.forEach((item)=>{
-        const row = document.createElement("div");
-        row.className = "flex items-center justify-between gap-2";
-        row.innerHTML =
-          "<span class='text-sm text-gray-800'>" + item + "</span>" +
-          "<input data-item='" + encodeURIComponent(item) + "' type='number' min='0' class='w-24 border rounded px-2 py-1 text-right' placeholder='Qtd'>";
-        body.appendChild(row);
-      });
-
-      const warn = document.createElement("p");
-      warn.className = "text-xs text-gray-500 mt-2";
-      warn.innerText = "Para concluir, nenhum campo pode ficar vazio (se for zero, digite 0).";
-      body.appendChild(warn);
-
-      const btn = document.createElement("button");
-      btn.className = "mt-4 w-full bg-green-600 hover:bg-green-700 text-white p-2 rounded";
-      btn.innerText = done ? "Concluído (semana)" : "Concluir";
-      btn.disabled = done;
-      if (done) btn.classList.add("opacity-50");
-
-      btn.addEventListener("click", async ()=>{
-        if (btn.disabled) return;
-
-        const itensQtd = {};
-        const inputs = Array.from(body.querySelectorAll("input[type=number]"));
-        for (const inp of inputs){
-          const name = decodeURIComponent(inp.getAttribute("data-item"));
-          if (inp.value === ""){
-            toast("Preencha todos os itens. Se for zero, digite 0.");
-            inp.focus();
-            return;
-          }
-          const val = Number(inp.value);
-          itensQtd[name] = Number.isFinite(val) ? val : 0;
-        }
-
-        if (isCategoryDoneThisWeek(currentUser, cat)){
-          toast("Essa categoria já foi concluída nesta semana.");
-          renderEmployee();
-          return;
-        }
-
-        btn.disabled = true;
-        btn.classList.add("opacity-50");
-        btn.innerText = "Salvando...";
-
-        try{
-          await addDoc(colTasks(), {
-            user: currentUser,
-            categoria: cat,
-            itens: itensQtd,
-            when: nowHuman(),
-            weekKey: currentWeekKey,
-            createdAt: serverTimestamp()
-          });
-
-          await bumpMonthlyScore(currentUser, 10);
-
-          btn.innerText = "Concluído";
-          toast("Concluído!");
-        } catch(e){
-          console.error(e);
-          toast("Erro ao salvar. Verifique a internet e tente novamente.");
-          btn.disabled = false;
-          btn.classList.remove("opacity-50");
-          btn.innerText = "Concluir";
-        }
-      });
-
-      card.appendChild(body);
-      card.appendChild(btn);
-      container.appendChild(card);
-    });
-  }
-
-  // ===== Render gerente =====
-  function renderManager(){
-
-  $("weekKeyLabelGer").innerText = currentWeekKey;
-  $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
-  $("storeLabelGer").innerText =
-    (storeKey === "loja_bogados") ? "Bogados" : "Loja Principal";
-
-  renderRanking();
-
-  // ===== STATUS GLOBAIS =====
-  if ($("globalStatus")){
-    $("globalStatus").innerText = globalsStatusText();
-  }
-
-  // ===== LISTA DE GLOBAIS (GERENCIAR) =====
-  const gList = $("globalsManageList");
-  if (gList){
-    gList.innerHTML = "";
-
-    const wk = normalizeWeekKeyLoose(currentWeekKey);
-    const list = globalsAll
-      .filter(g => normalizeWeekKeyLoose(g.weekKey) === wk)
-      .sort((a,b)=> (b.createdAtMs||0) - (a.createdAtMs||0));
-
-    if (!list.length){
-      gList.innerHTML =
-        `<div class="text-gray-500">Nenhuma GLOBAL nesta semana.</div>`;
-    }
-
-    list.forEach(g=>{
-
-      const card = document.createElement("div");
-      card.className =
-        "border rounded p-4 bg-gray-50 space-y-3";
-
-      // HEADER
-      const header = document.createElement("div");
-      header.className =
-        "flex justify-between items-center gap-2";
-
-      header.innerHTML = `
-        <input value="${g.name}"
-               class="font-semibold border-b outline-none bg-transparent w-full mr-3"
-               data-id="${g.id}">
-        <button class="bg-red-600 text-white px-3 py-1 text-xs rounded">
-          Excluir
-        </button>
-      `;
-
-      const nameInput = header.querySelector("input");
-      const delBtn = header.querySelector("button");
-
-      nameInput.onblur = async ()=>{
-        await updateDoc(
-          doc(db,"stores",STORE_ID,"globals",g.id),
-          { name:nameInput.value.trim(), updatedAt:serverTimestamp() }
-        );
-      };
-
-      delBtn.onclick = ()=> deleteGlobalDoc(g.id);
-
-      card.appendChild(header);
-
-      // ITENS
-      (g.items || []).forEach((item,index)=>{
-
-        const row = document.createElement("div");
-        row.className =
-          "flex justify-between items-center border rounded p-2";
-
-        row.innerHTML = `
-          <span contenteditable="true"
-                class="flex-1 outline-none">${item.name}</span>
-          <button class="bg-red-600 text-white px-2 text-xs rounded ml-2">
-            X
-          </button>
-        `;
-
-        const span = row.querySelector("span");
-        const delItem = row.querySelector("button");
-
-        span.onblur = async ()=>{
-          g.items[index].name = span.innerText.trim();
-          await updateDoc(
-            doc(db,"stores",STORE_ID,"globals",g.id),
-            { items:g.items }
-          );
-        };
-
-        delItem.onclick = async ()=>{
-          g.items.splice(index,1);
-          await updateDoc(
-            doc(db,"stores",STORE_ID,"globals",g.id),
-            { items:g.items }
-          );
-        };
-
-        card.appendChild(row);
-      });
-
-      // ADICIONAR ITEM
-      const addRow = document.createElement("div");
-      addRow.className = "flex gap-2";
-
-      addRow.innerHTML = `
-        <input class="border p-2 rounded flex-1"
-               placeholder="Adicionar item...">
-        <button class="bg-blue-600 text-white px-3 rounded">
-          +
-        </button>
-      `;
-
-      const addInput = addRow.querySelector("input");
-      const addBtn = addRow.querySelector("button");
-
-      addBtn.onclick = async ()=>{
-        const val = addInput.value.trim();
-        if (!val) return;
-
-        g.items.push({ name:val, status:"pending" });
-
-        await updateDoc(
-          doc(db,"stores",STORE_ID,"globals",g.id),
-          { items:g.items }
-        );
-
-        addInput.value = "";
-      };
-
-      card.appendChild(addRow);
-      gList.appendChild(card);
-    });
-  }
-
-  // ===== PRODUTOS =====
-  if (!($("manageListGerWrap")?.classList.contains("hidden"))){
-    renderProductList("prodListGer");
-  }
-}
-
-
-    // produtos
-    if (!($("manageListGerWrap")?.classList.contains("hidden"))){
-      renderProductList("prodListGer");
-    }
-
-    // tarefas
-    const t = $("gerTasks");
-    t.innerHTML = "";
-    const ordered = tasksDone.slice(0, 350);
-
-    if (!ordered.length){
-      t.innerHTML = "<p class='text-gray-500'>Nenhuma tarefa nesta semana.</p>";
-    } else {
-      ordered.forEach((r)=>{
-        const itensObj = r.itens || {};
-        const itensKeys = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
-        const hasItens = itensKeys.length > 0;
-
-        const div = document.createElement("div");
-        div.className = "border rounded p-2 bg-gray-50";
-
-        let html = `
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <div class="font-semibold">${r.user} - ${r.categoria}</div>
-              <div class="text-xs text-gray-600">${(r.when || "")}</div>
-            </div>
-            <button data-id="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
-          </div>
-        `;
-
-        if (hasItens){
-          html += `<div class="mt-2 bg-white rounded p-2 border">`;
-          itensKeys.forEach((k)=>{
-            const q = itensObj[k];
-            html += `
-              <div class="flex items-center justify-between gap-2 border-b last:border-b-0 py-1">
-                <div class="text-sm text-gray-800">${k}</div>
-                <div class="text-sm font-semibold">Qtd ${q}</div>
-              </div>
-            `;
-          });
-          html += `</div>`;
-        }
-
-        div.innerHTML = html;
-        t.appendChild(div);
-
-        div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
-          if (!confirm("Excluir esta tarefa concluída?")) return;
-          try{
-            await deleteDoc(doc(db,"stores",STORE_ID,"tasks", r.id));
-            toast("Tarefa excluída.");
-          } catch(e){
-            console.error(e);
-            toast("Erro ao excluir tarefa.");
-          }
-        });
-      });
-    }
-
-    // faltas
-    const m = $("gerMissing");
-    m.innerHTML = "";
-    const mo = missingReports.slice(0, 350);
-    if (!mo.length){
-      m.innerHTML = "<p class='text-gray-500'>Nenhuma falta nesta semana.</p>";
-    } else {
-      mo.forEach((r)=>{
-        const div = document.createElement("div");
-        div.className = "border rounded p-2 bg-gray-50";
-        div.innerHTML =
-          `<div class="flex items-start justify-between gap-2">
-            <div>
-              <div class='font-semibold'>${r.user}</div>
-              <div class='text-xs text-gray-600'>${(r.when || "")}</div>
-              <div class='text-sm mt-1'>${r.item}</div>
-            </div>
-            <button data-id="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
-          </div>`;
-        m.appendChild(div);
-
-        div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
-          if (!confirm("Excluir este item em falta?")) return;
-          try{
-            await deleteDoc(doc(db,"stores",STORE_ID,"missing", r.id));
-            toast("Falta excluída.");
-          } catch(e){
-            console.error(e);
-            toast("Erro ao excluir falta.");
-          }
-        });
-      });
-    }
-  }
-
-  function setupCollapse(btnId, contentId, defaultMinimized=true){
-    const btn = $(btnId);
-    const content = $(contentId);
-    if (!btn || !content) return;
-
-    if (defaultMinimized){
-      content.classList.add("hidden");
-      btn.innerText = "Expandir";
-    }
-
-    btn.addEventListener("click", ()=>{
-      const hidden = content.classList.toggle("hidden");
-      btn.innerText = hidden ? "Expandir" : "Minimizar";
-    });
-  }
-
-  // collapses
-  setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
-  setupCollapse("btnToggleEscalaGer", "escalaGerContent",true );
-  setupCollapse("btnToggleRanking", "rankingContent",true  );
-  setupCollapse("btnToggleEmployees", "employeesContent", true);
-
-
-  // Produtos & preços: minimizável
-  setupCollapse("btnTogglePricesEmp", "pricesEmpContent");
-  setupCollapse("btnTogglePricesGer", "pricesGerContent");
-
-  // ✅ Lista (gerenciar) minimizada por padrão (pedido do usuário)
-  setupCollapse("btnToggleManageListGer", "manageListGerWrap", true);
-  setupCollapse("btnToggleManageListEmp", "manageListEmpWrap", true);
-
-  // ✅ GLOBAIS (gerenciar) minimizada por padrão
-  setupCollapse("btnToggleGlobalsManage", "globalsManageWrap", true);
-
-  // ===== Missing =====
-  $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
-  $("missingSave").addEventListener("click", async ()=>{
-    const raw = $("missingInput").value.trim();
-    if (!raw) return toast("Digite o item em falta.");
-
-    await addDoc(colMissing(), {
-      user: currentUser,
-      item: raw,
-      when: nowHuman(),
-      weekKey: currentWeekKey,
-      createdAt: serverTimestamp()
-    });
-
-    $("missingInput").value = "";
-    $("missingBox").classList.add("hidden");
-    toast("Registrado!");
-  });
-
-  // ===== Templates =====
-  $("btnSaveTpl").addEventListener("click", async ()=>{
-    if (!canManageGlobals()) return toast("Apenas o gerente.");
-    const name = normalizeCat($("tplName").value);
-    const items = sanitizeItemsFromInput($("tplItems").value.trim());
-    if (!name) return toast("Digite o nome do template.");
-    if (!items.length) return toast("Digite pelo menos 1 item.");
-    try{
-      await saveGlobalTemplate(name, items);
-      $("tplName").value = "";
-      $("tplItems").value = "";
-      toast("Template salvo.");
-    } catch(e){
-      console.error(e);
-      toast(String(e?.message || "Erro ao salvar template."));
-    }
-  });
-
-  $("btnDeleteTpl").addEventListener("click", async ()=>{
-    if (!canManageGlobals()) return toast("Apenas o gerente.");
-    const id = $("globalTplSelect").value;
-    if (!id) return toast("Selecione um template.");
-    const tpl = findTemplateById(id);
-    if (!tpl) return toast("Template não encontrado.");
-    if (!confirm(`Excluir template "${tpl.name}"?`)) return;
-    try{
-      await deleteGlobalTemplateById(id);
-      toast("Template excluído.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao excluir template.");
-    }
-  });
-
-  $("btnPublishGlobalFromTpl").addEventListener("click", async ()=>{
-    if (!canManageGlobals()) return toast("Apenas o gerente.");
-    const id = $("globalTplSelect").value;
-    if (!id) return toast("Selecione um template.");
-    const tpl = findTemplateById(id);
-    if (!tpl) return toast("Template não encontrado.");
-
-    if (!confirm(`Publicar GLOBAL desta semana usando "${tpl.name}"?`)) return;
-
-    try{
-      await publishGlobalFromTemplate(tpl);
-      toast("GLOBAL publicada.");
-    } catch(e){
-      console.error(e);
-      toast(String(e?.message || "Erro ao publicar GLOBAL."));
-    }
-  });
-
-  // ===== Funcionários (gerente) =====
-  $("btnAddEmployee").addEventListener("click", async ()=>{
-    const name = $("newEmployeeName").value;
-    $("newEmployeeName").value = "";
-    try{ await addEmployee(name); }catch(e){ console.error(e); toast("Erro ao adicionar funcionário."); }
-  });
-
-  $("btnRefreshEmployees").addEventListener("click", ()=>{
-    renderEmployeesUI();
-    toast("Lista recarregada.");
-  });
-
-  // ===== Categorias =====
-  $("btnAddCategory").addEventListener("click", async ()=>{
-    if (!isManager()) return toast("Apenas o gerente.");
-    const u = $("addUser").value;
-    const cat = normalizeCat($("categoriaNome").value);
-    const items = $("itensCategoria").value.trim();
-    if (!u) return toast("Selecione o funcionário.");
-    if (!cat) return toast("Informe o nome da categoria");
-
-    const newData = clone(data || {});
-    if (!newData[u]) newData[u] = {};
-    newData[u][cat] = items ? items.split(",").map(s=>s.trim()).filter(Boolean) : [];
-
-    await setDoc(cfgCatsRef(), { data: newData, updatedAt: serverTimestamp() }, { merge:false });
-    $("categoriaNome").value = "";
-    $("itensCategoria").value = "";
-    toast("Categoria atualizada.");
-  });
-
-  // ===== PINs =====
-  $("btnSetPin").addEventListener("click", async ()=>{
-    if (!isManager()) return toast("Apenas o gerente.");
-    const u = $("pinUser").value;
-    const p = $("pinNew").value.trim();
-    if (!u) return toast("Selecione o usuário.");
-    if (!isValidPin(p)) return toast("Novo PIN precisa ter 4 dígitos.");
-
-    await setDoc(userRef(u), {
-      user: u,
-      role: (u === getManagerUser()) ? "manager" : "employee",
-      pinHash: await sha256(p),
-      updatedAt: serverTimestamp()
-    }, { merge:true });
-
-    $("pinNew").value = "";
-    toast("PIN definido.");
-  });
-
-  // ===== Export CSV =====
-  function csvCell(v){
-    const s = String(v == null ? "" : v);
-    if (/[\n\r,"]/g.test(s)) return '"' + s.replaceAll('"', '""') + '"';
-    return s;
-  }
-
-  $("btnExport").addEventListener("click", ()=>{
-    if (!isManager()) return toast("Apenas o gerente exporta.");
-
-    const header = ["tipo","usuario","categoria","quando","detalhes"];
-    let csv = header.join(",") + "\n";
-
-    tasksDone.forEach((r)=>{
-      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {})].map(csvCell).join(",") + "\n";
-    });
-    missingReports.forEach((r)=>{
-      csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item })].map(csvCell).join(",") + "\n";
-    });
-
-    // globals export
-    const wk = normalizeWeekKeyLoose(currentWeekKey);
-    globalsAll.filter(g=>normalizeWeekKeyLoose(g.weekKey)===wk).forEach((g)=>{
-      csv += ["global", g.createdBy || "", g.name || "", g.createdAtHuman || "", JSON.stringify({ status:g.status, completedBy:g.completedBy||"", items:g.items||[] })]
-        .map(csvCell).join(",") + "\n";
-    });
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "relatorio_" + currentWeekKey + ".csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  });
-
-  // ===== Reset Week / Deletes =====
-  $("btnResetWeek").addEventListener("click", async ()=>{
-    if (!isManager()) return toast("Apenas o gerente.");
-    if (!confirm("ATENÇÃO: Apaga tarefas e faltas da semana atual. Confirmar?")) return;
-
-    try{
-      await deleteByWeek("tasks", currentWeekKey);
-      await deleteByWeek("missing", currentWeekKey);
-
-      // apaga escala
-      try{ await deleteDoc(escalaRef(currentWeekKey)); }catch(e){}
-
-      // apaga globals da semana
-      await deleteGlobalsByWeek(currentWeekKey);
-
-      toast("Semana zerada.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao zerar semana.");
-    }
-  });
-
-  async function deleteByWeek(colName, wk){
-    const colRef = collection(db, "stores", STORE_ID, colName);
-    const q = query(colRef, where("weekKey","==",wk), limit(450)); // ✅ sem orderBy => sem índice composto
-    const snap = await getDocs(q);
-    if (snap.empty) return;
-
-    let batch = writeBatch(db);
-    let count = 0;
-    for (const d of snap.docs){
-      batch.delete(d.ref);
-      count++;
-      if (count % 450 === 0){
-        await batch.commit();
-        batch = writeBatch(db);
-      }
-    }
-    await batch.commit();
-    if (snap.docs.length === 450) await deleteByWeek(colName, wk);
-  }
-
-  async function deleteGlobalsByWeek(wk){
-    const qg = query(colGlobals(), orderBy("createdAt","desc"), limit(400));
-    const snap = await getDocs(qg);
-    if (snap.empty) return;
-
-    const wkN = normalizeWeekKeyLoose(wk);
-    const docs = snap.docs.filter(d=>{
-      const v = d.data()?.weekKey;
-      return normalizeWeekKeyLoose(v) === wkN;
-    });
-
-    if (!docs.length) return;
-
-    let batch = writeBatch(db);
-    let count = 0;
-    for (const d of docs){
-      batch.delete(d.ref);
-      count++;
-      if (count % 450 === 0){
-        await batch.commit();
-        batch = writeBatch(db);
-      }
-    }
-    await batch.commit();
-  }
-
-  $("btnResetStars").addEventListener("click", async ()=>{
-    if (!isManager()) return toast("Apenas o gerente.");
-    if (!confirm("Zerar estrelas/pontos do mês para todos os funcionários ativos?")) return;
-    try{
-      await resetStarsThisMonth();
-      toast("Estrelas zeradas.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao zerar estrelas.");
-    }
-  });
-
-  $("btnDeleteAllTasksWeek").addEventListener("click", async ()=>{
-    if (!isManager()) return toast("Apenas o gerente.");
-    if (!confirm("Excluir TODAS as tarefas concluídas desta semana?")) return;
-    try{
-      await deleteByWeek("tasks", currentWeekKey);
-      toast("Tarefas da semana excluídas.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao excluir tarefas.");
-    }
-  });
-
-  $("btnDeleteAllMissingWeek").addEventListener("click", async ()=>{
-    if (!isManager()) return toast("Apenas o gerente.");
-    if (!confirm("Excluir TODOS os itens em falta desta semana?")) return;
-    try{
-      await deleteByWeek("missing", currentWeekKey);
-      toast("Faltas da semana excluídas.");
-    } catch(e){
-      console.error(e);
-      toast("Erro ao excluir faltas.");
-    }
-  });
-
-  $("btnClearEscala")?.addEventListener("click", clearEscala);
-  $("btnClearEscalaGer")?.addEventListener("click", clearEscala);
-
-  // ===== Produtos handlers (gerente + Claudia) =====
-  $("btnSaveProdGer")?.addEventListener("click", async ()=>{
-    try{
-      const name = $("prodNameGer").value;
-      const price = $("prodPriceGer").value;
-      await upsertProduct(name, price);
-      $("prodNameGer").value = "";
-      $("prodPriceGer").value = "";
-      toast("Produto salvo.");
-    } catch(e){
-      console.error(e);
-      toast(String(e?.message || "Erro ao salvar produto."));
-    }
-  });
-
-  $("btnSaveProdEmp")?.addEventListener("click", async ()=>{
-    try{
-      const name = $("prodNameEmp").value;
-      const price = $("prodPriceEmp").value;
-      await upsertProduct(name, price);
-      $("prodNameEmp").value = "";
-      $("prodPriceEmp").value = "";
-      toast("Produto salvo.");
-    } catch(e){
-      console.error(e);
-      toast(String(e?.message || "Erro ao salvar produto."));
-    }
-  });
-
-  // ===== Logout =====
-  $("btnLogout1").addEventListener("click", doLogout);
-  $("btnLogout2").addEventListener("click", doLogout);
-
-  // ===== Login =====
-  $("btnLogin").addEventListener("click", async ()=>{
-    showLoginError("");
-    const u = $("userSelect").value;
-    const p = $("pin").value;
-    if (!u) return toast("Selecione o usuário.");
-    if (!isValidPin(p)) return toast("PIN precisa ter 4 dígitos.");
-
-    const managerUser = getManagerUser();
-
-    if (u !== managerUser && !isEmployeeActive(u)){
-      return toast("Usuário bloqueado. Fale com o gerente.");
-    }
-
-    const check = await verifyUserPin(u, p);
-    if (check.noUser){
-      await ensureUserPin(u, p);
-      toast("PIN criado! Você já está logado.");
-      doLogin(u);
-      return;
-    }
-    if (!check.ok) return toast("PIN incorreto.");
-    doLogin(u);
-  });
-
-  function doLogin(u){
-    currentUser = u;
-    $("pin").value = "";
-    saveSession(u, storeKey);
-
-    if (isManager()){
-      renderManager();
-      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-      $("btnSaveEscalaGer").onclick = async ()=>{
-        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        await saveEscala(escalaLocalGer);
-      };
-      show("gerente");
-    } else {
-      renderEmployee();
-      maybeSetupEscalaUI();
-      renderEscalaViewer();
-      show("funcionario");
-    }
-
-    updateTopBar();
-  }
-
-  function doLogout(){
-    currentUser = "";
-    clearSession();
-    show("login");
-  }
-
-  // ===== Loja selector =====
-  $("storeSelect").addEventListener("change", async ()=>{
-    // troca loja, recarrega tudo
-    storeKey = $("storeSelect").value;
-    STORE_ID = STORE_MAP[storeKey].id;
-    clearSession();
-    currentUser = "";
-    show("login");
-    $("userSelect").innerHTML = `<option value="">Carregando...</option>`;
-    try{
-      await cloudInit();
-      toast("Loja carregada.");
-    } catch(e){
-      fatal("Falha ao carregar esta loja.", e);
-    }
-  });
-
-  // ===== INIT =====
-  async function cloudInit(){
-    try{
-      await ensureWeekKey();
-
-      watchShoppingLists();
-
-
-      // labels
-      $("weekKeyLabel").innerText = currentWeekKey;
-      $("weekKeyLabelGer").innerText = currentWeekKey;
-      $("weekKeyLabelEscala").innerText = currentWeekKey;
-      $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
-
-      // employees
-      await ensureEmployeesConfig();
-      renderEmployeesUI();
-
-      // scores
-      await ensureScoresDoc();
-      updateTopBar();
-
-      // templates
-      await ensureGlobalTemplatesDoc();
-      renderGlobalTplDropdown();
-
-      // products
-      await ensureProductsDoc();
-
-      // Setup product search (ambos perfis)
-      setupProductSearch("priceSearchEmp", "priceSuggestEmp", "priceFoundEmp", "priceMetaEmp");
-      setupProductSearch("priceSearchGer", "priceSuggestGer", "priceFoundGer", "priceMetaGer");
-
-      // permite gerenciar preços para Claudia no painel de funcionário
-      $("pricesManageEmp").classList.toggle("hidden", !canManagePrices());
-
-      // watchers templates
-      onSnapshot(cfgGlobalTplRef(), (snap)=>{
-        if (!snap.exists()){
-          globalTemplates = [];
-        } else {
-          const raw = snap.data().templates;
-          globalTemplates = Array.isArray(raw) ? raw : [];
-        }
-        renderGlobalTplDropdown();
-      });
-
-      // watchers employees
-      onSnapshot(cfgAppRef(), (snap)=>{
-        if (!snap.exists()) return;
-        const raw = snap.data().employees;
-
-        const managerUser = getManagerUser();
-
-        employees = (Array.isArray(raw) ? raw : [])
-          .map(x => ({ name: normalizeName(x?.name), active: !!x?.active }))
-          .filter(x => x.name);
-
-        employees = employees.filter(e => e.name.toUpperCase() !== managerUser.toUpperCase());
-
-        const seen = new Set();
-        employees = employees.filter(e => (seen.has(e.name) ? false : (seen.add(e.name), true)));
-
-        renderEmployeesUI();
-
-        if (currentUser && !isManager() && !isEmployeeActive(currentUser)){
-          clearSession();
-          currentUser = "";
-          toast("Usuário bloqueado. Faça login novamente.");
-          show("login");
-        }
-
-        if (isManager()){
-          escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        } else if (currentUser){
-          maybeSetupEscalaUI();
-        }
-
-        renderRanking();
-      });
-
-      // categories
-      const catsSnap = await getDoc(cfgCatsRef());
-      if (!catsSnap.exists()){
-        await setDoc(cfgCatsRef(), { data: defaultDataForStore(), updatedAt: serverTimestamp() }, { merge:false });
-        data = clone(defaultDataForStore());
-      } else {
-        const remote = catsSnap.data().data;
-        data = (remote && typeof remote === "object") ? remote : clone(defaultDataForStore());
-      }
-
-      onSnapshot(cfgCatsRef(), (snap)=>{
-        const remote = snap.data().data;
-        if (remote && typeof remote === "object"){
-          data = remote;
-          if (currentUser && !isManager()) renderEmployee();
-          if (isManager()) renderManager();
-        }
-      });
-
-      // scores watch
-      onSnapshot(scoresRef(), (snap)=>{
-        scoresDoc = snap.data() || {};
-        if (!scoresDoc.monthScores) scoresDoc.monthScores = {};
-
-        if (currentUser && !isManager()){
-          const pts = getMonthPoints(currentUser);
-          $("monthPointsInline").innerText = pts;
-          $("monthPointsTop").innerText = pts;
-        }
-        renderRanking();
-        updateTopBar();
-      });
-
-      // products watch
-      onSnapshot(cfgProductsRef(), (snap)=>{
-        const raw = snap.exists() ? snap.data().items : [];
-        const arr = Array.isArray(raw) ? raw : [];
-        products = arr
-          .map(p => ({
-            id: String(p?.id || ""),
-            name: String(p?.name || "").trim(),
-            nameKey: String(p?.nameKey || normKey(p?.name || "")),
-            price: Number(p?.price),
-            updatedAtHuman: p?.updatedAtHuman || "",
-            updatedBy: p?.updatedBy || ""
-          }))
-          .filter(p => p.name && p.nameKey);
-
-        products.sort((a,b)=>a.name.localeCompare(b.name));
-        productsIndex = new Map(products.map(p=>[p.nameKey, p]));
-
-        if (currentUser){
-          if (!isManager()) renderEmployee();
-          if (isManager()) renderManager();
-        }
-      });
-
-      // tasks/missing watchers (sem índice composto)
-      const TASKS_LIMIT = 2500;
-      const MISSING_LIMIT = 2500;
-
-      const tasksQ = query(colTasks(), orderBy("createdAt","desc"), limit(TASKS_LIMIT));
-      onSnapshot(tasksQ, (qs)=>{
-        tasksAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-        const wk = normalizeWeekKeyLoose(currentWeekKey);
-        tasksDone = tasksAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
-
-        if (isManager()) renderManager();
-        if (currentUser && !isManager()) renderEmployee();
-
-        if (isManager() && tasksAll.length > 0 && tasksDone.length === 0){
-          const samples = [...new Set(tasksAll.slice(0,50).map(t=>String(t.weekKey||"").trim()).filter(Boolean))].slice(0,8);
-          if (samples.length) warnManager("Nenhuma tarefa encontrada nesta semana. Exemplos de weekKey existentes: " + samples.join(" | "));
-        }
-      }, (err)=>{
-        console.error("Erro snapshot tasks:", err);
-        warnManager("Erro ao carregar tasks (veja o console).");
-      });
-
-      const missQ = query(colMissing(), orderBy("createdAt","desc"), limit(MISSING_LIMIT));
-      onSnapshot(missQ, (qs)=>{
-        missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
-        const wk = normalizeWeekKeyLoose(currentWeekKey);
-        missingReports = missingAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
-        if (isManager()) renderManager();
-      }, (err)=>{
-        console.error("Erro snapshot missing:", err);
-        warnManager("Erro ao carregar missing (veja o console).");
-      });
-
-      // globals watcher (multi)
-      const globalsQ = query(colGlobals(), orderBy("createdAt","desc"), limit(300));
-      onSnapshot(globalsQ, (qs)=>{
-        globalsAll = qs.docs.map(d=>{
-          const o = d.data() || {};
-          // createdAtMs para sort estável
-          const ms = o.createdAt?.toMillis ? o.createdAt.toMillis() : 0;
-          return { id:d.id, ...o, createdAtMs: ms };
-        });
-
-        const wk = normalizeWeekKeyLoose(currentWeekKey);
-        globalsWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey) === wk);
-        globalsOpen = globalsWeek.filter(g => g.status === "open");
-
-        if (currentUser){
-          if (isManager()) renderManager();
-          else renderEmployee();
-        }
-      }, (err)=>{
-        console.error("Erro snapshot globals:", err);
-        warnManager("Erro ao carregar globals (veja o console).");
-      });
-
-      // escala watcher
-      onSnapshot(escalaRef(currentWeekKey), (snap)=>{
-        if (!snap.exists()) escala = null;
-        else escala = { id: snap.id, ...snap.data() };
-
-        renderEscalaViewer();
-
-        if (isManager()){
-          escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        }
-        if (currentUser && !isManager()){
-          maybeSetupEscalaUI();
-        }
-      });
-
-      renderEscalaViewer();
-      renderRanking();
-      updateTopBar();
-
-    } catch(e){
-      fatal("Erro ao inicializar (Firestore/Permissão).", e);
-      throw e;
-    }
-  }
-
-  // ===== Boot com sessão =====
-  try{
-    // aplica store do session se existir
-    const ses = getSession();
-    if (ses && ses.storeKey && STORE_MAP[ses.storeKey]){
-      storeKey = ses.storeKey;
-      STORE_ID = STORE_MAP[storeKey].id;
-      $("storeSelect").value = storeKey;
-    } else {
-      storeKey = $("storeSelect").value || "loja_principal";
-      STORE_ID = STORE_MAP[storeKey].id;
-    }
-
-    await cloudInit();
-
-    if (ses && ses.user){
-      currentUser = ses.user;
-
-      // garante que usuário exista no select atual
-      const managerUser = getManagerUser();
-      if (currentUser === managerUser){
-        renderManager();
-        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        $("btnSaveEscalaGer").onclick = async ()=>{
-          if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-          await saveEscala(escalaLocalGer);
-        };
-        show("gerente");
-      } else {
-        if (!isEmployeeActive(currentUser)){
-          clearSession();
-          currentUser = "";
-          show("login");
-        } else {
-          renderEmployee();
-          maybeSetupEscalaUI();
-          renderEscalaViewer();
-          show("funcionario");
-        }
-      }
-    } else {
-      show("login");
-    }
-
-    updateTopBar();
-    console.log("BUILD OK", BUILD_ID);
-    window.__BUILD_OK__ = true;
-
-  } catch(e){
-    // fatal já exibiu
-  }
-</script>
-
-</body>
-</html>
