@@ -326,55 +326,142 @@
 
   <!-- GLOBAIS (até 20 por semana) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <h3 class="font-semibold mb-2">Tarefas GLOBAIS (até 20 por semana)</h3>
-    <p class="text-xs text-gray-500 mb-3">
-      Crie templates e publique quantas quiser, respeitando o limite de 20 na semana.
-      Cada GLOBAL trava quando alguém conclui (some dos demais).
-    </p>
-
-    <div class="grid md:grid-cols-4 gap-2">
-      <select id="globalTplSelect" class="border p-2 rounded md:col-span-2">
-        <option value="">Carregando templates...</option>
-      </select>
-      <button id="btnPublishGlobalFromTpl" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
-        Publicar GLOBAL (semana)
-      </button>
-      <button id="btnDeleteTpl" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded">
-        Excluir template
-      </button>
-    </div>
-
-    <div class="mt-3 border-t pt-3">
-      <div class="text-sm font-semibold mb-2">Status das GLOBAIS desta semana</div>
-      <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
-
-      <div class="mt-3">
-        <div class="flex items-center justify-between">
-          <div class="font-semibold text-sm">GLOBAIS publicadas (gerenciar)</div>
-          <button id="btnToggleGlobalsManage" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-            Expandir
-          </button>
-        </div>
-        <div id="globalsManageWrap" class="hidden mt-3">
-          <div id="globalsManageList" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
-          <p class="text-xs text-gray-500 mt-2">
-            Você pode excluir GLOBAIS ativas (abertas/zeradas) ou qualquer outra se quiser.
-          </p>
-        </div>
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h3 class="font-semibold">Tarefas GLOBAIS (até 20 por semana)</h3>
+        <p class="text-xs text-gray-500">
+          Crie templates e publique quantas quiser, respeitando o limite de 20 na semana.
+          Cada GLOBAL trava quando alguém conclui (some dos demais).
+        </p>
       </div>
+      <button id="btnToggleGlobalsMain" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+        Minimizar
+      </button>
     </div>
 
-    <div class="mt-4 border-t pt-4">
-      <div class="flex items-center justify-between">
-        <div class="font-semibold text-sm">Criar novo template GLOBAL</div>
-        <button id="btnSaveTpl" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
-          Salvar template
+    <div id="globalsMainContent" class="mt-3">
+      <div class="grid md:grid-cols-4 gap-2">
+        <select id="globalTplSelect" class="border p-2 rounded md:col-span-2">
+          <option value="">Carregando templates...</option>
+        </select>
+        <button id="btnPublishGlobalFromTpl" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
+          Publicar GLOBAL (semana)
+        </button>
+        <button id="btnDeleteTpl" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded">
+          Excluir template
         </button>
       </div>
 
-      <div class="grid md:grid-cols-4 gap-2 mt-2">
-        <input id="tplName" class="border p-2 rounded md:col-span-2" placeholder="Nome do template (ex: Conferir geladeira)" />
-        <input id="tplItems" class="border p-2 rounded md:col-span-2" placeholder="Itens separados por vírgula (ex: Coca, Guaraná...)" />
+      <!-- ✅ EDIÇÃO DO TEMPLATE SELECIONADO -->
+      <div class="mt-3 border rounded bg-gray-50 p-3">
+        <div class="flex items-center justify-between gap-2">
+          <div class="font-semibold text-sm">Editar template selecionado</div>
+          <button id="btnToggleTplEditor" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+            Expandir
+          </button>
+        </div>
+
+        <div id="tplEditorWrap" class="hidden mt-3">
+          <p class="text-xs text-gray-600 mb-2">Dica: itens separados por vírgula.</p>
+          <div class="grid md:grid-cols-4 gap-2">
+            <input id="tplEditName" class="border p-2 rounded md:col-span-2" placeholder="Novo nome do template" />
+            <input id="tplEditItems" class="border p-2 rounded md:col-span-2" placeholder="Itens (separados por vírgula)" />
+          </div>
+          <div class="grid md:grid-cols-4 gap-2 mt-2">
+            <button id="btnSaveTplEdits" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded md:col-span-2">
+              Salvar alterações
+            </button>
+            <button id="btnDeleteTpl2" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded md:col-span-2">
+              Excluir este template
+            </button>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">Você pode alterar nome, itens (quantidade) e excluir.</p>
+        </div>
+      </div>
+
+      <div class="mt-3 border-t pt-3">
+        <div class="text-sm font-semibold mb-2">Status das GLOBAIS desta semana</div>
+        <div id="globalStatus" class="text-sm text-gray-700">Carregando...</div>
+
+        <div class="mt-3">
+          <div class="flex items-center justify-between">
+            <div class="font-semibold text-sm">GLOBAIS publicadas (gerenciar)</div>
+            <button id="btnToggleGlobalsManage" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+              Expandir
+            </button>
+          </div>
+          <div id="globalsManageWrap" class="hidden mt-3">
+            <div id="globalsManageList" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
+            <p class="text-xs text-gray-500 mt-2">
+              Você pode excluir GLOBAIS ativas (abertas/zeradas) ou qualquer outra se quiser.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 border-t pt-4">
+        <div class="flex items-center justify-between">
+          <div class="font-semibold text-sm">Criar novo template GLOBAL</div>
+          <button id="btnSaveTpl" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
+            Salvar template
+          </button>
+        </div>
+
+        <div class="grid md:grid-cols-4 gap-2 mt-2">
+          <input id="tplName" class="border p-2 rounded md:col-span-2" placeholder="Nome do template (ex: Conferir geladeira)" />
+          <input id="tplItems" class="border p-2 rounded md:col-span-2" placeholder="Itens separados por vírgula (ex: Coca, Guaraná...)" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ LISTAS DO GERENTE (Comprados / Em falta) -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h3 class="font-semibold">Listas do Gerente (Compras / Em falta)</h3>
+        <p class="text-xs text-gray-500">Crie listas e marque itens como <b>Comprado</b> ou <b>Em falta</b>. Ao marcar, o item vai para o final.</p>
+      </div>
+      <button id="btnToggleLists" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+        Expandir
+      </button>
+    </div>
+
+    <div id="listsContent" class="hidden mt-3">
+      <div class="grid md:grid-cols-6 gap-2">
+        <input id="listName" class="border p-2 rounded md:col-span-2" placeholder="Nome da lista (ex: Pedido segunda)" />
+        <input id="listItems" class="border p-2 rounded md:col-span-4" placeholder="Itens separados por vírgula (ex: Coca 2L, Pão, Queijo...)" />
+      </div>
+      <div class="grid md:grid-cols-6 gap-2 mt-2">
+        <button id="btnCreateList" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded md:col-span-2">
+          Criar lista
+        </button>
+        <button id="btnAddItemsToList" class="bg-gray-900 hover:bg-black text-white p-2 rounded md:col-span-2">
+          Adicionar itens na lista selecionada
+        </button>
+        <button id="btnDeleteList" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded md:col-span-2">
+          Excluir lista selecionada
+        </button>
+      </div>
+
+      <div class="mt-3 border-t pt-3 grid md:grid-cols-3 gap-3">
+        <div class="md:col-span-1">
+          <div class="text-sm font-semibold mb-2">Minhas listas</div>
+          <select id="listsSelect" class="w-full border p-2 rounded">
+            <option value="">Carregando...</option>
+          </select>
+          <p class="text-xs text-gray-500 mt-2">Selecione para ver/editar itens.</p>
+        </div>
+
+        <div class="md:col-span-2">
+          <div class="flex items-center justify-between">
+            <div class="text-sm font-semibold">Itens</div>
+            <button id="btnClearStatuses" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+              Limpar marcações (voltar para Aberto)
+            </button>
+          </div>
+          <div id="listItemsWrap" class="mt-2 space-y-2 max-h-[55vh] overflow-auto"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -416,6 +503,7 @@
         </button>
       </div>
       <div id="gerTasks" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
+      <p class="text-xs text-gray-500 mt-2">✅ Agora você pode marcar cada item como <b>Comprado</b> ou <b>Não tem</b> (o item vai pro final).</p>
     </div>
 
     <div class="bg-white p-4 rounded-xl shadow">
@@ -430,22 +518,31 @@
   </div>
 
   <div class="bg-white p-4 rounded-xl shadow mt-4">
-    <h3 class="font-semibold mb-2">Funcionários (Ativar / Bloquear)</h3>
-    <p class="text-xs text-gray-500 mb-3">
-      Bloqueado não aparece no login.
-    </p>
-
-    <div class="grid md:grid-cols-3 gap-2">
-      <input id="newEmployeeName" class="border p-2 rounded" placeholder="Nome do funcionário (ex: Ingrid)" />
-      <button id="btnAddEmployee" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
-        Adicionar (Ativo)
-      </button>
-      <button id="btnRefreshEmployees" class="bg-gray-900 hover:bg-black text-white p-2 rounded">
-        Recarregar lista
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h3 class="font-semibold mb-1">Funcionários (Ativar / Bloquear)</h3>
+        <p class="text-xs text-gray-500">
+          Bloqueado não aparece no login.
+        </p>
+      </div>
+      <button id="btnToggleEmployees" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+        Minimizar
       </button>
     </div>
 
-    <div id="employeeTable" class="mt-3 space-y-2"></div>
+    <div id="employeesContent" class="mt-3">
+      <div class="grid md:grid-cols-3 gap-2">
+        <input id="newEmployeeName" class="border p-2 rounded" placeholder="Nome do funcionário (ex: Ingrid)" />
+        <button id="btnAddEmployee" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
+          Adicionar (Ativo)
+        </button>
+        <button id="btnRefreshEmployees" class="bg-gray-900 hover:bg-black text-white p-2 rounded">
+          Recarregar lista
+        </button>
+      </div>
+
+      <div id="employeeTable" class="mt-3 space-y-2"></div>
+    </div>
   </div>
 
   <div class="bg-white p-4 rounded-xl shadow mt-4">
@@ -485,7 +582,7 @@
   // =========================
   // ✅ ANTI-CACHE (PWA / SW)
   // =========================
-  const BUILD_ID = "2026-02-07-full-1";
+  const BUILD_ID = "2026-02-21-full-1";
   console.log("BUILD_ID", BUILD_ID);
 
   try {
@@ -675,6 +772,10 @@
   let globalsWeek = [];
   let globalsOpen = [];
 
+  // ✅ LISTAS (gerente)
+  let listsAll = []; // docs da coleção lists
+  let selectedListId = "";
+
   // Produtos/Preços
   let products = []; // [{id,name,nameKey,price,updatedAtHuman,updatedBy}]
   let productsIndex = new Map(); // nameKey -> product
@@ -696,6 +797,7 @@
   const colTasks   = () => collection(db,"stores",STORE_ID,"tasks");
   const colMissing = () => collection(db,"stores",STORE_ID,"missing");
   const colGlobals = () => collection(db,"stores",STORE_ID,"globals"); // ✅ multi-globals
+  const colLists   = () => collection(db,"stores",STORE_ID,"lists");   // ✅ listas do gerente
 
   // ===== Top bar =====
   function monthKey(date){
@@ -1076,6 +1178,9 @@
     ordered.forEach(t => sel.appendChild(new Option(t.name, t.id)));
 
     if (prev && ordered.some(t=>t.id===prev)) sel.value = prev;
+
+    // ✅ sempre que mudar seleção, preencher editor
+    hydrateTplEditorFromSelected();
   }
 
   async function ensureGlobalTemplatesDoc(){
@@ -1105,6 +1210,26 @@
     await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
   }
 
+  async function updateGlobalTemplateById(id, newName, newItems){
+    const name = normalizeCat(newName);
+    const items = Array.isArray(newItems) ? newItems.map(s=>String(s).trim()).filter(Boolean) : [];
+    if (!id) throw new Error("Template inválido.");
+    if (!name) throw new Error("Nome do template vazio.");
+    if (!items.length) throw new Error("Template precisa ter pelo menos 1 item.");
+
+    const next = (globalTemplates || []).map(t=>{
+      if (t.id !== id) return t;
+      return {
+        ...t,
+        name,
+        items,
+        updatedAtHuman: nowHuman()
+      };
+    });
+
+    await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
+  }
+
   async function deleteGlobalTemplateById(id){
     const next = (globalTemplates || []).filter(t=>t.id !== id);
     await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
@@ -1112,6 +1237,18 @@
 
   function findTemplateById(id){
     return (globalTemplates || []).find(t=>t.id === id);
+  }
+
+  function hydrateTplEditorFromSelected(){
+    const id = $("globalTplSelect")?.value || "";
+    const tpl = id ? findTemplateById(id) : null;
+    if (!tpl){
+      if ($("tplEditName")) $("tplEditName").value = "";
+      if ($("tplEditItems")) $("tplEditItems").value = "";
+      return;
+    }
+    $("tplEditName").value = tpl.name || "";
+    $("tplEditItems").value = Array.isArray(tpl.items) ? tpl.items.join(", ") : "";
   }
 
   // ===== MULTI-GLOBAIS =====
@@ -1628,6 +1765,31 @@
     });
   }
 
+  // ✅ helper: status visual para itens (tarefas no gerente)
+  function statusLabel(status){
+    if (status === "bought") return { text:"COMPRADO", cls:"bg-emerald-50 border-emerald-200 text-emerald-900" };
+    if (status === "missing") return { text:"NÃO TEM", cls:"bg-red-50 border-red-200 text-red-900" };
+    return { text:"ABERTO", cls:"bg-gray-50 border-gray-200 text-gray-700" };
+  }
+
+  // ✅ Atualiza status do item dentro de uma TAREFA concluída (doc tasks)
+  async function setTaskItemStatus(taskId, itemName, status){
+    if (!isManager()) return toast("Apenas o gerente.");
+    const ref = doc(db,"stores",STORE_ID,"tasks", taskId);
+    const t = tasksAll.find(x=>x.id===taskId);
+    const current = (t && t.itensStatus && typeof t.itensStatus === "object") ? clone(t.itensStatus) : {};
+    if (status) current[itemName] = status;
+    else delete current[itemName];
+
+    try{
+      await setDoc(ref, { itensStatus: current, updatedAt: serverTimestamp(), updatedAtHuman: nowHuman(), updatedBy: currentUser }, { merge:true });
+      toast("Atualizado.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao salvar status.");
+    }
+  }
+
   // ===== Render funcionário =====
   function renderEmployee(){
     const managerUser = getManagerUser();
@@ -1853,6 +2015,219 @@
     });
   }
 
+  // ===== LISTAS (Gerente) =====
+  function renderListsDropdown(){
+    const sel = $("listsSelect");
+    if (!sel) return;
+    const prev = sel.value || selectedListId || "";
+    sel.innerHTML = "";
+    sel.appendChild(new Option("Selecione uma lista...", ""));
+    const ordered = (listsAll || []).slice().sort((a,b)=> (a.name||"").localeCompare(b.name||""));
+    ordered.forEach(l => sel.appendChild(new Option(l.name || "Lista", l.id)));
+    if (prev && ordered.some(x=>x.id===prev)) sel.value = prev;
+    selectedListId = sel.value || "";
+    renderSelectedListItems();
+  }
+
+  function getSelectedList(){
+    if (!selectedListId) return null;
+    return (listsAll || []).find(l=>l.id===selectedListId) || null;
+  }
+
+  function listItemStatusLabel(st){
+    if (st === "bought") return { text:"COMPRADO", cls:"bg-emerald-50 border-emerald-200 text-emerald-900" };
+    if (st === "missing") return { text:"EM FALTA", cls:"bg-red-50 border-red-200 text-red-900" };
+    return { text:"ABERTO", cls:"bg-gray-50 border-gray-200 text-gray-700" };
+  }
+
+  function sortListItems(arr){
+    // ABERTO primeiro, depois os marcados (ordem original já é preservada quando "empurra pro final")
+    // Aqui só garantimos que "open" apareça antes caso exista bagunça por edição manual.
+    const items = Array.isArray(arr) ? arr.slice() : [];
+    const score = (s)=> s==="open" ? 0 : 1;
+    return items.sort((a,b)=>{
+      const sa = score(a.status||"open");
+      const sb = score(b.status||"open");
+      if (sa !== sb) return sa - sb;
+      return 0;
+    });
+  }
+
+  async function createList(name, items){
+    if (!isManager()) return toast("Apenas o gerente.");
+    name = normalizeCat(name);
+    const its = (Array.isArray(items) ? items : []).map(s=>String(s).trim()).filter(Boolean);
+    if (!name) return toast("Digite o nome da lista.");
+    if (!its.length) return toast("Digite pelo menos 1 item.");
+
+    const docData = {
+      name,
+      items: its.map(t=>({ text: t, status:"open", createdAtHuman: nowHuman() })),
+      createdAt: serverTimestamp(),
+      createdAtHuman: nowHuman(),
+      createdBy: currentUser,
+      updatedAt: serverTimestamp(),
+      updatedAtHuman: nowHuman()
+    };
+
+    try{
+      const ref = await addDoc(colLists(), docData);
+      selectedListId = ref.id;
+      toast("Lista criada.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao criar lista.");
+    }
+  }
+
+  async function deleteSelectedList(){
+    if (!isManager()) return toast("Apenas o gerente.");
+    const l = getSelectedList();
+    if (!l) return toast("Selecione uma lista.");
+    if (!confirm(`Excluir a lista "${l.name}"?`)) return;
+    try{
+      await deleteDoc(doc(db,"stores",STORE_ID,"lists", l.id));
+      selectedListId = "";
+      toast("Lista excluída.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao excluir lista.");
+    }
+  }
+
+  async function addItemsToSelectedList(raw){
+    if (!isManager()) return toast("Apenas o gerente.");
+    const l = getSelectedList();
+    if (!l) return toast("Selecione uma lista.");
+    const items = sanitizeItemsFromInput(raw);
+    if (!items.length) return toast("Digite pelo menos 1 item.");
+
+    const next = Array.isArray(l.items) ? l.items.slice() : [];
+    items.forEach(t=>{
+      next.push({ text: String(t).trim(), status:"open", createdAtHuman: nowHuman() });
+    });
+
+    try{
+      await setDoc(doc(db,"stores",STORE_ID,"lists", l.id), {
+        name: l.name || "Lista",
+        items: next,
+        updatedAt: serverTimestamp(),
+        updatedAtHuman: nowHuman(),
+        updatedBy: currentUser
+      }, { merge:true });
+      toast("Itens adicionados.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao adicionar itens.");
+    }
+  }
+
+  async function setListItemStatusAndMoveToEnd(listId, idx, status){
+    if (!isManager()) return toast("Apenas o gerente.");
+    const l = (listsAll||[]).find(x=>x.id===listId);
+    if (!l) return toast("Lista não encontrada.");
+
+    const arr = Array.isArray(l.items) ? l.items.slice() : [];
+    if (idx < 0 || idx >= arr.length) return;
+
+    const item = arr[idx];
+    const updated = {
+      ...item,
+      status: status || "open",
+      updatedAtHuman: nowHuman(),
+      updatedBy: currentUser
+    };
+
+    // ✅ move pro final sempre que marcar bought/missing (e também quando voltar pra open, pra manter regra simples)
+    arr.splice(idx, 1);
+    arr.push(updated);
+
+    try{
+      await setDoc(doc(db,"stores",STORE_ID,"lists", listId), {
+        name: l.name || "Lista",
+        items: arr,
+        updatedAt: serverTimestamp(),
+        updatedAtHuman: nowHuman(),
+        updatedBy: currentUser
+      }, { merge:true });
+    } catch(e){
+      console.error(e);
+      toast("Erro ao salvar item.");
+    }
+  }
+
+  async function clearStatusesSelectedList(){
+    if (!isManager()) return toast("Apenas o gerente.");
+    const l = getSelectedList();
+    if (!l) return toast("Selecione uma lista.");
+    if (!confirm("Voltar TODOS os itens para ABERTO? (mantém ordem atual)")) return;
+
+    const arr = Array.isArray(l.items) ? l.items.slice() : [];
+    const next = arr.map(it=>({ ...it, status:"open", updatedAtHuman: nowHuman(), updatedBy: currentUser }));
+
+    try{
+      await setDoc(doc(db,"stores",STORE_ID,"lists", l.id), {
+        name: l.name || "Lista",
+        items: next,
+        updatedAt: serverTimestamp(),
+        updatedAtHuman: nowHuman(),
+        updatedBy: currentUser
+      }, { merge:true });
+      toast("Marcações limpas.");
+    } catch(e){
+      console.error(e);
+      toast("Erro ao limpar marcações.");
+    }
+  }
+
+  function renderSelectedListItems(){
+    const wrap = $("listItemsWrap");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+
+    const l = getSelectedList();
+    if (!l){
+      wrap.innerHTML = `<div class="text-gray-500">Selecione uma lista para ver os itens.</div>`;
+      return;
+    }
+
+    const items = sortListItems(Array.isArray(l.items) ? l.items : []);
+    if (!items.length){
+      wrap.innerHTML = `<div class="text-gray-500">Lista vazia.</div>`;
+      return;
+    }
+
+    items.forEach((it, idx)=>{
+      const st = listItemStatusLabel(it.status || "open");
+      const row = document.createElement("div");
+      row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
+      row.innerHTML = `
+        <div class="min-w-0">
+          <div class="font-semibold truncate">${it.text || "-"}</div>
+          <div class="text-xs text-gray-600">
+            <span class="inline-flex items-center px-2 py-1 rounded border ${st.cls}">${st.text}</span>
+            <span class="ml-2">${it.updatedAtHuman || ""}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button class="px-2 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Comprado</button>
+          <button class="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white">Em falta</button>
+          <button class="px-2 py-1 rounded text-xs bg-gray-200 hover:bg-gray-300 text-gray-900">Aberto</button>
+        </div>
+      `;
+
+      const btnBought = row.querySelectorAll("button")[0];
+      const btnMissing = row.querySelectorAll("button")[1];
+      const btnOpen = row.querySelectorAll("button")[2];
+
+      btnBought.addEventListener("click", ()=> setListItemStatusAndMoveToEnd(l.id, idx, "bought"));
+      btnMissing.addEventListener("click", ()=> setListItemStatusAndMoveToEnd(l.id, idx, "missing"));
+      btnOpen.addEventListener("click", ()=> setListItemStatusAndMoveToEnd(l.id, idx, "open"));
+
+      wrap.appendChild(row);
+    });
+  }
+
   // ===== Render gerente =====
   function renderManager(){
     $("weekKeyLabelGer").innerText = currentWeekKey;
@@ -1863,6 +2238,9 @@
 
     // status globals
     if ($("globalStatus")) $("globalStatus").innerText = globalsStatusText();
+
+    // render listas
+    renderListsDropdown();
 
     // lista de globals (gerenciar)
     const gList = $("globalsManageList");
@@ -1914,7 +2292,21 @@
     } else {
       ordered.forEach((r)=>{
         const itensObj = r.itens || {};
-        const itensKeys = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
+        const itensStatus = (r.itensStatus && typeof r.itensStatus === "object") ? r.itensStatus : {};
+        const itensKeysRaw = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
+
+        // ✅ Ordena: ABERTO primeiro, depois COMPRADO e NÃO TEM (preservando alfabético dentro de cada grupo)
+        const groupScore = (k)=>{
+          const st = itensStatus?.[k] || "open";
+          return st === "open" ? 0 : 1;
+        };
+        const itensKeys = itensKeysRaw.slice().sort((a,b)=>{
+          const sa = groupScore(a), sb = groupScore(b);
+          if (sa !== sb) return sa - sb;
+          // se ambos marcados, mantém uma ordem estável (alfabética)
+          return a.localeCompare(b);
+        });
+
         const hasItens = itensKeys.length > 0;
 
         const div = document.createElement("div");
@@ -1931,22 +2323,39 @@
         `;
 
         if (hasItens){
-          html += `<div class="mt-2 bg-white rounded p-2 border">`;
+          html += `<div class="mt-2 bg-white rounded p-2 border space-y-2">`;
           itensKeys.forEach((k)=>{
             const q = itensObj[k];
+            const st = itensStatus?.[k] || "open";
+            const sl = statusLabel(st);
             html += `
-              <div class="flex items-center justify-between gap-2 border-b last:border-b-0 py-1">
-                <div class="text-sm text-gray-800">${k}</div>
-                <div class="text-sm font-semibold">Qtd ${q}</div>
+              <div class="flex items-center justify-between gap-2 border-b last:border-b-0 py-2">
+                <div class="min-w-0">
+                  <div class="text-sm text-gray-800 truncate">${k}</div>
+                  <div class="text-xs text-gray-600">
+                    <span class="inline-flex items-center px-2 py-1 rounded border ${sl.cls}">${sl.text}</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <div class="text-sm font-semibold whitespace-nowrap">Qtd ${q}</div>
+                  <button data-task="${r.id}" data-item="${encodeURIComponent(k)}" data-action="bought"
+                    class="px-2 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Comprado</button>
+                  <button data-task="${r.id}" data-item="${encodeURIComponent(k)}" data-action="missing"
+                    class="px-2 py-1 rounded text-xs bg-red-600 hover:bg-red-700 text-white">Não tem</button>
+                  <button data-task="${r.id}" data-item="${encodeURIComponent(k)}" data-action="open"
+                    class="px-2 py-1 rounded text-xs bg-gray-200 hover:bg-gray-300 text-gray-900">Aberto</button>
+                </div>
               </div>
             `;
           });
           html += `</div>`;
+          html += `<div class="mt-2 text-xs text-gray-500">Ao marcar, o item vai pro final do bloco (marcados ficam por último).</div>`;
         }
 
         div.innerHTML = html;
         t.appendChild(div);
 
+        // excluir task
         div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
           if (!confirm("Excluir esta tarefa concluída?")) return;
           try{
@@ -1956,6 +2365,18 @@
             console.error(e);
             toast("Erro ao excluir tarefa.");
           }
+        });
+
+        // ✅ status buttons (comprado / não tem / aberto)
+        const btns = Array.from(div.querySelectorAll("button[data-task][data-item][data-action]"));
+        btns.forEach(btn=>{
+          btn.addEventListener("click", async ()=>{
+            const taskId = btn.getAttribute("data-task");
+            const item = decodeURIComponent(btn.getAttribute("data-item") || "");
+            const action = btn.getAttribute("data-action") || "open";
+            const st = (action === "bought") ? "bought" : (action === "missing") ? "missing" : "open";
+            await setTaskItemStatus(taskId, item, st);
+          });
         });
       });
     }
@@ -2011,21 +2432,31 @@
     });
   }
 
-  // collapses
+  // collapses (func)
   setupCollapse("btnToggleEscalaEmp", "escalaEmpContent");
-  setupCollapse("btnToggleEscalaGer", "escalaGerContent");
-  setupCollapse("btnToggleRanking", "rankingContent");
 
-  // Produtos & preços: minimizável
+  // ✅ GERENTE: sempre minimizados (pedido do usuário)
+  setupCollapse("btnToggleEscalaGer", "escalaGerContent", true);
+  setupCollapse("btnTogglePricesGer", "pricesGerContent", true);
+  setupCollapse("btnToggleRanking", "rankingContent", true);
+  setupCollapse("btnToggleGlobalsMain", "globalsMainContent", true);
+  setupCollapse("btnToggleEmployees", "employeesContent", true);
+
+  // listas do gerente (pode abrir)
+  setupCollapse("btnToggleLists", "listsContent", true);
+
+  // Produtos & preços: minimizável (funcionário)
   setupCollapse("btnTogglePricesEmp", "pricesEmpContent");
-  setupCollapse("btnTogglePricesGer", "pricesGerContent");
 
-  // ✅ Lista (gerenciar) minimizada por padrão (pedido do usuário)
+  // ✅ Lista (gerenciar) minimizada por padrão
   setupCollapse("btnToggleManageListGer", "manageListGerWrap", true);
   setupCollapse("btnToggleManageListEmp", "manageListEmpWrap", true);
 
   // ✅ GLOBAIS (gerenciar) minimizada por padrão
   setupCollapse("btnToggleGlobalsManage", "globalsManageWrap", true);
+
+  // ✅ Editor template minimizado por padrão
+  setupCollapse("btnToggleTplEditor", "tplEditorWrap", true);
 
   // ===== Missing =====
   $("btnMissing").addEventListener("click", ()=> $("missingBox").classList.toggle("hidden"));
@@ -2047,6 +2478,8 @@
   });
 
   // ===== Templates =====
+  $("globalTplSelect").addEventListener("change", ()=> hydrateTplEditorFromSelected());
+
   $("btnSaveTpl").addEventListener("click", async ()=>{
     if (!canManageGlobals()) return toast("Apenas o gerente.");
     const name = normalizeCat($("tplName").value);
@@ -2064,7 +2497,7 @@
     }
   });
 
-  $("btnDeleteTpl").addEventListener("click", async ()=>{
+  async function doDeleteSelectedTpl(){
     if (!canManageGlobals()) return toast("Apenas o gerente.");
     const id = $("globalTplSelect").value;
     if (!id) return toast("Selecione um template.");
@@ -2077,6 +2510,24 @@
     } catch(e){
       console.error(e);
       toast("Erro ao excluir template.");
+    }
+  }
+
+  $("btnDeleteTpl").addEventListener("click", doDeleteSelectedTpl);
+  $("btnDeleteTpl2").addEventListener("click", doDeleteSelectedTpl);
+
+  $("btnSaveTplEdits").addEventListener("click", async ()=>{
+    if (!canManageGlobals()) return toast("Apenas o gerente.");
+    const id = $("globalTplSelect").value;
+    if (!id) return toast("Selecione um template.");
+    const name = normalizeCat($("tplEditName").value);
+    const items = sanitizeItemsFromInput($("tplEditItems").value.trim());
+    try{
+      await updateGlobalTemplateById(id, name, items);
+      toast("Template atualizado.");
+    } catch(e){
+      console.error(e);
+      toast(String(e?.message || "Erro ao atualizar template."));
     }
   });
 
@@ -2097,6 +2548,31 @@
       toast(String(e?.message || "Erro ao publicar GLOBAL."));
     }
   });
+
+  // ===== LISTAS (handlers) =====
+  $("listsSelect").addEventListener("change", ()=>{
+    selectedListId = $("listsSelect").value || "";
+    renderSelectedListItems();
+  });
+
+  $("btnCreateList").addEventListener("click", ()=>{
+    const name = $("listName").value.trim();
+    const items = sanitizeItemsFromInput($("listItems").value.trim());
+    $("listName").value = "";
+    $("listItems").value = "";
+    createList(name, items);
+  });
+
+  $("btnDeleteList").addEventListener("click", deleteSelectedList);
+
+  $("btnAddItemsToList").addEventListener("click", ()=>{
+    const raw = $("listItems").value.trim();
+    if (!raw) return toast("Digite itens para adicionar.");
+    $("listItems").value = "";
+    addItemsToSelectedList(raw);
+  });
+
+  $("btnClearStatuses").addEventListener("click", clearStatusesSelectedList);
 
   // ===== Funcionários (gerente) =====
   $("btnAddEmployee").addEventListener("click", async ()=>{
@@ -2162,7 +2638,7 @@
     let csv = header.join(",") + "\n";
 
     tasksDone.forEach((r)=>{
-      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify(r.itens || {})].map(csvCell).join(",") + "\n";
+      csv += ["tarefa", r.user, r.categoria, r.when, JSON.stringify({ itens:r.itens || {}, itensStatus:r.itensStatus || {} })].map(csvCell).join(",") + "\n";
     });
     missingReports.forEach((r)=>{
       csv += ["falta", r.user, "", r.when, JSON.stringify({ item: r.item })].map(csvCell).join(",") + "\n";
@@ -2172,6 +2648,12 @@
     const wk = normalizeWeekKeyLoose(currentWeekKey);
     globalsAll.filter(g=>normalizeWeekKeyLoose(g.weekKey)===wk).forEach((g)=>{
       csv += ["global", g.createdBy || "", g.name || "", g.createdAtHuman || "", JSON.stringify({ status:g.status, completedBy:g.completedBy||"", items:g.items||[] })]
+        .map(csvCell).join(",") + "\n";
+    });
+
+    // lists export
+    (listsAll||[]).forEach((l)=>{
+      csv += ["lista", l.createdBy || "", l.name || "", l.createdAtHuman || "", JSON.stringify({ items: l.items || [] })]
         .map(csvCell).join(",") + "\n";
     });
 
@@ -2385,6 +2867,7 @@
     STORE_ID = STORE_MAP[storeKey].id;
     clearSession();
     currentUser = "";
+    selectedListId = "";
     show("login");
     $("userSelect").innerHTML = `<option value="">Carregando...</option>`;
     try{
@@ -2530,7 +3013,7 @@
         }
       });
 
-      // tasks/missing watchers (sem índice composto)
+      // tasks/missing watchers
       const TASKS_LIMIT = 2500;
       const MISSING_LIMIT = 2500;
 
@@ -2568,7 +3051,6 @@
       onSnapshot(globalsQ, (qs)=>{
         globalsAll = qs.docs.map(d=>{
           const o = d.data() || {};
-          // createdAtMs para sort estável
           const ms = o.createdAt?.toMillis ? o.createdAt.toMillis() : 0;
           return { id:d.id, ...o, createdAtMs: ms };
         });
@@ -2584,6 +3066,18 @@
       }, (err)=>{
         console.error("Erro snapshot globals:", err);
         warnManager("Erro ao carregar globals (veja o console).");
+      });
+
+      // ✅ lists watcher
+      const listsQ = query(colLists(), orderBy("createdAt","desc"), limit(200));
+      onSnapshot(listsQ, (qs)=>{
+        listsAll = qs.docs.map(d=>({ id:d.id, ...d.data() }));
+        // garante que selecionado ainda exista
+        if (selectedListId && !listsAll.some(l=>l.id===selectedListId)) selectedListId = "";
+        if (isManager()) renderManager();
+      }, (err)=>{
+        console.error("Erro snapshot lists:", err);
+        warnManager("Erro ao carregar listas (veja o console).");
       });
 
       // escala watcher
