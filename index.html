@@ -253,60 +253,77 @@
   </div>
 
   <!-- Produtos & preços (gerente e Claudia podem gerenciar) -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h3 class="font-semibold">Produtos & Preços</h3>
-        <p class="text-xs text-gray-500">Consulta para todos • Cadastro/edição: gerente e Claudia</p>
-      </div>
-      <button id="btnTogglePricesGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+<div class="bg-white p-4 rounded-xl shadow mb-4">
+  <div class="flex items-center justify-between gap-2">
+    <div>
+      <h3 class="font-semibold">Produtos & Preços</h3>
+      <p class="text-xs text-gray-500">
+        Consulta para todos • Cadastro/edição: gerente e Claudia
+      </p>
+    </div>
+    <div class="flex gap-2">
+      <button id="btnPrintPrices"
+        class="text-sm bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded">
+        Exportar etiquetas 4x6cm
+      </button>
+      <button id="btnTogglePricesGer"
+        class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
         Minimizar
       </button>
     </div>
+  </div>
 
-    <div id="pricesGerContent" class="mt-3">
-      <div class="grid md:grid-cols-3 gap-2">
-        <div class="md:col-span-2">
-          <input id="priceSearchGer" class="w-full border rounded p-2" placeholder="Digite o nome do produto..." />
-          <div id="priceSuggestGer" class="mt-2 border rounded bg-white hidden max-h-56 overflow-auto"></div>
-          <p class="text-xs text-gray-500 mt-2">Dica: digite poucas letras para aparecer a lista.</p>
-        </div>
-        <div class="md:col-span-1">
-          <div class="border rounded p-3 bg-gray-50">
-            <div class="text-xs text-gray-600">Preço encontrado</div>
-            <div class="text-2xl font-bold mt-1" id="priceFoundGer">—</div>
-            <div class="text-xs text-gray-500 mt-1" id="priceMetaGer">—</div>
-          </div>
+  <div id="pricesGerContent" class="mt-3">
+    <div class="grid md:grid-cols-3 gap-2">
+      <div class="md:col-span-2">
+        <input id="priceSearchGer"
+          class="w-full border rounded p-2"
+          placeholder="Digite o nome do produto..." />
+        <div id="priceSuggestGer"
+          class="mt-2 border rounded bg-white hidden max-h-56 overflow-auto"></div>
+      </div>
+      <div class="md:col-span-1">
+        <div class="border rounded p-3 bg-gray-50">
+          <div class="text-xs text-gray-600">Preço encontrado</div>
+          <div class="text-2xl font-bold mt-1" id="priceFoundGer">—</div>
+          <div class="text-xs text-gray-500 mt-1" id="priceMetaGer">—</div>
         </div>
       </div>
+    </div>
 
-      <div id="pricesManageGer" class="mt-4 border-t pt-4">
-        <div class="flex items-center justify-between">
-          <div class="font-semibold">Cadastrar / Atualizar</div>
-          <div class="text-xs text-gray-500">Evita lixo no banco (1 doc único).</div>
-        </div>
+    <div id="pricesManageGer" class="mt-4 border-t pt-4">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold">Cadastrar / Atualizar</div>
+      </div>
 
-        <div class="grid md:grid-cols-4 gap-2 mt-2">
-          <input id="prodNameGer" class="border p-2 rounded md:col-span-2" placeholder="Nome do produto (ex: Coca 2L)" />
-          <input id="prodPriceGer" class="border p-2 rounded" inputmode="decimal" placeholder="Preço (ex: 9,99)" />
-          <button id="btnSaveProdGer" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
-            Salvar / Atualizar
-          </button>
-        </div>
+      <div class="grid md:grid-cols-4 gap-2 mt-2">
+        <input id="prodNameGer"
+          class="border p-2 rounded md:col-span-2"
+          placeholder="Nome do produto" />
+        <input id="prodPriceGer"
+          class="border p-2 rounded"
+          inputmode="decimal"
+          placeholder="Preço (ex: 9,99)" />
+        <button id="btnSaveProdGer"
+          class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
+          Salvar / Atualizar
+        </button>
+      </div>
 
-        <div class="mt-3">
-          <button id="btnToggleManageListGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-            Expandir lista (gerenciar)
-          </button>
+      <div class="mt-3">
+        <button id="btnToggleManageListGer"
+          class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+          Expandir lista (gerenciar)
+        </button>
 
-          <div id="manageListGerWrap" class="hidden mt-3">
-            <div id="prodListGer" class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
-          </div>
+        <div id="manageListGerWrap" class="hidden mt-3">
+          <div id="prodListGer"
+            class="text-sm space-y-2 max-h-[55vh] overflow-auto"></div>
         </div>
       </div>
     </div>
   </div>
-
+</div>
   <!-- Ranking -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
@@ -3009,6 +3026,98 @@
   } catch(e){
     // fatal já exibiu
   }
+
+  // ===== IMPRESSÃO PROFISSIONAL 4x6cm =====
+function printProductLabels() {
+
+  if (!products || !products.length) {
+    toast("Nenhum produto cadastrado.");
+    return;
+  }
+
+  const win = window.open("", "_blank");
+
+  const html = `
+  <html>
+  <head>
+    <title>Etiquetas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet">
+    <style>
+      @page {
+        size: A4;
+        margin: 1cm;
+      }
+
+      body {
+        font-family: 'Montserrat', sans-serif;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, 6cm);
+        gap: 0.6cm;
+      }
+
+      .label {
+        width: 6cm;
+        height: 4cm;
+        border: 2px solid #000;
+        border-radius: 10px;
+        padding: 0.5cm;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        background: #fff;
+      }
+
+      .name {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+
+      .divider {
+        width: 60%;
+        height: 1px;
+        background: #ddd;
+        margin: 0 auto 12px auto;
+      }
+
+      .price {
+        font-size: 36px;
+        font-weight: 800;
+        color: #111;
+        padding: 8px 14px;
+        background: #f3f4f6;
+        border-radius: 8px;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      ${products.map(p => `
+        <div class="label">
+          <div class="name">${p.name}</div>
+          <div class="divider"></div>
+          <div class="price">${formatBRL(p.price)}</div>
+        </div>
+      `).join("")}
+    </div>
+  </body>
+  </html>
+  `;
+
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  win.print();
+}
+
+$("btnPrintPrices")?.addEventListener("click", printProductLabels);
+  
 </script>
 
 </body>
