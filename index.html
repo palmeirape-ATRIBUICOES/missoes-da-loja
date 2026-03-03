@@ -669,6 +669,7 @@
   };
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
   import {
     getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc,
     onSnapshot, query, orderBy, limit, serverTimestamp, increment,
@@ -677,6 +678,20 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+
+  // ✅ AUTH anônimo (necessário para rules: request.auth != null)
+  const auth = getAuth(app);
+  async function ensureAuth(){
+    try{
+      // Se já estiver autenticado, o Firebase mantém a sessão.
+      await signInAnonymously(auth);
+      console.log("AUTH OK (anonymous)");
+    } catch(e){
+      console.error("AUTH FAIL:", e);
+      throw e;
+    }
+  }
+
 
   const $ = (id) => document.getElementById(id);
 
@@ -2769,6 +2784,8 @@
     show("login");
     $("userSelect").innerHTML = `<option value="">Carregando...</option>`;
     try{
+      await ensureAuth();
+
       await cloudInit();
       toast("Loja carregada.");
     } catch(e){
@@ -2989,8 +3006,10 @@
       STORE_ID = STORE_MAP[storeKey].id;
     }
 
-    await cloudInit();
+    await ensureAuth();
 
+
+    await cloudInit();
     if (ses && ses.user){
       currentUser = ses.user;
 
