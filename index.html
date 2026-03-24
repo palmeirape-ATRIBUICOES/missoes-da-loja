@@ -3496,12 +3496,7 @@
 
     await ensureAuth();
 
-
-    await cloudInit();
-    // Pedir permissão de notificações no boot
-    await requestNotifPermission();
-
-    // Detectar modo feedback (cliente via QR code)
+    // Detectar modo feedback (cliente via QR code) ANTES de cloudInit
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("feedback") === "1"){
       const lojaParam = urlParams.get("loja");
@@ -3509,11 +3504,22 @@
         storeKey = lojaParam;
         STORE_ID = STORE_MAP[lojaParam].id;
       }
+      // Esconder TUDO: header, login, funcionário, gerente
+      document.querySelector("header")?.classList.add("hidden");
       ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
       $("feedbackForm").classList.remove("hidden");
       $("btnSubmitFeedback")?.addEventListener("click", submitFeedback);
       console.log("FEEDBACK MODE", STORE_ID);
-    } else if (ses && ses.user){
+      // Não precisa carregar o app inteiro para o cliente
+      console.log("BUILD OK (feedback only)", BUILD_ID);
+      window.__BUILD_OK__ = true;
+    } else {
+
+    await cloudInit();
+    // Pedir permissão de notificações no boot
+    await requestNotifPermission();
+
+    if (ses && ses.user){
       currentUser = ses.user;
 
       const managerUser = getManagerUser();
@@ -3544,6 +3550,8 @@
     updateTopBar();
     console.log("BUILD OK", BUILD_ID);
     window.__BUILD_OK__ = true;
+
+    } // fecha o else (modo normal, não feedback)
 
   } catch(e){
     // fatal já exibiu
