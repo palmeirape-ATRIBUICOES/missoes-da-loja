@@ -13,6 +13,94 @@
 
   <!-- ✅ Tailwind CDN (aviso no console é normal; não quebra o app) -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.85);
+      --bg-inner: rgba(51, 65, 85, 0.5);
+      --border: rgba(148, 163, 184, 0.1);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #6366f1;
+    }
+    * { font-family: 'Inter', system-ui, sans-serif !important; }
+    body.bg-gray-100 {
+      background: linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #0f172a 100%) !important;
+      background-attachment: fixed !important;
+      color: var(--text-secondary) !important;
+    }
+    /* Cards */
+    .bg-white { background: var(--bg-card) !important; border: 1px solid var(--border) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; transition: transform 0.2s, box-shadow 0.25s, border-color 0.25s !important; }
+    section .bg-white:hover, #gerente .bg-white:hover, #funcionario .bg-white:hover { border-color: rgba(148,163,184,0.2) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.25) !important; }
+    .bg-gray-50 { background: var(--bg-inner) !important; }
+    .bg-gray-100 { background: transparent !important; }
+    /* Text */
+    .font-semibold, .font-bold { color: var(--text-primary) !important; }
+    .text-gray-500, .text-xs.text-gray-500 { color: var(--text-muted) !important; }
+    .text-gray-600, .text-gray-700 { color: var(--text-secondary) !important; }
+    .text-gray-800, .text-gray-900 { color: var(--text-primary) !important; }
+    .text-sm.text-gray-800 { color: #cbd5e1 !important; }
+    .text-2xl.font-bold { color: var(--text-primary) !important; }
+    /* Forms */
+    input, select, textarea { background: rgba(15,23,42,0.6) !important; border: 1px solid rgba(148,163,184,0.2) !important; color: #e2e8f0 !important; transition: border-color 0.2s, box-shadow 0.2s !important; }
+    input:focus, select:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important; outline: none !important; }
+    input::placeholder { color: var(--text-muted) !important; opacity: 0.7 !important; }
+    /* Buttons */
+    .bg-blue-600 { background: linear-gradient(135deg, #6366f1, #818cf8) !important; box-shadow: 0 4px 15px rgba(99,102,241,0.3) !important; }
+    .bg-blue-600:hover { box-shadow: 0 6px 20px rgba(99,102,241,0.45) !important; transform: translateY(-1px); }
+    .bg-emerald-600, .bg-green-600 { background: linear-gradient(135deg, #059669, #34d399) !important; box-shadow: 0 4px 15px rgba(5,150,105,0.3) !important; }
+    .bg-emerald-600:hover, .bg-green-600:hover { box-shadow: 0 6px 20px rgba(5,150,105,0.45) !important; transform: translateY(-1px); }
+    .bg-red-600 { background: linear-gradient(135deg, #dc2626, #f87171) !important; box-shadow: 0 4px 15px rgba(220,38,38,0.3) !important; }
+    .bg-red-600:hover { box-shadow: 0 6px 20px rgba(220,38,38,0.45) !important; transform: translateY(-1px); }
+    .bg-gray-200 { background: rgba(71,85,105,0.6) !important; color: var(--text-primary) !important; }
+    .bg-gray-200:hover { background: rgba(100,116,139,0.7) !important; }
+    .bg-gray-900 { background: linear-gradient(135deg, #334155, #475569) !important; }
+    button { transition: all 0.2s ease !important; }
+    /* Status badges */
+    .bg-emerald-50 { background: rgba(5,150,105,0.15) !important; } .border-emerald-200 { border-color: rgba(52,211,153,0.3) !important; } .text-emerald-900 { color: #34d399 !important; }
+    .bg-red-50 { background: rgba(220,38,38,0.15) !important; } .border-red-200 { border-color: rgba(248,113,113,0.3) !important; } .text-red-900 { color: #f87171 !important; }
+    .bg-blue-50 { background: rgba(99,102,241,0.15) !important; } .border-blue-100 { border-color: rgba(129,140,248,0.2) !important; } .text-blue-700, .text-blue-900 { color: #818cf8 !important; }
+    .bg-yellow-50 { background: rgba(234,179,8,0.12) !important; } .border-yellow-200 { border-color: rgba(250,204,21,0.25) !important; } .text-yellow-900 { color: #fbbf24 !important; }
+    /* Header */
+    header .bg-white { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1)) !important; border: 1px solid rgba(139,92,246,0.2) !important; }
+    /* Borders */
+    .border { border-color: var(--border) !important; } .border-t { border-top-color: var(--border) !important; } .border-b { border-bottom-color: var(--border) !important; }
+    .border-2.border-blue-200 { border-color: rgba(99,102,241,0.35) !important; background: rgba(99,102,241,0.08) !important; }
+    /* Toast */
+    #toastBox { background: linear-gradient(135deg, var(--accent), #818cf8) !important; border-radius: 16px !important; font-weight: 600 !important; box-shadow: 0 8px 30px rgba(99,102,241,0.4) !important; }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: rgba(15,23,42,0.3); } ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.25); border-radius: 3px; }
+    /* Login error */
+    #loginErrorBox { background: rgba(220,38,38,0.12) !important; border-color: rgba(248,113,113,0.25) !important; color: #fca5a5 !important; }
+    /* Animations */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    section:not(.hidden) { animation: fadeInUp 0.4s ease-out; }
+    /* Mobile fix */
+    @media (max-width: 640px) {
+      .flex.items-center.justify-between.gap-2, .flex.items-start.justify-between.gap-2 { flex-wrap: wrap; }
+      .flex.items-center.gap-2.shrink-0 { flex-wrap: wrap; justify-content: flex-start; }
+    }
+    /* Feedback form (light theme override) */
+    #feedbackForm { position: fixed; inset: 0; z-index: 100; overflow-y: auto; }
+    #feedbackForm, #feedbackForm * { font-family: 'Inter', sans-serif !important; }
+    #feedbackForm .fb-card { background: #fff !important; border: 1px solid #e5e7eb !important; color: #111 !important; backdrop-filter: none !important; }
+    #feedbackForm input, #feedbackForm select, #feedbackForm textarea { background: #fff !important; border: 1px solid #d1d5db !important; color: #111 !important; }
+    #feedbackForm input::placeholder, #feedbackForm textarea::placeholder { color: #9ca3af !important; }
+    #feedbackForm .fb-label { color: #374151 !important; font-size: 0.875rem; font-weight: 600; display: block; margin-bottom: 4px; }
+    #feedbackForm .fb-sub { color: #6b7280 !important; }
+    #feedbackForm .fb-btn { background: linear-gradient(135deg, #6366f1, #818cf8) !important; color: #fff !important; border: none !important; font-weight: 700; padding: 14px; border-radius: 12px; font-size: 1rem; cursor: pointer; width: 100%; }
+    #feedbackForm .fb-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
+    /* Tab bar */
+    .ger-tab-bar { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .ger-tab-bar::-webkit-scrollbar { display: none; }
+    .ger-tab { padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); transition: all 0.2s; }
+    .ger-tab.active { background: linear-gradient(135deg, #6366f1, #818cf8) !important; color: #fff !important; border-color: #6366f1 !important; box-shadow: 0 4px 15px rgba(99,102,241,0.3); }
+    .ger-tab:hover:not(.active) { border-color: rgba(148,163,184,0.3); }
+    .ger-panel { display: none; }
+    .ger-panel.active { display: block; }
+  </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen p-4">
@@ -252,7 +340,20 @@
     <div id="managerWarn" class="hidden mt-3 text-xs bg-yellow-50 border border-yellow-200 text-yellow-900 rounded p-2"></div>
   </div>
 
+  <!-- TAB BAR -->
+  <div class="ger-tab-bar" id="gerTabBar">
+    <button class="ger-tab active" data-tab="tarefas">📋 Tarefas</button>
+    <button class="ger-tab" data-tab="produtos">📦 Produtos</button>
+    <button class="ger-tab" data-tab="equipe">👥 Equipe</button>
+    <button class="ger-tab" data-tab="listas">📝 Listas</button>
+    <button class="ger-tab" data-tab="feedback">💬 Feedback</button>
+    <button class="ger-tab" data-tab="config">⚙️ Config</button>
+  </div>
+
+  <!-- PANEL: TAREFAS -->  
+  <div class="ger-panel active" data-panel="tarefas">
   <!-- Produtos & preços (gerente e Claudia podem gerenciar) -->
+  <div class="ger-panel" data-panel="produtos">
 <div class="bg-white p-4 rounded-xl shadow mb-4">
   <div class="flex items-center justify-between gap-2">
     <div>
@@ -324,6 +425,10 @@
     </div>
   </div>
 </div>
+  </div> <!-- /panel produtos -->
+
+  <!-- PANEL: EQUIPE -->
+  <div class="ger-panel" data-panel="equipe">
   <!-- Ranking -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
@@ -431,7 +536,10 @@
       </div>
     </div>
   </div>
+  </div> <!-- /panel equipe -->
 
+  <!-- PANEL: LISTAS -->
+  <div class="ger-panel" data-panel="listas">
   <!-- ✅ LISTAS DO GERENTE (Comprados / Em falta) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
@@ -482,6 +590,7 @@
       </div>
     </div>
   </div>
+  </div> <!-- /panel listas -->
 
   <!-- Escala -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
@@ -514,7 +623,11 @@
   <div class="grid md:grid-cols-2 gap-4">
     <div class="bg-white p-4 rounded-xl shadow">
       <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
-      <div class="flex gap-2 mb-3">
+      <div class="flex gap-2 mb-3 flex-wrap">
+        <button id="btnShareAllWhatsApp" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.584l-.386-.232-3.332 1.117 1.117-3.332-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          Exportar tudo (WhatsApp)
+        </button>
         <button id="btnDeleteAllTasksWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
           Excluir TODAS tarefas (semana)
         </button>
@@ -533,6 +646,7 @@
       <div id="gerMissing" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
     </div>
   </div>
+  </div> <!-- /panel tarefas -->
 
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <div class="flex items-center justify-between gap-2">
@@ -588,12 +702,71 @@
       PIN mestre inicial do gerente: <b>1234</b> só se o gerente ainda não tiver PIN criado.
     </p>
   </div>
+  </div>
+  </div> <!-- /panel config -->
 </section>
 
 <!-- Toast (sem alert bugado) -->
 <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 hidden z-50">
   <div id="toastBox" class="bg-gray-900 text-white px-4 py-3 rounded-xl shadow-lg text-sm"></div>
 </div>
+
+<!-- FEEDBACK FORM (cliente) -->
+<section id="feedbackForm" class="hidden">
+  <div style="background:linear-gradient(135deg,#f8fafc,#e2e8f0);min-height:100vh;padding:16px">
+    <div style="max-width:480px;margin:0 auto;padding-top:24px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="width:64px;height:64px;margin:0 auto 12px;background:linear-gradient(135deg,#6366f1,#818cf8);border-radius:16px;display:flex;align-items:center;justify-content:center">
+          <span style="font-size:32px">💬</span>
+        </div>
+        <h1 style="font-size:1.5rem;font-weight:800;color:#1e293b;margin:0">Fale Conosco</h1>
+        <p class="fb-sub" style="margin-top:4px;font-size:0.9rem">Sua opinião é muito importante para nós</p>
+      </div>
+      <div class="fb-card" style="border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
+        <div style="margin-bottom:16px">
+          <label class="fb-label">Assunto *</label>
+          <select id="fbCategory" style="width:100%;padding:12px;border-radius:10px;font-size:1rem">
+            <option value="">Selecione...</option>
+            <option value="atendimento">😊 Atendimento</option>
+            <option value="produtos">📦 Produtos</option>
+            <option value="reclamacao">😤 Reclamação</option>
+            <option value="sugestao">💡 Sugestão</option>
+            <option value="elogio">⭐ Elogio</option>
+            <option value="outro">📝 Outro</option>
+          </select>
+        </div>
+        <div style="margin-bottom:16px">
+          <label class="fb-label">Mensagem *</label>
+          <textarea id="fbMessage" rows="4" style="width:100%;padding:12px;border-radius:10px;font-size:1rem;resize:vertical" placeholder="Conte-nos como foi sua experiência..."></textarea>
+        </div>
+        <div style="margin-bottom:16px">
+          <label class="fb-label">Foto (opcional)</label>
+          <input type="file" id="fbPhoto" accept="image/*" capture="environment" style="width:100%;padding:10px;border-radius:10px;font-size:0.9rem" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+          <div>
+            <label class="fb-label" style="font-weight:400;color:#6b7280 !important">Nome (opcional)</label>
+            <input id="fbName" style="width:100%;padding:12px;border-radius:10px" placeholder="Seu nome" />
+          </div>
+          <div>
+            <label class="fb-label" style="font-weight:400;color:#6b7280 !important">Telefone (opcional)</label>
+            <input id="fbPhone" inputmode="tel" style="width:100%;padding:12px;border-radius:10px" placeholder="(xx) xxxxx-xxxx" />
+          </div>
+        </div>
+        <button id="btnSubmitFeedback" class="fb-btn">Enviar Feedback</button>
+      </div>
+      <p style="text-align:center;font-size:0.7rem;color:#9ca3af;margin-top:16px">🔒 Suas informações são tratadas com sigilo • Missões da Loja</p>
+    </div>
+  </div>
+  <div id="fbThankYou" class="hidden" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f8fafc,#e2e8f0)">
+    <div style="text-align:center;padding:32px">
+      <div style="font-size:72px;margin-bottom:16px">✅</div>
+      <h2 style="font-size:1.5rem;font-weight:800;color:#1e293b">Obrigado!</h2>
+      <p style="color:#4b5563;margin-top:8px">Seu feedback foi enviado com sucesso.</p>
+      <p style="color:#9ca3af;margin-top:16px;font-size:0.8rem">Você pode fechar esta página.</p>
+    </div>
+  </div>
+</section>
 
 <script type="module">
   // =========================
@@ -705,6 +878,255 @@
     wrap.classList.remove("hidden");
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(()=> wrap.classList.add("hidden"), 2200);
+  }
+
+  // ===== WhatsApp Share =====
+  function shareTaskOnWhatsApp(r){
+    const itensObj = r.itens || {};
+    const itensStatus = (r.itensStatus && typeof r.itensStatus === "object") ? r.itensStatus : {};
+    const keys = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
+    let msg = "📋 *RELATÓRIO DE TAREFA*\n";
+    msg += "━━━━━━━━━━━━━━━━━\n";
+    msg += "👤 *Funcionário:* " + r.user + "\n";
+    msg += "📁 *Categoria:* " + r.categoria + "\n";
+    msg += "📅 *Data:* " + (r.when || "-") + "\n";
+    msg += "━━━━━━━━━━━━━━━━━\n\n";
+    msg += "📦 *ITENS:*\n";
+    keys.forEach(k=>{
+      const q = itensObj[k];
+      const st = itensStatus[k] || "open";
+      let emoji = "⬜";
+      if (st==="bought") emoji = "✅";
+      else if (st==="missing") emoji = "❌";
+      msg += emoji + " " + k + " — Qtd: " + q + "\n";
+    });
+    msg += "\n📊 _Missões da Loja — Sistema de Gestão_";
+    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+  }
+
+  function shareAllTasksOnWhatsApp(){
+    if (!tasksDone.length){ toast("Nenhuma tarefa para exportar."); return; }
+    let msg = "📊 *RELATÓRIO SEMANAL*\n";
+    msg += "📅 Semana: " + currentWeekKey + "\n";
+    msg += "━━━━━━━━━━━━━━━━━\n\n";
+    tasksDone.forEach((r,idx)=>{
+      const itensObj = r.itens || {};
+      const itensStatus = (r.itensStatus && typeof r.itensStatus === "object") ? r.itensStatus : {};
+      const keys = Object.keys(itensObj).sort((a,b)=>a.localeCompare(b));
+      msg += "📋 *" + (idx+1) + ". " + r.user + " - " + r.categoria + "*\n";
+      msg += "🕐 " + (r.when || "-") + "\n";
+      keys.forEach(k=>{
+        const q = itensObj[k];
+        const st = itensStatus[k] || "open";
+        let emoji = "⬜";
+        if (st==="bought") emoji = "✅";
+        else if (st==="missing") emoji = "❌";
+        msg += "   " + emoji + " " + k + " — " + q + "\n";
+      });
+      msg += "\n";
+    });
+    msg += "📊 _Missões da Loja — Sistema de Gestão_";
+    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+  }
+
+  // ===== Notificações (Browser) =====
+  let notifPermission = "default";
+  async function requestNotifPermission(){
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "granted"){ notifPermission = "granted"; return; }
+    if (Notification.permission === "denied"){ notifPermission = "denied"; return; }
+    try{
+      const result = await Notification.requestPermission();
+      notifPermission = result;
+    } catch(e){ console.warn("Notif permission error:", e); }
+  }
+
+  function sendNotification(title, body, icon){
+    if (notifPermission !== "granted") return;
+    try{
+      const n = new Notification(title, {
+        body: body || "",
+        icon: icon || "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%236366f1"/><text x="50" y="65" text-anchor="middle" fill="white" font-size="50" font-weight="bold">M</text></svg>'),
+        badge: "",
+        tag: "missoes-" + Date.now(),
+        requireInteraction: false
+      });
+      setTimeout(()=> n.close(), 8000);
+    } catch(e){ console.warn("Notif error:", e); }
+  }
+
+  let prevGlobalsOpenCount = -1; // -1 = first load
+
+  // ===== Tab Navigation (Gerente) =====
+  function setupGerTabs(){
+    const bar = document.getElementById("gerTabBar");
+    if (!bar) return;
+    const tabs = bar.querySelectorAll(".ger-tab");
+    const panels = document.querySelectorAll("#gerente .ger-panel");
+    tabs.forEach(tab=>{
+      tab.addEventListener("click", ()=>{
+        tabs.forEach(t=>t.classList.remove("active"));
+        tab.classList.add("active");
+        const target = tab.getAttribute("data-tab");
+        panels.forEach(p=>{
+          p.classList.toggle("active", p.getAttribute("data-panel")===target);
+        });
+      });
+    });
+  }
+
+  // ===== Feedback System =====
+  let feedbackAll = [];
+  const colFeedback = () => collection(db,"stores",STORE_ID,"feedback");
+
+  async function compressPhoto(file, maxW=800, quality=0.6){
+    return new Promise((resolve)=>{
+      if (!file){ resolve(null); return; }
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        const img = new Image();
+        img.onload = ()=>{
+          const canvas = document.createElement("canvas");
+          let w = img.width, h = img.height;
+          if (w > maxW){ h = Math.round(h * maxW / w); w = maxW; }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function submitFeedback(){
+    const cat = $("fbCategory")?.value || "";
+    const msg = $("fbMessage")?.value?.trim() || "";
+    if (!cat) return alert("Selecione um assunto.");
+    if (!msg) return alert("Digite sua mensagem.");
+
+    const btn = $("btnSubmitFeedback");
+    btn.disabled = true;
+    btn.textContent = "Enviando...";
+
+    try{
+      const photoFile = $("fbPhoto")?.files?.[0] || null;
+      const photoBase64 = await compressPhoto(photoFile);
+
+      await addDoc(colFeedback(), {
+        category: cat,
+        message: msg,
+        name: $("fbName")?.value?.trim() || "",
+        phone: $("fbPhone")?.value?.trim() || "",
+        photo: photoBase64 || "",
+        read: false,
+        createdAt: serverTimestamp(),
+        createdAtHuman: nowHuman(),
+        storeId: STORE_ID
+      });
+
+      $("fbThankYou").classList.remove("hidden");
+      $("fbThankYou").style.display = "flex";
+    } catch(e){
+      console.error(e);
+      alert("Erro ao enviar. Verifique sua internet.");
+      btn.disabled = false;
+      btn.textContent = "Enviar Feedback";
+    }
+  }
+
+  function renderFeedbackList(){
+    const wrap = $("feedbackList");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+
+    if (!feedbackAll.length){
+      wrap.innerHTML = '<div class="text-gray-500">Nenhum feedback recebido ainda.</div>';
+      return;
+    }
+
+    const catLabels = { atendimento:"😊 Atendimento", produtos:"📦 Produtos", reclamacao:"😤 Reclamação", sugestao:"💡 Sugestão", elogio:"⭐ Elogio", outro:"📝 Outro" };
+
+    feedbackAll.forEach(fb=>{
+      const div = document.createElement("div");
+      div.className = "border rounded p-3 " + (fb.read ? "bg-gray-50 opacity-70" : "bg-gray-50 border-l-4 border-l-blue-500");
+
+      let photoHtml = "";
+      if (fb.photo){
+        photoHtml = '<div class="mt-2"><img src="'+fb.photo+'" class="max-w-full max-h-48 rounded-lg border" alt="Foto" /></div>';
+      }
+
+      div.innerHTML = `
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold">${catLabels[fb.category] || fb.category}</span>
+              ${fb.read ? '' : '<span class="text-xs bg-blue-50 border border-blue-200 text-blue-900 px-2 py-0.5 rounded">NOVO</span>'}
+            </div>
+            <div class="text-sm mt-1">${(fb.message||"").replace(/</g,"&lt;").replace(/\n/g,"<br>")}</div>
+            ${photoHtml}
+            <div class="text-xs text-gray-500 mt-2">
+              ${fb.name ? "👤 "+fb.name : "Anônimo"} ${fb.phone ? " • 📞 "+fb.phone : ""} • ${fb.createdAtHuman || "-"}
+            </div>
+          </div>
+          <div class="flex gap-1 shrink-0">
+            <button data-fb-read="${fb.id}" class="px-2 py-1 rounded text-xs ${fb.read ? 'bg-gray-200 text-gray-900' : 'bg-blue-600 text-white'}">${fb.read ? "Não lido" : "Marcar lido"}</button>
+            <button data-fb-del="${fb.id}" class="px-2 py-1 rounded text-xs bg-red-600 text-white">Excluir</button>
+          </div>
+        </div>`;
+
+      div.querySelector("[data-fb-read]")?.addEventListener("click", async ()=>{
+        try{
+          await setDoc(doc(db,"stores",STORE_ID,"feedback",fb.id), { read: !fb.read }, { merge:true });
+        } catch(e){ console.error(e); toast("Erro."); }
+      });
+
+      div.querySelector("[data-fb-del]")?.addEventListener("click", async ()=>{
+        if (!confirm("Excluir este feedback?")) return;
+        try{
+          await deleteDoc(doc(db,"stores",STORE_ID,"feedback",fb.id));
+          toast("Excluído.");
+        } catch(e){ console.error(e); toast("Erro."); }
+      });
+
+      wrap.appendChild(div);
+    });
+  }
+
+  function generateQRCode(){
+    const wrap = $("qrCodeWrap");
+    if (!wrap) return;
+    wrap.classList.toggle("hidden");
+    if (wrap.classList.contains("hidden")) return;
+
+    const baseUrl = window.location.origin + window.location.pathname;
+    const fbUrl = baseUrl + "?feedback=1&loja=" + storeKey;
+    const qrImg = $("qrCodeImg");
+    qrImg.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data='+encodeURIComponent(fbUrl)+'" alt="QR Code" style="width:250px;height:250px" />';
+    $("qrUrl").textContent = fbUrl;
+  }
+
+  function printQRPoster(){
+    const baseUrl = window.location.origin + window.location.pathname;
+    const fbUrl = baseUrl + "?feedback=1&loja=" + storeKey;
+    const storeName = (storeKey === "loja_bogados") ? "Bogados" : "Loja Principal";
+    const win = window.open("", "_blank");
+    win.document.write(`<html><head><title>QR Code</title>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+      <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff;text-align:center;padding:2cm}
+      @page{size:A4;margin:0} .poster{max-width:16cm}</style></head><body>
+      <div class="poster">
+        <div style="font-size:42pt;font-weight:900;color:#1e293b;margin-bottom:16px">📋 ${storeName}</div>
+        <div style="font-size:18pt;font-weight:700;color:#6366f1;margin-bottom:32px">Fale Conosco!</div>
+        <div style="padding:20px;border:3px solid #6366f1;border-radius:24px;display:inline-block;margin-bottom:24px">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(fbUrl)}" style="width:350px;height:350px" />
+        </div>
+        <div style="font-size:14pt;color:#475569;margin-bottom:8px">Aponte a câmera do celular para o QR Code</div>
+        <div style="font-size:11pt;color:#94a3b8">Deixe sua opinião sobre nosso atendimento, produtos ou sugestões</div>
+        <div style="font-size:9pt;color:#cbd5e1;margin-top:32px">Missões da Loja — Sistema de Gestão</div>
+      </div></body></html>`);
+    win.document.close();
+    setTimeout(()=> win.print(), 500);
   }
 
   function showLoginError(msg){
@@ -2285,7 +2707,10 @@
               <div class="font-semibold">${r.user} - ${r.categoria}</div>
               <div class="text-xs text-gray-600">${(r.when || "")}</div>
             </div>
-            <button data-id="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
+            <div class="flex gap-1 shrink-0 flex-wrap">
+              <button data-whatsapp="${r.id}" class="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs flex items-center gap-1">📱 WhatsApp</button>
+              <button data-id="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
+            </div>
           </div>
         `;
 
@@ -2322,6 +2747,7 @@
         div.innerHTML = html;
         t.appendChild(div);
 
+        div.querySelector("button[data-whatsapp]")?.addEventListener("click", ()=> shareTaskOnWhatsApp(r));
         div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
           if (!confirm("Excluir esta tarefa concluída?")) return;
           try{
@@ -2593,6 +3019,7 @@
   });
 
   // ===== Reset / Deletes =====
+  $("btnShareAllWhatsApp")?.addEventListener("click", ()=> shareAllTasksOnWhatsApp());
   $("btnDeleteAllTasksWeek").addEventListener("click", async ()=>{
     if (!isManager()) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODAS as tarefas concluídas desta semana?")) return;
@@ -2936,7 +3363,7 @@
         warnManager("Erro ao carregar missing (veja o console).");
       });
 
-      // ✅ globals watcher
+      // ✅ globals watcher + notificações
       const globalsQ = query(colGlobals(), orderBy("createdAt","desc"), limit(300));
       onSnapshot(globalsQ, (qs)=>{
         globalsAll = qs.docs.map(d=>{
@@ -2948,7 +3375,19 @@
         globalsWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey) === wk);
         globalsOpen = globalsWeek.filter(g => g.status === "open");
 
-        // ✅ sempre re-render gerente (isso garante lista atualizada)
+        // ✅ Notificação quando nova GLOBAL aparece (para funcionários)
+        const newOpenCount = globalsOpen.length;
+        if (prevGlobalsOpenCount >= 0 && newOpenCount > prevGlobalsOpenCount && currentUser && !isManager()){
+          const newest = globalsOpen.sort((a,b)=>(b.createdAtMs||0)-(a.createdAtMs||0))[0];
+          sendNotification(
+            "🎯 Nova tarefa disponível!",
+            (newest?.name || "GLOBAL") + " — seja o primeiro a concluir! (+10 pts)"
+          );
+          toast("Nova GLOBAL disponível!");
+        }
+        prevGlobalsOpenCount = newOpenCount;
+
+        // ✅ sempre re-render
         if (currentUser){
           if (isManager()) renderManager();
           else renderEmployee();
@@ -2988,6 +3427,22 @@
       renderRanking();
       updateTopBar();
 
+      // feedback watcher
+      const fbQ = query(colFeedback(), orderBy("createdAt","desc"), limit(200));
+      onSnapshot(fbQ, (qs)=>{
+        feedbackAll = qs.docs.map(d=>({ id:d.id, ...d.data() }));
+        if (isManager()) renderFeedbackList();
+      });
+
+      // setup tabs
+      setupGerTabs();
+
+      // feedback buttons
+      $("btnShowQR")?.addEventListener("click", generateQRCode);
+      $("btnPrintQR")?.addEventListener("click", printQRPoster);
+      $("btnRefreshFeedback")?.addEventListener("click", renderFeedbackList);
+      $("btnSubmitFeedback")?.addEventListener("click", submitFeedback);
+
     } catch(e){
       fatal("Erro ao inicializar (Firestore/Permissão).", e);
       throw e;
@@ -3010,6 +3465,24 @@
 
 
     await cloudInit();
+    // Pedir permissão de notificações no boot
+    await requestNotifPermission();
+
+    // Detectar modo feedback (cliente via QR code)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("feedback") === "1"){
+      const lojaParam = urlParams.get("loja");
+      if (lojaParam && STORE_MAP[lojaParam]){
+        storeKey = lojaParam;
+        STORE_ID = STORE_MAP[storeKey].id;
+      }
+      ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
+      $("feedbackForm").classList.remove("hidden");
+      $("btnSubmitFeedback")?.addEventListener("click", submitFeedback);
+      console.log("FEEDBACK MODE", STORE_ID);
+      return;
+    }
+
     if (ses && ses.user){
       currentUser = ses.user;
 
@@ -3046,93 +3519,138 @@
     // fatal já exibiu
   }
 
-  // ===== IMPRESSÃO PROFISSIONAL 4x6cm =====
+  // ===== IMPRESSÃO PROFISSIONAL - ETIQUETAS A4 =====
 function printProductLabels() {
-
   if (!products || !products.length) {
     toast("Nenhum produto cadastrado.");
     return;
   }
 
+  const storeName = (storeKey === "loja_bogados") ? "Bogados" : "Loja Principal";
+  const today = new Date().toLocaleDateString("pt-BR");
   const win = window.open("", "_blank");
 
   const html = `
   <html>
   <head>
-    <title>Etiquetas</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet">
+    <title>Etiquetas - ${storeName}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
       @page {
-        size: A4;
-        margin: 1cm;
+        size: A4 portrait;
+        margin: 10mm 8mm;
       }
-
+      * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'Inter', sans-serif;
+        background: #fff;
+        color: #111;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
-
-      .container {
+      .header {
+        text-align: center;
+        padding: 4mm 0 6mm;
+        border-bottom: 2px solid #e5e7eb;
+        margin-bottom: 5mm;
+      }
+      .header h1 { font-size: 18pt; font-weight: 800; color: #1e293b; }
+      .header p { font-size: 9pt; color: #64748b; margin-top: 2mm; }
+      .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, 6cm);
-        gap: 0.6cm;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4mm;
       }
-
       .label {
-        width: 6cm;
-        height: 4cm;
-        border: 2px solid #000;
-        border-radius: 10px;
-        padding: 0.5cm;
-        box-sizing: border-box;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 5mm 4mm;
         display: flex;
         flex-direction: column;
+        align-items: center;
         justify-content: center;
         text-align: center;
-        background: #fff;
+        height: 35mm;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        position: relative;
+        overflow: hidden;
       }
-
+      .label::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #6366f1, #818cf8, #6366f1);
+      }
       .name {
-        font-size: 16px;
+        font-size: 10pt;
         font-weight: 600;
-        margin-bottom: 12px;
+        color: #1e293b;
+        line-height: 1.2;
+        margin-bottom: 3mm;
+        max-height: 14mm;
+        overflow: hidden;
       }
-
-      .divider {
-        width: 60%;
-        height: 1px;
-        background: #ddd;
-        margin: 0 auto 12px auto;
-      }
-
-      .price {
-        font-size: 36px;
-        font-weight: 800;
-        color: #111;
-        padding: 8px 14px;
-        background: #f3f4f6;
-        border-radius: 8px;
+      .price-box {
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        border: 1px solid #bae6fd;
+        border-radius: 6px;
+        padding: 2mm 5mm;
         display: inline-block;
+      }
+      .price {
+        font-size: 20pt;
+        font-weight: 900;
+        color: #0c4a6e;
+        letter-spacing: -0.5px;
+      }
+      .cents { font-size: 12pt; font-weight: 700; }
+      .footer {
+        margin-top: 5mm;
+        padding-top: 3mm;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+        font-size: 7pt;
+        color: #94a3b8;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      @media print {
+        .no-print { display: none !important; }
+        body { background: #fff; }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      ${products.map(p => `
+    <div class="no-print" style="padding:12px;text-align:center;background:#f1f5f9;border-bottom:1px solid #e2e8f0">
+      <button onclick="window.print()" style="padding:10px 30px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">🖨️ Imprimir Etiquetas</button>
+      <span style="margin-left:12px;color:#64748b;font-size:13px">${products.length} produtos • ${storeName} • ${today}</span>
+    </div>
+    <div class="header">
+      <h1>📋 ${storeName}</h1>
+      <p>Tabela de Preços • Atualizado em ${today} • ${products.length} produtos</p>
+    </div>
+    <div class="grid">
+      ${products.map(p => {
+        const val = formatBRL(p.price);
+        return `
         <div class="label">
           <div class="name">${p.name}</div>
-          <div class="divider"></div>
-          <div class="price">${formatBRL(p.price)}</div>
-        </div>
-      `).join("")}
+          <div class="price-box">
+            <span class="price">${val}</span>
+          </div>
+        </div>`;
+      }).join("")}
     </div>
+    <div class="footer">Missões da Loja — Sistema de Gestão • ${storeName} • ${today}</div>
   </body>
-  </html>
-  `;
+  </html>`;
 
   win.document.write(html);
   win.document.close();
   win.focus();
-  win.print();
+  setTimeout(()=> win.print(), 500);
 }
 
 $("btnPrintPrices")?.addEventListener("click", printProductLabels);
