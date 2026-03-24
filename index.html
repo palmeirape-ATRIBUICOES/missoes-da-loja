@@ -3503,16 +3503,13 @@
       const lojaParam = urlParams.get("loja");
       if (lojaParam && STORE_MAP[lojaParam]){
         storeKey = lojaParam;
-        STORE_ID = STORE_MAP[storeKey].id;
+        STORE_ID = STORE_MAP[lojaParam].id;
       }
       ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
       $("feedbackForm").classList.remove("hidden");
       $("btnSubmitFeedback")?.addEventListener("click", submitFeedback);
       console.log("FEEDBACK MODE", STORE_ID);
-      return;
-    }
-
-    if (ses && ses.user){
+    } else if (ses && ses.user){
       currentUser = ses.user;
 
       const managerUser = getManagerUser();
