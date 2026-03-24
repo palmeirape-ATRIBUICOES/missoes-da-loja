@@ -140,7 +140,7 @@
     <div class="md:col-span-1">
       <label class="text-sm text-gray-700">Loja</label>
       <select id="storeSelect" class="w-full border p-2 rounded">
-        <option value="loja_principal">Loja Principal</option>
+        <option value="loja_principal">Padaria MANÁ DE DEUS</option>
         <option value="loja_bogados">Bogados</option>
       </select>
       <p class="text-xs text-gray-500 mt-1">
@@ -746,9 +746,10 @@
     <div style="max-width:480px;margin:0 auto;padding-top:24px">
       <div style="text-align:center;margin-bottom:24px">
         <div style="width:64px;height:64px;margin:0 auto 12px;background:linear-gradient(135deg,#6366f1,#818cf8);border-radius:16px;display:flex;align-items:center;justify-content:center">
-          <span style="font-size:32px">💬</span>
+          <span style="font-size:32px">🍞</span>
         </div>
-        <h1 style="font-size:1.5rem;font-weight:800;color:#1e293b;margin:0">Fale Conosco</h1>
+        <h1 style="font-size:1.5rem;font-weight:800;color:#1e293b;margin:0">Padaria MANÁ DE DEUS</h1>
+        <p class="fb-sub" style="margin-top:8px;font-size:1.1rem;font-weight:700;color:#6366f1">Fale Conosco</p>
         <p class="fb-sub" style="margin-top:4px;font-size:0.9rem">Sua opinião é muito importante para nós</p>
       </div>
       <div class="fb-card" style="border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
@@ -784,14 +785,15 @@
         </div>
         <button id="btnSubmitFeedback" class="fb-btn">Enviar Feedback</button>
       </div>
-      <p style="text-align:center;font-size:0.7rem;color:#9ca3af;margin-top:16px">🔒 Suas informações são tratadas com sigilo • Missões da Loja</p>
+      <p style="text-align:center;font-size:0.7rem;color:#9ca3af;margin-top:16px">🔒 Suas informações são tratadas com sigilo • Padaria MANÁ DE DEUS</p>
     </div>
   </div>
-  <div id="fbThankYou" class="hidden" style="position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f8fafc,#e2e8f0)">
+  <div id="fbThankYou" class="hidden" style="position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:linear-gradient(135deg,#f8fafc,#e2e8f0)">
     <div style="text-align:center;padding:32px">
       <div style="font-size:72px;margin-bottom:16px">✅</div>
       <h2 style="font-size:1.5rem;font-weight:800;color:#1e293b">Obrigado!</h2>
       <p style="color:#4b5563;margin-top:8px">Seu feedback foi enviado com sucesso.</p>
+      <p style="color:#6366f1;margin-top:12px;font-weight:600">Padaria MANÁ DE DEUS agradece sua opinião!</p>
       <p style="color:#9ca3af;margin-top:16px;font-size:0.8rem">Você pode fechar esta página.</p>
     </div>
   </div>
@@ -1138,7 +1140,7 @@
   function printQRPoster(){
     const baseUrl = window.location.origin + window.location.pathname;
     const fbUrl = baseUrl + "?feedback=1&loja=" + storeKey;
-    const storeName = (storeKey === "loja_bogados") ? "Bogados" : "Loja Principal";
+    const storeName = (storeKey === "loja_bogados") ? "Bogados" : "Padaria MAN\u00c1 DE DEUS";
     const win = window.open("", "_blank");
     win.document.write(`<html><head><title>QR Code</title>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
@@ -3554,7 +3556,7 @@ function printProductLabels() {
     return;
   }
 
-  const storeName = (storeKey === "loja_bogados") ? "Bogados" : "Loja Principal";
+  const storeName = (storeKey === "loja_bogados") ? "Bogados" : "Padaria MAN\u00c1 DE DEUS";
   const today = new Date().toLocaleDateString("pt-BR");
   const win = window.open("", "_blank");
 
