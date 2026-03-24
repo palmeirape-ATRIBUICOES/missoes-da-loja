@@ -2170,9 +2170,11 @@
   // ===== Ranking (gerente) =====
   function renderRanking(){
     const mk = monthKey(new Date());
-    $("monthKeyLabelGer").innerText = mk;
+    const mkLabel = $("monthKeyLabelGer2");
+    if (mkLabel) mkLabel.innerText = mk;
 
-    const list = $("rankingList");
+    const list = $("rankingList2");
+    if (!list) return;
     list.innerHTML = "";
 
     const active = activeNames();
