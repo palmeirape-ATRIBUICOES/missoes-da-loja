@@ -350,10 +350,9 @@
     <button class="ger-tab" data-tab="config">⚙️ Config</button>
   </div>
 
-  <!-- PANEL: TAREFAS -->  
-  <div class="ger-panel active" data-panel="tarefas">
-  <!-- Produtos & preços (gerente e Claudia podem gerenciar) -->
+  <!-- PANEL: PRODUTOS -->
   <div class="ger-panel" data-panel="produtos">
+  <!-- Produtos & preços (gerente e Claudia podem gerenciar) -->
 <div class="bg-white p-4 rounded-xl shadow mb-4">
   <div class="flex items-center justify-between gap-2">
     <div>
@@ -427,24 +426,8 @@
 </div>
   </div> <!-- /panel produtos -->
 
-  <!-- PANEL: EQUIPE -->
-  <div class="ger-panel" data-panel="equipe">
-  <!-- Ranking -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h3 class="font-semibold">Ranking do mês</h3>
-        <p class="text-xs text-gray-500">Mês: <span id="monthKeyLabelGer">-</span></p>
-      </div>
-      <button id="btnToggleRanking" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-        Minimizar
-      </button>
-    </div>
-
-    <div id="rankingContent" class="mt-3">
-      <div id="rankingList" class="space-y-2 text-sm"></div>
-    </div>
-  </div>
+  <!-- PANEL: TAREFAS -->
+  <div class="ger-panel active" data-panel="tarefas">
 
   <!-- GLOBAIS (até 20 por semana) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
@@ -536,10 +519,6 @@
       </div>
     </div>
   </div>
-  </div> <!-- /panel equipe -->
-
-  <!-- PANEL: LISTAS -->
-  <div class="ger-panel" data-panel="listas">
   <!-- ✅ LISTAS DO GERENTE (Comprados / Em falta) -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <div class="flex items-center justify-between gap-2">
@@ -590,7 +569,6 @@
       </div>
     </div>
   </div>
-  </div> <!-- /panel listas -->
 
   <!-- Escala -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
@@ -648,6 +626,25 @@
   </div>
   </div> <!-- /panel tarefas -->
 
+  <!-- PANEL: EQUIPE -->
+  <div class="ger-panel" data-panel="equipe">
+
+  <!-- Ranking -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h3 class="font-semibold">Ranking do mês</h3>
+        <p class="text-xs text-gray-500">Mês: <span id="monthKeyLabelGer2">-</span></p>
+      </div>
+      <button id="btnToggleRanking2" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
+        Expandir
+      </button>
+    </div>
+    <div id="rankingContent2" class="hidden mt-3">
+      <div id="rankingList2" class="space-y-2 text-sm"></div>
+    </div>
+  </div>
+
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <div class="flex items-center justify-between gap-2">
       <div>
@@ -698,10 +695,42 @@
       </button>
     </div>
 
-    <p class="text-xs text-gray-500 mt-2">
+  </div>
+  </div> <!-- /panel equipe -->
+
+  <!-- PANEL: FEEDBACK -->
+  <div class="ger-panel" data-panel="feedback">
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h3 class="font-semibold">💬 Feedback dos Clientes</h3>
+        <p class="text-xs text-gray-500">Mensagens recebidas via QR Code da loja</p>
+      </div>
+      <div class="flex gap-2">
+        <button id="btnShowQR" class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded">📱 QR Code</button>
+        <button id="btnRefreshFeedback" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">Atualizar</button>
+      </div>
+    </div>
+    <div id="qrCodeWrap" class="hidden mt-4 border-t pt-4 text-center">
+      <p class="text-sm font-semibold mb-3">Imprima e coloque na loja para clientes deixarem feedback</p>
+      <div id="qrCodeImg" class="inline-block p-4 bg-white rounded-xl border"></div>
+      <p class="text-xs text-gray-500 mt-2" id="qrUrl"></p>
+      <button id="btnPrintQR" class="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">🖨️ Imprimir Cartaz QR</button>
+    </div>
+    <div id="feedbackList" class="mt-4 space-y-3">
+      <div class="text-gray-500">Carregando...</div>
+    </div>
+  </div>
+  </div> <!-- /panel feedback -->
+
+  <!-- PANEL: CONFIG -->
+  <div class="ger-panel" data-panel="config">
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <h3 class="font-semibold mb-2">⚠️ Ações Perigosas</h3>
+    <p class="text-xs text-gray-500 mb-3">Estas ações apagam dados permanentemente.</p>
+    <p class="text-xs text-gray-500">
       PIN mestre inicial do gerente: <b>1234</b> só se o gerente ainda não tiver PIN criado.
     </p>
-  </div>
   </div>
   </div> <!-- /panel config -->
 </section>
