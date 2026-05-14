@@ -3848,6 +3848,8 @@
       onSnapshot(query(colNewProducts(), orderBy("createdAt", "desc")), (qs) => {
         newProductsAll = qs.docs.map(d => ({ id: d.id, ...d.data() }));
         renderNewProdsList();
+      });
+
       // setup tabs
       setupGerTabs();
 
