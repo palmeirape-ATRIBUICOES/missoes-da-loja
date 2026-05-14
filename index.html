@@ -220,7 +220,8 @@
         </div>
 
         <div class="grid md:grid-cols-4 gap-2 mt-2">
-          <input id="prodNameEmp" class="border p-2 rounded md:col-span-2" placeholder="Nome do produto (ex: Coca 2L)" />
+          <input id="prodNameEmp" class="border p-2 rounded md:col-span-2" placeholder="Nome do produto" />
+          <input id="prodDescEmp" class="border p-2 rounded md:col-span-2" placeholder="Descrição opcional" />
           <input id="prodPriceEmp" class="border p-2 rounded" inputmode="decimal" placeholder="Preço (ex: 9,99)" />
           <button id="btnSaveProdEmp" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
             Salvar / Atualizar
@@ -481,6 +482,9 @@
         <input id="prodNameGer"
           class="border p-2 rounded md:col-span-2"
           placeholder="Nome do produto" />
+        <input id="prodDescGer"
+          class="border p-2 rounded md:col-span-2"
+          placeholder="Descrição opcional" />
         <input id="prodPriceGer"
           class="border p-2 rounded"
           inputmode="decimal"
@@ -848,8 +852,46 @@
           </select>
         </div>
         <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Margem da Folha (mm)</label>
+          <input id="lblMarginPage" type="number" class="w-full border rounded p-2" value="10" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Posição Cifrão (R$)</label>
+          <select id="lblCurrencyPos" class="w-full border rounded p-2">
+            <option value="left">Esquerda (Padrão)</option>
+            <option value="right">Direita (Lado do preço)</option>
+          </select>
+        </div>
+        
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Alinhamento Preço</label>
+          <select id="lblPriceAlign" class="w-full border rounded p-2">
+            <option value="center">Centralizado</option>
+            <option value="spread">Afastado (Bordas)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Exibir Descrição?</label>
+          <select id="lblShowDesc" class="w-full border rounded p-2">
+            <option value="no">Não</option>
+            <option value="yes">Sim</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Exibir QR Code (Sugestão)?</label>
+          <select id="lblShowQR" class="w-full border rounded p-2">
+            <option value="no">Não</option>
+            <option value="yes">Sim</option>
+          </select>
+        </div>
+
+        <div>
           <label class="text-xs font-bold text-gray-600 block mb-1">Tamanho Nome (pt)</label>
           <input id="lblFontSizeName" type="number" class="w-full border rounded p-2" value="10" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Tamanho Desc. (pt)</label>
+          <input id="lblFontSizeDesc" type="number" class="w-full border rounded p-2" value="8" />
         </div>
         <div>
           <label class="text-xs font-bold text-gray-600 block mb-1">Tamanho Preço (pt)</label>
@@ -1507,7 +1549,13 @@
     colorBorder: "#cbd5e1",
     font: "'Inter', sans-serif",
     fontSizeName: 10,
-    fontSizePrice: 20
+    fontSizeDesc: 8,
+    fontSizePrice: 20,
+    marginPage: 10,
+    showDesc: false,
+    showQR: false,
+    currencyPos: "left",
+    priceAlign: "center"
   };
 
   async function saveLabelConfig() {
@@ -1521,7 +1569,13 @@
       colorBorder: $("lblColorBorder").value,
       font: $("lblFont").value,
       fontSizeName: Number($("lblFontSizeName").value) || 10,
+      fontSizeDesc: Number($("lblFontSizeDesc").value) || 8,
       fontSizePrice: Number($("lblFontSizePrice").value) || 20,
+      marginPage: Number($("lblMarginPage").value) || 10,
+      showDesc: $("lblShowDesc").value === "yes",
+      showQR: $("lblShowQR").value === "yes",
+      currencyPos: $("lblCurrencyPos").value,
+      priceAlign: $("lblPriceAlign").value,
       updatedAt: serverTimestamp()
     };
     try {
@@ -1543,7 +1597,13 @@
     if ($("lblColorBorder")) $("lblColorBorder").value = cfg.colorBorder || "#cbd5e1";
     if ($("lblFont")) $("lblFont").value = cfg.font || "'Inter', sans-serif";
     if ($("lblFontSizeName")) $("lblFontSizeName").value = cfg.fontSizeName || 10;
+    if ($("lblFontSizeDesc")) $("lblFontSizeDesc").value = cfg.fontSizeDesc || 8;
     if ($("lblFontSizePrice")) $("lblFontSizePrice").value = cfg.fontSizePrice || 20;
+    if ($("lblMarginPage")) $("lblMarginPage").value = cfg.marginPage || 10;
+    if ($("lblShowDesc")) $("lblShowDesc").value = cfg.showDesc ? "yes" : "no";
+    if ($("lblShowQR")) $("lblShowQR").value = cfg.showQR ? "yes" : "no";
+    if ($("lblCurrencyPos")) $("lblCurrencyPos").value = cfg.currencyPos || "left";
+    if ($("lblPriceAlign")) $("lblPriceAlign").value = cfg.priceAlign || "center";
   }
 
   function nowHuman(){ return new Date().toLocaleString(); }
@@ -2165,6 +2225,7 @@
       .map(p => ({
         id: String(p?.id || ""),
         name: String(p?.name || "").trim(),
+        desc: String(p?.desc || "").trim(),
         nameKey: String(p?.nameKey || normKey(p?.name || "")),
         price: Number(p?.price),
         updatedAtHuman: p?.updatedAtHuman || "",
@@ -2175,7 +2236,7 @@
     products.sort((a,b)=>a.name.localeCompare(b.name));
     productsIndex = new Map(products.map(p=>[p.nameKey, p]));
   }
-  async function upsertProduct(name, price){
+  async function upsertProduct(name, price, desc=""){
     if (!canManagePrices()) throw new Error("Sem permissão.");
     name = String(name||"").trim();
     if (!name) throw new Error("Nome do produto vazio.");
@@ -2190,6 +2251,7 @@
     nextMap.set(key, {
       id,
       name,
+      desc: String(desc || "").trim(),
       nameKey: key,
       price: p,
       updatedAtHuman: nowHuman(),
@@ -2228,7 +2290,7 @@
       div.innerHTML = `
         <div class="min-w-0">
           <div class="font-semibold truncate">${p.name}</div>
-          <div class="text-xs text-gray-600">Preço: <b>${formatBRL(p.price)}</b> • ${p.updatedAtHuman || "-"} • ${p.updatedBy || "-"}</div>
+          <div class="text-xs text-gray-600">${p.desc ? `<div class='italic'>${p.desc}</div>` : ''}Preço: <b>${formatBRL(p.price)}</b> • ${p.updatedAtHuman || "-"} • ${p.updatedBy || "-"}</div>
         </div>
         <button class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
       `;
@@ -3522,9 +3584,11 @@
   $("btnSaveProdGer")?.addEventListener("click", async ()=>{
     try{
       const name = $("prodNameGer").value;
+      const desc = $("prodDescGer").value;
       const price = $("prodPriceGer").value;
-      await upsertProduct(name, price);
+      await upsertProduct(name, price, desc);
       $("prodNameGer").value = "";
+      $("prodDescGer").value = "";
       $("prodPriceGer").value = "";
       toast("Produto salvo.");
     } catch(e){
@@ -3535,9 +3599,11 @@
   $("btnSaveProdEmp")?.addEventListener("click", async ()=>{
     try{
       const name = $("prodNameEmp").value;
+      const desc = $("prodDescEmp").value;
       const price = $("prodPriceEmp").value;
-      await upsertProduct(name, price);
+      await upsertProduct(name, price, desc);
       $("prodNameEmp").value = "";
+      $("prodDescEmp").value = "";
       $("prodPriceEmp").value = "";
       toast("Produto salvo.");
     } catch(e){
@@ -3962,7 +4028,13 @@ function printProductLabels() {
   const lColorBorder = lc.colorBorder || "#cbd5e1";
   const lFont = lc.font || "'Inter', sans-serif";
   const lFontSizeName = lc.fontSizeName || 10;
+  const lFontSizeDesc = lc.fontSizeDesc || 8;
   const lFontSizePrice = lc.fontSizePrice || 20;
+  const lMarginPage = lc.marginPage || 10;
+  const lShowDesc = !!lc.showDesc;
+  const lShowQR = !!lc.showQR;
+  const lCurrencyPos = lc.currencyPos || "left";
+  const lPriceAlign = lc.priceAlign || "center";
 
   const html = `
   <html>
@@ -3972,7 +4044,7 @@ function printProductLabels() {
     <style>
       @page {
         size: A4 portrait;
-        margin: 10mm 8mm;
+        margin: ${lMarginPage}mm;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
@@ -4019,12 +4091,39 @@ function printProductLabels() {
         line-height: 1.1;
         margin-bottom: 1mm;
         overflow: hidden;
+        width: 100%;
+      }
+      .desc {
+        font-size: ${lFontSizeDesc}pt;
+        font-weight: 400;
+        color: #64748b;
+        margin-bottom: 2mm;
+        line-height: 1.1;
+        width: 100%;
+        display: ${lShowDesc ? 'block' : 'none'};
+      }
+      .price-row {
+        width: 100%;
+        display: flex;
+        align-items: baseline;
+        justify-content: ${lPriceAlign === 'spread' ? 'space-between' : 'center'};
+        gap: 1mm;
+        color: ${lColorPrice};
+      }
+      .currency {
+        font-size: ${lFontSizePrice * 0.5}pt;
+        font-weight: 700;
+        order: ${lCurrencyPos === 'left' ? 0 : 2};
       }
       .price {
         font-size: ${lFontSizePrice}pt;
         font-weight: 900;
-        color: ${lColorPrice};
         letter-spacing: -0.5px;
+        order: 1;
+      }
+      .qr-box {
+        margin-top: 1mm;
+        display: ${lShowQR ? 'block' : 'none'};
       }
       .footer {
         margin-top: 5mm;
@@ -4053,11 +4152,19 @@ function printProductLabels() {
     </div>
     <div class="grid">
       ${products.map(p => {
-        const val = formatBRL(p.price);
+        const valRaw = p.price.toLocaleString("pt-BR", { minimumFractionDigits:2, maximumFractionDigits:2 });
         return `
         <div class="label">
           <div class="name">${p.name}</div>
-          <div class="price">${val}</div>
+          <div class="desc">${p.desc || ''}</div>
+          <div class="price-row">
+            <span class="currency">R$</span>
+            <span class="price">${valRaw}</span>
+          </div>
+          ${lShowQR ? `
+          <div class="qr-box">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=40x40&data=${encodeURIComponent(p.name + ' ' + formatBRL(p.price))}" width="40" height="40" />
+          </div>` : ''}
         </div>`;
       }).join("")}
     </div>
