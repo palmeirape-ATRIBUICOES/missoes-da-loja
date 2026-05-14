@@ -914,6 +914,13 @@
           </select>
         </div>
         <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Exibir Selo "OFERTA"?</label>
+          <select id="lblShowOfertaBadge" class="w-full border rounded p-2">
+            <option value="yes">Sim</option>
+            <option value="no">Não</option>
+          </select>
+        </div>
+        <div>
           <label class="text-xs font-bold text-gray-600 block mb-1">Exibir Descrição?</label>
           <select id="lblShowDesc" class="w-full border rounded p-2">
             <option value="no">Não</option>
@@ -1639,8 +1646,9 @@
     marginPage: 10,
     showDesc: false,
     showQR: false,
-    currencyAlign: "left",
+    currencyAlign: "beside",
     priceAlign: "center",
+    showOfertaBadge: true,
     serverKey: ""
   };
 
@@ -1664,6 +1672,7 @@
       marginPage: Number($("lblMarginPage").value) || 10,
       showDesc: $("lblShowDesc").value === "yes",
       showQR: $("lblShowQR").value === "yes",
+      showOfertaBadge: $("lblShowOfertaBadge")?.value === "yes",
       currencyAlign: $("lblCurrencyAlign").value,
       priceAlign: $("lblPriceAlign").value,
       serverKey: $("lblServerKey")?.value || "",
@@ -1697,7 +1706,8 @@
     if ($("lblMarginPage")) $("lblMarginPage").value = cfg.marginPage || 10;
     if ($("lblShowDesc")) $("lblShowDesc").value = cfg.showDesc ? "yes" : "no";
     if ($("lblShowQR")) $("lblShowQR").value = cfg.showQR ? "yes" : "no";
-    if ($("lblCurrencyAlign")) $("lblCurrencyAlign").value = cfg.currencyAlign || "left";
+    if ($("lblShowOfertaBadge")) $("lblShowOfertaBadge").value = cfg.showOfertaBadge !== false ? "yes" : "no";
+    if ($("lblCurrencyAlign")) $("lblCurrencyAlign").value = cfg.currencyAlign || "beside";
     if ($("lblPriceAlign")) $("lblPriceAlign").value = cfg.priceAlign || "center";
     if ($("lblServerKey")) $("lblServerKey").value = cfg.serverKey || "";
   }
@@ -4303,7 +4313,8 @@ function printProductLabels() {
   const lMarginPage = lc.marginPage || 10;
   const lShowDesc = !!lc.showDesc;
   const lShowQR = !!lc.showQR;
-  const lCurrencyAlign = lc.currencyAlign || "left";
+  const lShowOfertaBadge = lc.showOfertaBadge !== false;
+  const lCurrencyAlign = lc.currencyAlign || "beside";
   const lPriceAlign = lc.priceAlign || "center";
 
   const html = `
@@ -4339,14 +4350,13 @@ function printProductLabels() {
         width: 100%;
       }
       .label {
-        border: 1.5px solid ${lColorBorder};
+        border: 2px solid ${lColorBorder};
         background: ${lColorBg};
-        border-radius: 6px;
-        padding: 3mm 2mm;
+        border-radius: 12px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         text-align: center;
         height: ${lHeight}cm;
         width: 100%;
@@ -4356,25 +4366,34 @@ function printProductLabels() {
         overflow: hidden;
       }
       .label.promo {
-        background: ${lPromoBgColor};
-        border-color: #ef4444;
-        border-width: 2.5px;
+        border-color: #111;
+        border-width: 2px;
       }
       .content-top {
+        width: 100%;
+        padding: 2mm;
         flex: 1;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        width: 100%;
-        overflow: hidden;
-        margin-bottom: 1mm;
+      }
+      .label.promo .content-top {
+        background: #111;
+        color: #fff;
+        padding: 1.5mm 2mm;
+      }
+      .oferta-badge {
+        font-size: 14pt;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 0.5mm;
+        display: ${lShowOfertaBadge ? 'block' : 'none'};
       }
       .name {
         font-size: ${lFontSizeName}pt;
         font-weight: 800;
         color: ${lColorName};
-        line-height: 1.1;
-        margin-bottom: 0.5mm;
+        line-height: 1;
         width: 100%;
         text-transform: uppercase;
         display: -webkit-box;
@@ -4382,31 +4401,34 @@ function printProductLabels() {
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
+      .label.promo .name { color: #fff; }
       .desc {
         font-size: ${lFontSizeDesc}pt;
         font-weight: 400;
         color: ${lColorDesc};
-        line-height: 1.1;
+        line-height: 1;
         width: 100%;
         display: ${lShowDesc ? '-webkit-box' : 'none'};
         -webkit-line-clamp: 1;
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
+      .label.promo .desc { color: #ccc; }
       .price-area {
         width: 100%;
+        padding: 2mm;
+        background: #fff;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-end;
-        position: relative;
+        justify-content: center;
       }
       .old-price {
-        font-size: 7pt;
+        font-size: 8pt;
         color: #ef4444;
         text-decoration: line-through;
-        font-weight: 600;
-        margin-bottom: -0.5mm;
+        font-weight: 700;
+        margin-bottom: 0.5mm;
       }
       .price-row {
         width: 100%;
@@ -4416,27 +4438,21 @@ function printProductLabels() {
           lPriceAlign === 'left' ? 'flex-start' : 
           lPriceAlign === 'right' ? 'flex-end' : 'center'
         };
-        gap: 0.5mm;
+        gap: 1.5mm;
         color: ${lColorPrice};
-        position: relative;
       }
       .currency {
         font-size: ${lFontSizeCurrency}pt;
-        font-weight: 800;
-        position: ${lCurrencyAlign === 'beside' ? 'static' : 'absolute'};
-        ${lCurrencyAlign === 'left' ? 'left: 0;' : ''}
-        ${lCurrencyAlign === 'right' ? 'right: 0;' : ''}
-        ${lCurrencyAlign === 'center' ? 'left: 50%; transform: translateX(-50%);' : ''}
-        bottom: 1.5mm;
+        font-weight: 900;
       }
       .price {
         font-size: ${lFontSizePrice}pt;
         font-weight: 900;
-        letter-spacing: -1.5px;
+        letter-spacing: -2px;
         line-height: 1;
       }
       .qr-box {
-        margin-top: 1mm;
+        margin-top: 1.5mm;
         display: ${lShowQR ? 'block' : 'none'};
       }
       .footer {
@@ -4473,6 +4489,7 @@ function printProductLabels() {
         return `
         <div class="label ${isPromo ? 'promo' : ''}">
           <div class="content-top">
+            ${isPromo ? '<div class="oferta-badge">OFERTA</div>' : ''}
             <div class="name">${p.name}</div>
             <div class="desc">${p.desc || ''}</div>
           </div>
