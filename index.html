@@ -1199,7 +1199,12 @@
     } catch(e){ console.warn("Notif error:", e); }
   }
 
-  let prevGlobalsOpenCount = -1; // -1 = first load
+  let prevGlobalsOpenCount = -1;
+  let prevTasksCount = -1;
+  let prevFeedbackCount = -1;
+  let prevMissingCount = -1;
+  let prevNewProdsCount = -1;
+  let scoresDoc = {};
 
   // ===== Tab Navigation (Gerente) =====
   function setupGerTabs(){
@@ -3730,11 +3735,13 @@
         await saveEscala(escalaLocalGer);
       };
       show("gerente");
+      requestNotifPermission(); // Solicitar ao logar
     } else {
       renderEmployee();
       maybeSetupEscalaUI();
       renderEscalaViewer();
       show("funcionario");
+      requestNotifPermission(); // Solicitar ao logar
     }
 
     updateTopBar();
@@ -3890,6 +3897,17 @@
         const wk = normalizeWeekKeyLoose(currentWeekKey);
         tasksDone = tasksAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
 
+        // ✅ Notificação Gerente: Nova tarefa concluída
+        const currentCount = tasksAll.length;
+        if (prevTasksCount >= 0 && currentCount > prevTasksCount && isManager()) {
+          const newest = tasksAll[0];
+          if (newest && newest.user !== currentUser) {
+            sendNotification("✅ Tarefa Concluída!", `${newest.user} finalizou: ${newest.categoria}`);
+            toast(`Nova tarefa de ${newest.user}`);
+          }
+        }
+        prevTasksCount = currentCount;
+
         if (isManager()) renderManager();
         if (currentUser && !isManager()) renderEmployee();
       }, (err)=>{
@@ -3902,6 +3920,18 @@
         missingAll = qs.docs.map(d => ({ id:d.id, ...d.data() }));
         const wk = normalizeWeekKeyLoose(currentWeekKey);
         missingReports = missingAll.filter(x => normalizeWeekKeyLoose(x.weekKey) === wk);
+
+        // ✅ Notificação Gerente: Novo item em falta
+        const currentCount = missingAll.length;
+        if (prevMissingCount >= 0 && currentCount > prevMissingCount && isManager()) {
+          const newest = missingAll[0];
+          if (newest && newest.user !== currentUser) {
+            sendNotification("❌ Item em Falta!", `${newest.user} registrou: ${newest.item}`);
+            toast("Novo registro de falta");
+          }
+        }
+        prevMissingCount = currentCount;
+
         if (isManager()) renderManager();
       }, (err)=>{
         console.error("Erro snapshot missing:", err);
@@ -3974,6 +4004,16 @@
 
       onSnapshot(query(colFeedback(), orderBy("createdAt","desc"), limit(200)), (qs)=>{
         feedbackAll = qs.docs.map(d=>({ id:d.id, ...d.data() }));
+        
+        // ✅ Notificação Gerente: Novo Feedback
+        const currentCount = feedbackAll.length;
+        if (prevFeedbackCount >= 0 && currentCount > prevFeedbackCount && isManager()) {
+          const newest = feedbackAll[0];
+          sendNotification("⭐ Novo Feedback!", `Um cliente avaliou com ${newest.stars} estrelas.`);
+          toast("Novo feedback de cliente!");
+        }
+        prevFeedbackCount = currentCount;
+
         if (isManager()) renderFeedbackList();
       });
 
@@ -3988,6 +4028,18 @@
       // ✅ NEW PRODUCTS Watcher
       onSnapshot(query(colNewProducts(), orderBy("createdAt", "desc")), (qs) => {
         newProductsAll = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // ✅ Notificação Gerente: Novo Produto no Sistema
+        const currentCount = newProductsAll.length;
+        if (prevNewProdsCount >= 0 && currentCount > prevNewProdsCount && isManager()) {
+          const newest = newProductsAll[0];
+          if (newest && newest.createdBy !== currentUser) {
+            sendNotification("📦 Novo Produto Cadastrado!", `${newest.createdBy} cadastrou: ${newest.name}`);
+            toast("Novo produto no sistema");
+          }
+        }
+        prevNewProdsCount = currentCount;
+
         renderNewProdsList();
       });
 
