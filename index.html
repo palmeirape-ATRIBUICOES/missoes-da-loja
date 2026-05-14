@@ -222,7 +222,8 @@
         <div class="grid md:grid-cols-4 gap-2 mt-2">
           <input id="prodNameEmp" class="border p-2 rounded md:col-span-2" placeholder="Nome do produto" />
           <input id="prodDescEmp" class="border p-2 rounded md:col-span-2" placeholder="Descrição opcional" />
-          <input id="prodPriceEmp" class="border p-2 rounded" inputmode="decimal" placeholder="Preço (ex: 9,99)" />
+          <input id="prodOldPriceEmp" class="border p-2 rounded" inputmode="decimal" placeholder="De: (ex: 12,90)" />
+          <input id="prodPriceEmp" class="border p-2 rounded" inputmode="decimal" placeholder="Por: (ex: 9,99)" />
           <button id="btnSaveProdEmp" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
             Salvar / Atualizar
           </button>
@@ -488,10 +489,14 @@
         <input id="prodDescGer"
           class="border p-2 rounded md:col-span-2"
           placeholder="Descrição opcional" />
+        <input id="prodOldPriceGer"
+          class="border p-2 rounded"
+          inputmode="decimal"
+          placeholder="De: (ex: 12,90)" />
         <input id="prodPriceGer"
           class="border p-2 rounded"
           inputmode="decimal"
-          placeholder="Preço (ex: 9,99)" />
+          placeholder="Por: (ex: 9,99)" />
         <button id="btnSaveProdGer"
           class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded">
           Salvar / Atualizar
@@ -836,6 +841,14 @@
         </div>
         
         <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Cor do Nome</label>
+          <input id="lblColorName" type="color" class="w-full h-10 border rounded p-1" value="#1e293b" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Cor da Descrição</label>
+          <input id="lblColorDesc" type="color" class="w-full h-10 border rounded p-1" value="#64748b" />
+        </div>
+        <div>
           <label class="text-xs font-bold text-gray-600 block mb-1">Cor do Preço</label>
           <input id="lblColorPrice" type="color" class="w-full h-10 border rounded p-1" value="#0c4a6e" />
         </div>
@@ -847,6 +860,10 @@
           <label class="text-xs font-bold text-gray-600 block mb-1">Cor da Borda</label>
           <input id="lblColorBorder" type="color" class="w-full h-10 border rounded p-1" value="#cbd5e1" />
         </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Fundo Promoção</label>
+          <input id="lblPromoBgColor" type="color" class="w-full h-10 border rounded p-1" value="#fef2f2" />
+        </div>
 
         <div>
           <label class="text-xs font-bold text-gray-600 block mb-1">Fonte</label>
@@ -857,6 +874,22 @@
             <option value="'Oswald', sans-serif">Oswald</option>
             <option value="'Courier New', Courier, monospace">Mono</option>
           </select>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Tam. Nome (pt)</label>
+          <input id="lblFontSizeName" type="number" class="w-full border rounded p-2" value="10" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Tam. Desc (pt)</label>
+          <input id="lblFontSizeDesc" type="number" class="w-full border rounded p-2" value="8" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Tam. Cifrão (pt)</label>
+          <input id="lblFontSizeCurrency" type="number" class="w-full border rounded p-2" value="10" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Tam. Preço (pt)</label>
+          <input id="lblFontSizePrice" type="number" class="w-full border rounded p-2" value="20" />
         </div>
         <div>
           <label class="text-xs font-bold text-gray-600 block mb-1">Margem da Folha (mm)</label>
@@ -1589,12 +1622,16 @@
     width: 3,
     height: 6,
     cols: 6,
+    colorName: "#1e293b",
+    colorDesc: "#64748b",
     colorPrice: "#0c4a6e",
     colorBg: "#ffffff",
     colorBorder: "#cbd5e1",
+    promoBgColor: "#fef2f2",
     font: "'Inter', sans-serif",
     fontSizeName: 10,
     fontSizeDesc: 8,
+    fontSizeCurrency: 10,
     fontSizePrice: 20,
     marginPage: 10,
     showDesc: false,
@@ -1610,12 +1647,16 @@
       width: Number($("lblWidth").value) || 3,
       height: Number($("lblHeight").value) || 6,
       cols: Number($("lblCols").value) || 6,
+      colorName: $("lblColorName").value,
+      colorDesc: $("lblColorDesc").value,
       colorPrice: $("lblColorPrice").value,
       colorBg: $("lblColorBg").value,
       colorBorder: $("lblColorBorder").value,
+      promoBgColor: $("lblPromoBgColor").value,
       font: $("lblFont").value,
       fontSizeName: Number($("lblFontSizeName").value) || 10,
       fontSizeDesc: Number($("lblFontSizeDesc").value) || 8,
+      fontSizeCurrency: Number($("lblFontSizeCurrency").value) || 10,
       fontSizePrice: Number($("lblFontSizePrice").value) || 20,
       marginPage: Number($("lblMarginPage").value) || 10,
       showDesc: $("lblShowDesc").value === "yes",
@@ -1639,12 +1680,16 @@
     if ($("lblWidth")) $("lblWidth").value = cfg.width || 3;
     if ($("lblHeight")) $("lblHeight").value = cfg.height || 6;
     if ($("lblCols")) $("lblCols").value = cfg.cols || 6;
+    if ($("lblColorName")) $("lblColorName").value = cfg.colorName || "#1e293b";
+    if ($("lblColorDesc")) $("lblColorDesc").value = cfg.colorDesc || "#64748b";
     if ($("lblColorPrice")) $("lblColorPrice").value = cfg.colorPrice || "#0c4a6e";
     if ($("lblColorBg")) $("lblColorBg").value = cfg.colorBg || "#ffffff";
     if ($("lblColorBorder")) $("lblColorBorder").value = cfg.colorBorder || "#cbd5e1";
+    if ($("lblPromoBgColor")) $("lblPromoBgColor").value = cfg.promoBgColor || "#fef2f2";
     if ($("lblFont")) $("lblFont").value = cfg.font || "'Inter', sans-serif";
     if ($("lblFontSizeName")) $("lblFontSizeName").value = cfg.fontSizeName || 10;
     if ($("lblFontSizeDesc")) $("lblFontSizeDesc").value = cfg.fontSizeDesc || 8;
+    if ($("lblFontSizeCurrency")) $("lblFontSizeCurrency").value = cfg.fontSizeCurrency || 10;
     if ($("lblFontSizePrice")) $("lblFontSizePrice").value = cfg.fontSizePrice || 20;
     if ($("lblMarginPage")) $("lblMarginPage").value = cfg.marginPage || 10;
     if ($("lblShowDesc")) $("lblShowDesc").value = cfg.showDesc ? "yes" : "no";
@@ -2322,6 +2367,7 @@
         desc: String(p?.desc || "").trim(),
         nameKey: String(p?.nameKey || normKey(p?.name || "")),
         price: Number(p?.price),
+        oldPrice: p?.oldPrice ? Number(p?.oldPrice) : null,
         updatedAtHuman: p?.updatedAtHuman || "",
         updatedBy: p?.updatedBy || ""
       }))
@@ -2330,12 +2376,14 @@
     products.sort((a,b)=>a.name.localeCompare(b.name));
     productsIndex = new Map(products.map(p=>[p.nameKey, p]));
   }
-  async function upsertProduct(name, price, desc=""){
+  async function upsertProduct(name, price, desc="", oldPrice=null){
     if (!canManagePrices()) throw new Error("Sem permissão.");
     name = String(name||"").trim();
     if (!name) throw new Error("Nome do produto vazio.");
     const p = parsePriceBR(price);
     if (p == null) throw new Error("Preço inválido.");
+    
+    const op = oldPrice ? parsePriceBR(oldPrice) : null;
 
     const key = normKey(name);
     let id = editingProductId || "";
@@ -2358,6 +2406,7 @@
       desc: String(desc || "").trim(),
       nameKey: key,
       price: p,
+      oldPrice: op,
       updatedAtHuman: nowHuman(),
       updatedBy: currentUser
     });
@@ -2389,11 +2438,13 @@
     if (isGer) {
       $("prodNameGer").value = p.name;
       $("prodDescGer").value = p.desc || "";
+      $("prodOldPriceGer").value = p.oldPrice ? p.oldPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "";
       $("prodPriceGer").value = p.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
       $("prodNameGer").focus();
     } else {
       $("prodNameEmp").value = p.name;
       $("prodDescEmp").value = p.desc || "";
+      $("prodOldPriceEmp").value = p.oldPrice ? p.oldPrice.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "";
       $("prodPriceEmp").value = p.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
       $("prodNameEmp").focus();
     }
@@ -3743,10 +3794,12 @@
     try{
       const name = $("prodNameGer").value;
       const desc = $("prodDescGer").value;
+      const oldPrice = $("prodOldPriceGer").value;
       const price = $("prodPriceGer").value;
-      await upsertProduct(name, price, desc);
+      await upsertProduct(name, price, desc, oldPrice);
       $("prodNameGer").value = "";
       $("prodDescGer").value = "";
+      $("prodOldPriceGer").value = "";
       $("prodPriceGer").value = "";
       toast("Produto salvo.");
     } catch(e){
@@ -3758,10 +3811,12 @@
     try{
       const name = $("prodNameEmp").value;
       const desc = $("prodDescEmp").value;
+      const oldPrice = $("prodOldPriceEmp").value;
       const price = $("prodPriceEmp").value;
-      await upsertProduct(name, price, desc);
+      await upsertProduct(name, price, desc, oldPrice);
       $("prodNameEmp").value = "";
       $("prodDescEmp").value = "";
+      $("prodOldPriceEmp").value = "";
       $("prodPriceEmp").value = "";
       toast("Produto salvo.");
     } catch(e){
@@ -4231,12 +4286,16 @@ function printProductLabels() {
   const lWidth = lc.width || 3;
   const lHeight = lc.height || 6;
   const lCols = lc.cols || 6;
+  const lColorName = lc.colorName || "#1e293b";
+  const lColorDesc = lc.colorDesc || "#64748b";
   const lColorPrice = lc.colorPrice || "#0c4a6e";
   const lColorBg = lc.colorBg || "#ffffff";
   const lColorBorder = lc.colorBorder || "#cbd5e1";
+  const lPromoBgColor = lc.promoBgColor || "#fef2f2";
   const lFont = lc.font || "'Inter', sans-serif";
   const lFontSizeName = lc.fontSizeName || 10;
   const lFontSizeDesc = lc.fontSizeDesc || 8;
+  const lFontSizeCurrency = lc.fontSizeCurrency || 10;
   const lFontSizePrice = lc.fontSizePrice || 20;
   const lMarginPage = lc.marginPage || 10;
   const lShowDesc = !!lc.showDesc;
@@ -4292,41 +4351,54 @@ function printProductLabels() {
         position: relative;
         overflow: hidden;
       }
+      .label.promo {
+        background: ${lPromoBgColor};
+        border-color: #ef4444;
+        border-width: 2px;
+      }
       .name {
         font-size: ${lFontSizeName}pt;
-        font-weight: 600;
-        color: #1e293b;
+        font-weight: 700;
+        color: ${lColorName};
         line-height: 1.1;
         margin-bottom: 1mm;
         overflow: hidden;
         width: 100%;
+        text-transform: uppercase;
       }
       .desc {
         font-size: ${lFontSizeDesc}pt;
         font-weight: 400;
-        color: #64748b;
-        margin-bottom: 2mm;
+        color: ${lColorDesc};
+        margin-bottom: 1.5mm;
         line-height: 1.1;
         width: 100%;
         display: ${lShowDesc ? 'block' : 'none'};
+      }
+      .old-price {
+        font-size: 7pt;
+        color: #ef4444;
+        text-decoration: line-through;
+        font-weight: 600;
+        margin-bottom: -1mm;
       }
       .price-row {
         width: 100%;
         display: flex;
         align-items: baseline;
         justify-content: ${lPriceAlign === 'spread' ? 'space-between' : 'center'};
-        gap: 1mm;
+        gap: 0.5mm;
         color: ${lColorPrice};
       }
       .currency {
-        font-size: ${lFontSizePrice * 0.5}pt;
-        font-weight: 700;
+        font-size: ${lFontSizeCurrency}pt;
+        font-weight: 800;
         order: ${lCurrencyPos === 'left' ? 0 : 2};
       }
       .price {
         font-size: ${lFontSizePrice}pt;
         font-weight: 900;
-        letter-spacing: -0.5px;
+        letter-spacing: -1px;
         order: 1;
       }
       .qr-box {
@@ -4361,10 +4433,14 @@ function printProductLabels() {
     <div class="grid">
       ${products.map(p => {
         const valRaw = p.price.toLocaleString("pt-BR", { minimumFractionDigits:2, maximumFractionDigits:2 });
+        const oldValRaw = p.oldPrice ? p.oldPrice.toLocaleString("pt-BR", { minimumFractionDigits:2, maximumFractionDigits:2 }) : null;
+        const isPromo = !!p.oldPrice;
+        
         return `
-        <div class="label">
+        <div class="label ${isPromo ? 'promo' : ''}">
           <div class="name">${p.name}</div>
           <div class="desc">${p.desc || ''}</div>
+          ${isPromo ? `<div class="old-price">De: R$ ${oldValRaw}</div>` : ''}
           <div class="price-row">
             <span class="currency">R$</span>
             <span class="price">${valRaw}</span>
