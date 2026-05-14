@@ -4332,17 +4332,18 @@ function printProductLabels() {
       .grid {
         display: grid;
         grid-template-columns: repeat(${lCols}, 1fr);
-        gap: 2mm;
+        gap: 1.5mm;
+        width: 100%;
       }
       .label {
-        border: 1px solid ${lColorBorder};
+        border: 1.5px solid ${lColorBorder};
         background: ${lColorBg};
-        border-radius: 4px;
-        padding: 2mm;
+        border-radius: 6px;
+        padding: 3mm 2mm;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         text-align: center;
         height: ${lHeight}cm;
         width: 100%;
@@ -4354,33 +4355,54 @@ function printProductLabels() {
       .label.promo {
         background: ${lPromoBgColor};
         border-color: #ef4444;
-        border-width: 2px;
+        border-width: 2.5px;
+      }
+      .content-top {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 100%;
+        overflow: hidden;
+        margin-bottom: 1mm;
       }
       .name {
         font-size: ${lFontSizeName}pt;
-        font-weight: 700;
+        font-weight: 800;
         color: ${lColorName};
         line-height: 1.1;
-        margin-bottom: 1mm;
-        overflow: hidden;
+        margin-bottom: 0.5mm;
         width: 100%;
         text-transform: uppercase;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
       .desc {
         font-size: ${lFontSizeDesc}pt;
         font-weight: 400;
         color: ${lColorDesc};
-        margin-bottom: 1.5mm;
         line-height: 1.1;
         width: 100%;
-        display: ${lShowDesc ? 'block' : 'none'};
+        display: ${lShowDesc ? '-webkit-box' : 'none'};
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .price-area {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
       }
       .old-price {
         font-size: 7pt;
         color: #ef4444;
         text-decoration: line-through;
         font-weight: 600;
-        margin-bottom: -1mm;
+        margin-bottom: -0.5mm;
       }
       .price-row {
         width: 100%;
@@ -4398,8 +4420,9 @@ function printProductLabels() {
       .price {
         font-size: ${lFontSizePrice}pt;
         font-weight: 900;
-        letter-spacing: -1px;
+        letter-spacing: -1.5px;
         order: 1;
+        line-height: 1;
       }
       .qr-box {
         margin-top: 1mm;
@@ -4438,17 +4461,21 @@ function printProductLabels() {
         
         return `
         <div class="label ${isPromo ? 'promo' : ''}">
-          <div class="name">${p.name}</div>
-          <div class="desc">${p.desc || ''}</div>
-          ${isPromo ? `<div class="old-price">De: R$ ${oldValRaw}</div>` : ''}
-          <div class="price-row">
-            <span class="currency">R$</span>
-            <span class="price">${valRaw}</span>
+          <div class="content-top">
+            <div class="name">${p.name}</div>
+            <div class="desc">${p.desc || ''}</div>
           </div>
-          ${lShowQR ? `
-          <div class="qr-box">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=40x40&data=${encodeURIComponent(p.name + ' ' + formatBRL(p.price))}" width="40" height="40" />
-          </div>` : ''}
+          <div class="price-area">
+            ${isPromo ? `<div class="old-price">De: R$ ${oldValRaw}</div>` : ''}
+            <div class="price-row">
+              <span class="currency">R$</span>
+              <span class="price">${valRaw}</span>
+            </div>
+            ${lShowQR ? `
+            <div class="qr-box">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=40x40&data=${encodeURIComponent(p.name + ' ' + formatBRL(p.price))}" width="40" height="40" />
+            </div>` : ''}
+          </div>
         </div>`;
       }).join("")}
     </div>
