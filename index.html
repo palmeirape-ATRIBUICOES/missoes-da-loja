@@ -445,7 +445,7 @@
     <div class="flex gap-2">
       <button id="btnPrintPrices"
         class="text-sm bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded">
-        Exportar etiquetas 4x6cm
+        Exportar etiquetas (PDF)
       </button>
       <button id="btnTogglePricesGer"
         class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
@@ -798,15 +798,70 @@
       <p class="text-xs text-gray-500 mt-2" id="qrUrl"></p>
       <button id="btnPrintQR" class="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">🖨️ Imprimir Cartaz QR</button>
     </div>
-
-    <div class="mt-6 border-t pt-4">
-      <h4 class="text-sm font-bold mb-2">Mensagens recentes:</h4>
-      <div id="feedbackList" class="space-y-2 max-h-[60vh] overflow-auto">
-        <div class="text-gray-500">Carregando...</div>
-      </div>
+    <div id="feedbackList" class="mt-4 space-y-3">
+      <div class="text-gray-500">Carregando...</div>
     </div>
   </div>
   </div> <!-- /panel feedback -->
+
+  <!-- PANEL: CONFIG -->
+  <div class="ger-panel" data-panel="config">
+    <div class="bg-white p-4 rounded-xl shadow mb-4">
+      <h3 class="font-semibold mb-2">⚙️ Configurações das Etiquetas</h3>
+      <p class="text-xs text-gray-500 mb-4">Personalize o formato, cores e fontes das etiquetas de preço.</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Largura (cm)</label>
+          <input id="lblWidth" type="number" step="0.1" class="w-full border rounded p-2" value="3" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Altura (cm)</label>
+          <input id="lblHeight" type="number" step="0.1" class="w-full border rounded p-2" value="6" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Colunas na folha</label>
+          <input id="lblCols" type="number" class="w-full border rounded p-2" value="6" />
+        </div>
+        
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Cor do Preço</label>
+          <input id="lblColorPrice" type="color" class="w-full h-10 border rounded p-1" value="#0c4a6e" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Cor do Fundo</label>
+          <input id="lblColorBg" type="color" class="w-full h-10 border rounded p-1" value="#ffffff" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Cor da Borda</label>
+          <input id="lblColorBorder" type="color" class="w-full h-10 border rounded p-1" value="#cbd5e1" />
+        </div>
+
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Fonte</label>
+          <select id="lblFont" class="w-full border rounded p-2">
+            <option value="'Inter', sans-serif">Inter (Padrão)</option>
+            <option value="'Roboto', sans-serif">Roboto</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Oswald', sans-serif">Oswald</option>
+            <option value="'Courier New', Courier, monospace">Mono</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Tamanho Nome (pt)</label>
+          <input id="lblFontSizeName" type="number" class="w-full border rounded p-2" value="10" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Tamanho Preço (pt)</label>
+          <input id="lblFontSizePrice" type="number" class="w-full border rounded p-2" value="20" />
+        </div>
+      </div>
+
+      <button id="btnSaveLabelConfig" class="w-full bg-blue-600 text-white font-bold p-3 rounded-xl mt-6 shadow-lg hover:scale-[1.01] transition-all">
+        SALVAR CONFIGURAÇÃO DE ETIQUETAS
+      </button>
+    </div>
+  </div>
 
   <!-- PANEL: NOVO SISTEMA -->
   <div class="ger-panel" data-panel="novo_sistema">
@@ -831,99 +886,77 @@
       </div>
     </div>
   </div>
-
-  <!-- PANEL: CONFIG -->
-  <div class="ger-panel" data-panel="config">
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <h3 class="font-semibold mb-2">⚠️ Ações Perigosas</h3>
-    <p class="text-xs text-gray-500 mb-3">Estas ações apagam dados permanentemente.</p>
-    <p class="text-xs text-gray-500">
-      PIN mestre inicial do gerente: <b>1234</b> só se o gerente ainda não tiver PIN criado.
-    </p>
-  </div>
-  </div> <!-- /panel config -->
 </section>
 
 <!-- Toast (sem alert bugado) -->
-<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[999] hidden">
-  <div id="toastBox" class="bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-2">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-    </svg>
-    <span class="text-sm font-bold tracking-tight">Sucesso!</span>
-  </div>
+<div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 hidden z-50">
+  <div id="toastBox" class="bg-gray-900 text-white px-4 py-3 rounded-xl shadow-lg text-sm"></div>
 </div>
 
-<!-- Modal Feedback para o cliente -->
-<div id="feedbackForm" class="hidden bg-gray-100 min-h-screen">
-  <div class="max-w-xl mx-auto p-4 pt-8">
-    <div class="fb-card p-6 rounded-2xl shadow-xl">
-      <div class="text-center mb-6">
-        <div class="w-16 h-16 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-          </svg>
+<!-- FEEDBACK FORM (cliente) -->
+<section id="feedbackForm" class="hidden">
+  <div style="background:linear-gradient(135deg,#f8fafc,#e2e8f0);min-height:100vh;padding:16px">
+    <div style="max-width:480px;margin:0 auto;padding-top:24px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="width:64px;height:64px;margin:0 auto 12px;background:linear-gradient(135deg,#6366f1,#818cf8);border-radius:16px;display:flex;align-items:center;justify-content:center">
+          <span style="font-size:32px">🍞</span>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900">Fale Conosco</h1>
-        <p class="fb-sub text-sm">Sua opinião é muito importante para nós!</p>
+        <h1 style="font-size:1.5rem;font-weight:800;color:#1e293b;margin:0">Padaria MANÁ DE DEUS</h1>
+        <p class="fb-sub" style="margin-top:8px;font-size:1.1rem;font-weight:700;color:#6366f1">Fale Conosco</p>
+        <p class="fb-sub" style="margin-top:4px;font-size:0.9rem">Sua opinião é muito importante para nós</p>
       </div>
-
-      <div class="space-y-4">
-        <div>
+      <div class="fb-card" style="border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
+        <div style="margin-bottom:16px">
           <label class="fb-label">Assunto *</label>
-          <select id="fbCategory" class="w-full border p-3 rounded-xl">
+          <select id="fbCategory" style="width:100%;padding:12px;border-radius:10px;font-size:1rem">
             <option value="">Selecione...</option>
-            <option value="elogio">⭐ Elogio</option>
-            <option value="sugestao">💡 Sugestão</option>
             <option value="atendimento">😊 Atendimento</option>
             <option value="produtos">📦 Produtos</option>
             <option value="reclamacao">😤 Reclamação</option>
+            <option value="sugestao">💡 Sugestão</option>
+            <option value="elogio">⭐ Elogio</option>
             <option value="outro">📝 Outro</option>
           </select>
         </div>
-
-        <div>
-          <label class="fb-label">Sua Mensagem *</label>
-          <textarea id="fbMessage" class="w-full border p-3 rounded-xl h-32" placeholder="Como podemos melhorar?"></textarea>
+        <div style="margin-bottom:16px">
+          <label class="fb-label">Mensagem *</label>
+          <textarea id="fbMessage" rows="4" style="width:100%;padding:12px;border-radius:10px;font-size:1rem;resize:vertical" placeholder="Conte-nos como foi sua experiência..."></textarea>
         </div>
-
-        <div>
-          <label class="fb-label">Seu Nome (Opcional)</label>
-          <input id="fbName" class="w-full border p-3 rounded-xl" placeholder="Ex: Maria Silva" />
+        <div style="margin-bottom:16px">
+          <label class="fb-label">Foto (opcional)</label>
+          <input type="file" id="fbPhoto" accept="image/*" capture="environment" style="width:100%;padding:10px;border-radius:10px;font-size:0.9rem" />
         </div>
-
-        <div>
-          <label class="fb-label">WhatsApp para Retorno (Opcional)</label>
-          <input id="fbPhone" class="w-full border p-3 rounded-xl" placeholder="(00) 00000-0000" />
-        </div>
-
-        <div>
-          <label class="fb-label">Anexar Foto (Opcional)</label>
-          <input id="fbPhoto" type="file" accept="image/*" class="w-full border p-3 rounded-xl text-sm" />
-        </div>
-
-        <button id="btnSubmitFeedback" class="fb-btn mt-4">ENVIAR FEEDBACK</button>
-
-        <div id="fbThankYou" class="hidden flex-col items-center justify-center p-8 text-center animate-bounce">
-          <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-green-600" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+          <div>
+            <label class="fb-label" style="font-weight:400;color:#6b7280 !important">Nome (opcional)</label>
+            <input id="fbName" style="width:100%;padding:12px;border-radius:10px" placeholder="Seu nome" />
           </div>
-          <h2 class="text-xl font-bold text-gray-900">Obrigado!</h2>
-          <p class="text-gray-600">Sua mensagem foi enviada com sucesso.</p>
+          <div>
+            <label class="fb-label" style="font-weight:400;color:#6b7280 !important">Telefone (opcional)</label>
+            <input id="fbPhone" inputmode="tel" style="width:100%;padding:12px;border-radius:10px" placeholder="(xx) xxxxx-xxxx" />
+          </div>
         </div>
+        <button id="btnSubmitFeedback" class="fb-btn">Enviar Feedback</button>
       </div>
+      <p style="text-align:center;font-size:0.7rem;color:#9ca3af;margin-top:16px">🔒 Suas informações são tratadas com sigilo • Padaria MANÁ DE DEUS</p>
     </div>
-    <div class="text-center mt-8 text-gray-400 text-xs">Missões da Loja — Sistema de Gestão</div>
   </div>
-</div>
+  <div id="fbThankYou" class="hidden" style="position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:linear-gradient(135deg,#f8fafc,#e2e8f0)">
+    <div style="text-align:center;padding:32px">
+      <div style="font-size:72px;margin-bottom:16px">✅</div>
+      <h2 style="font-size:1.5rem;font-weight:800;color:#1e293b">Obrigado!</h2>
+      <p style="color:#4b5563;margin-top:8px">Seu feedback foi enviado com sucesso.</p>
+      <p style="color:#6366f1;margin-top:12px;font-weight:600">Padaria MANÁ DE DEUS agradece sua opinião!</p>
+      <p style="color:#9ca3af;margin-top:16px;font-size:0.8rem">Você pode fechar esta página.</p>
+    </div>
+  </div>
+</section>
 
 <script type="module">
   // =========================
   // ✅ ANTI-CACHE (PWA / SW)
   // =========================
-  const BUILD_ID = "2026-02-21-full-2";
+  const BUILD_ID = "2026-04-30-fix-rules";
   console.log("BUILD_ID", BUILD_ID);
 
   try {
@@ -993,7 +1026,7 @@
   };
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+  import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
   import {
     getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc,
     onSnapshot, query, orderBy, limit, serverTimestamp, increment,
@@ -1003,17 +1036,28 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // ✅ AUTH anônimo (necessário para rules: request.auth != null)
+  // ✅ AUTH anônimo robusto (aguarda o estado do Firebase)
   const auth = getAuth(app);
-  async function ensureAuth(){
-    try{
-      // Se já estiver autenticado, o Firebase mantém a sessão.
-      await signInAnonymously(auth);
-      console.log("AUTH OK (anonymous)");
-    } catch(e){
-      console.error("AUTH FAIL:", e);
-      throw e;
-    }
+  function ensureAuth() {
+    return new Promise((resolve, reject) => {
+      console.log("Iniciando autenticação...");
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          console.log("AUTH OK (uid: " + user.uid + ")");
+          unsubscribe();
+          resolve(user);
+        }
+      });
+      signInAnonymously(auth).catch(e => {
+        console.error("Erro no signInAnonymously:", e);
+        reject(e);
+      });
+      // Timeout de segurança
+      setTimeout(() => {
+        unsubscribe();
+        reject(new Error("Tempo esgotado ao tentar autenticar."));
+      }, 10000);
+    });
   }
 
 
@@ -1429,15 +1473,20 @@
   }
 
   // ===== Captura erros que travam o módulo (para não ficar "Carregando...") =====
-  function fatal(msg, err){
-    console.error("FATAL:", msg, err || "");
-    showLoginError(msg + (err?.message ? (" | " + err.message) : ""));
-    const sel = $("userSelect");
-    if (sel){
-      sel.innerHTML = "";
-      sel.appendChild(new Option("Erro ao carregar (abra o console)", ""));
+  function fatal(msg, err) {
+    console.error("FATAL ERROR:", msg, err);
+    let extra = "";
+    if (err?.message?.includes("permissions") || err?.message?.includes("PERMISSION_DENIED")) {
+      extra = "<br><br><b style='color:yellow'>AÇÃO NECESSÁRIA:</b> As regras do banco de dados (Firestore) estão bloqueando o acesso. Eu já tentei atualizar as regras automaticamente. Se o erro persistir, aguarde 1 minuto e recarregue a página.";
     }
-    toast("Erro ao carregar. Veja o console.");
+    showLoginError(msg + (err?.message ? (" | " + err.message) : "") + extra + `<br><br><button onclick="window.location.reload()" class="bg-white text-red-600 px-4 py-1 rounded font-bold mt-2">RECARREGAR PÁGINA</button>`);
+    
+    const sel = $("userSelect");
+    if (sel) {
+      sel.innerHTML = "";
+      sel.appendChild(new Option("Erro ao conectar no Firebase", ""));
+    }
+    toast("Erro crítico de permissão.");
   }
   window.addEventListener("error", (e)=> fatal("Erro no app.", e?.error || e));
   window.addEventListener("unhandledrejection", (e)=> fatal("Falha ao conectar no banco.", e?.reason || e));
@@ -1448,6 +1497,55 @@
     updateTopBar();
   }
   function isValidPin(p){ return /^[0-9]{4}$/.test(String(p || "")); }
+  // ETIQUETAS
+  let labelConfig = {
+    width: 3,
+    height: 6,
+    cols: 6,
+    colorPrice: "#0c4a6e",
+    colorBg: "#ffffff",
+    colorBorder: "#cbd5e1",
+    font: "'Inter', sans-serif",
+    fontSizeName: 10,
+    fontSizePrice: 20
+  };
+
+  async function saveLabelConfig() {
+    if (!isManager()) return toast("Apenas o gerente.");
+    const cfg = {
+      width: Number($("lblWidth").value) || 3,
+      height: Number($("lblHeight").value) || 6,
+      cols: Number($("lblCols").value) || 6,
+      colorPrice: $("lblColorPrice").value,
+      colorBg: $("lblColorBg").value,
+      colorBorder: $("lblColorBorder").value,
+      font: $("lblFont").value,
+      fontSizeName: Number($("lblFontSizeName").value) || 10,
+      fontSizePrice: Number($("lblFontSizePrice").value) || 20,
+      updatedAt: serverTimestamp()
+    };
+    try {
+      await setDoc(cfgLabelsRef(), cfg);
+      toast("Configuração de etiquetas salva!");
+    } catch(e) {
+      console.error(e);
+      toast("Erro ao salvar configuração.");
+    }
+  }
+
+  function hydrateLabelUI(cfg) {
+    if (!cfg) return;
+    if ($("lblWidth")) $("lblWidth").value = cfg.width || 3;
+    if ($("lblHeight")) $("lblHeight").value = cfg.height || 6;
+    if ($("lblCols")) $("lblCols").value = cfg.cols || 6;
+    if ($("lblColorPrice")) $("lblColorPrice").value = cfg.colorPrice || "#0c4a6e";
+    if ($("lblColorBg")) $("lblColorBg").value = cfg.colorBg || "#ffffff";
+    if ($("lblColorBorder")) $("lblColorBorder").value = cfg.colorBorder || "#cbd5e1";
+    if ($("lblFont")) $("lblFont").value = cfg.font || "'Inter', sans-serif";
+    if ($("lblFontSizeName")) $("lblFontSizeName").value = cfg.fontSizeName || 10;
+    if ($("lblFontSizePrice")) $("lblFontSizePrice").value = cfg.fontSizePrice || 20;
+  }
+
   function nowHuman(){ return new Date().toLocaleString(); }
   function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
   function normalizeName(name){ return String(name||"").trim().replace(/\s+/g," "); }
@@ -1517,6 +1615,7 @@
   const cfgAppRef  = () => doc(db,"stores",STORE_ID,"config","app");
   const cfgGlobalTplRef = () => doc(db,"stores",STORE_ID,"config","global_templates");
   const cfgProductsRef = () => doc(db,"stores",STORE_ID,"config","products");
+  const cfgLabelsRef = () => doc(db,"stores",STORE_ID,"config","labels");
   const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
   const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
@@ -3447,6 +3546,8 @@
     }
   });
 
+  $("btnSaveLabelConfig")?.addEventListener("click", saveLabelConfig);
+
   // ===== Logout =====
   $("btnLogout1").addEventListener("click", doLogout);
   $("btnLogout2").addEventListener("click", doLogout);
@@ -3735,12 +3836,29 @@
         if (isManager()) renderFeedbackList();
       });
 
+      // ✅ LABELS config
+      onSnapshot(cfgLabelsRef(), (snap) => {
+        if (snap.exists()) {
+          labelConfig = snap.data();
+          hydrateLabelUI(labelConfig);
+        }
+      });
+
       // ✅ NEW PRODUCTS Watcher
       onSnapshot(query(colNewProducts(), orderBy("createdAt", "desc")), (qs) => {
         newProductsAll = qs.docs.map(d => ({ id: d.id, ...d.data() }));
         renderNewProdsList();
       });
-      
+    } catch(e){
+      fatal("Erro ao iniciar sincronização.", e);
+    }
+  }
+      const fbQ = query(colFeedback(), orderBy("createdAt","desc"), limit(200));
+      onSnapshot(fbQ, (qs)=>{
+        feedbackAll = qs.docs.map(d=>({ id:d.id, ...d.data() }));
+        if (isManager()) renderFeedbackList();
+      });
+
       // setup tabs
       setupGerTabs();
 
@@ -3842,11 +3960,23 @@ function printProductLabels() {
   const today = new Date().toLocaleDateString("pt-BR");
   const win = window.open("", "_blank");
 
+  // Configs dinâmicas
+  const lc = labelConfig || {};
+  const lWidth = lc.width || 3;
+  const lHeight = lc.height || 6;
+  const lCols = lc.cols || 6;
+  const lColorPrice = lc.colorPrice || "#0c4a6e";
+  const lColorBg = lc.colorBg || "#ffffff";
+  const lColorBorder = lc.colorBorder || "#cbd5e1";
+  const lFont = lc.font || "'Inter', sans-serif";
+  const lFontSizeName = lc.fontSizeName || 10;
+  const lFontSizePrice = lc.fontSizePrice || 20;
+
   const html = `
   <html>
   <head>
     <title>Etiquetas - ${storeName}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Roboto:wght@400;700&family=Montserrat:wght@400;700&family=Oswald:wght@400;700&display=swap" rel="stylesheet">
     <style>
       @page {
         size: A4 portrait;
@@ -3854,11 +3984,9 @@ function printProductLabels() {
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
-        font-family: 'Inter', sans-serif;
+        font-family: ${lFont};
         background: #fff;
         color: #111;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -3872,54 +4000,40 @@ function printProductLabels() {
       .header p { font-size: 9pt; color: #64748b; margin-top: 2mm; }
       .grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 4mm;
+        grid-template-columns: repeat(${lCols}, 1fr);
+        gap: 2mm;
       }
       .label {
-        border: 1.5px solid #cbd5e1;
-        border-radius: 8px;
-        padding: 5mm 4mm;
+        border: 1px solid ${lColorBorder};
+        background: ${lColorBg};
+        border-radius: 4px;
+        padding: 2mm;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         text-align: center;
-        height: 35mm;
+        height: ${lHeight}cm;
+        width: 100%;
         page-break-inside: avoid;
         break-inside: avoid;
         position: relative;
         overflow: hidden;
       }
-      .label::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, #6366f1, #818cf8, #6366f1);
-      }
       .name {
-        font-size: 10pt;
+        font-size: ${lFontSizeName}pt;
         font-weight: 600;
         color: #1e293b;
-        line-height: 1.2;
-        margin-bottom: 3mm;
-        max-height: 14mm;
+        line-height: 1.1;
+        margin-bottom: 1mm;
         overflow: hidden;
       }
-      .price-box {
-        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-        border: 1px solid #bae6fd;
-        border-radius: 6px;
-        padding: 2mm 5mm;
-        display: inline-block;
-      }
       .price {
-        font-size: 20pt;
+        font-size: ${lFontSizePrice}pt;
         font-weight: 900;
-        color: #0c4a6e;
+        color: ${lColorPrice};
         letter-spacing: -0.5px;
       }
-      .cents { font-size: 12pt; font-weight: 700; }
       .footer {
         margin-top: 5mm;
         padding-top: 3mm;
@@ -3951,9 +4065,7 @@ function printProductLabels() {
         return `
         <div class="label">
           <div class="name">${p.name}</div>
-          <div class="price-box">
-            <span class="price">${val}</span>
-          </div>
+          <div class="price">${val}</div>
         </div>`;
       }).join("")}
     </div>
