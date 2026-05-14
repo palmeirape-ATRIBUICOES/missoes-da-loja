@@ -239,6 +239,86 @@
       </div>
     </div>
   </div>
+  
+  <!-- Cadastro Novo Sistema -->
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <div class="flex items-center justify-between gap-2">
+      <div>
+        <h2 class="text-lg font-semibold">📦 Cadastro de Produtos (Novo Sistema)</h2>
+        <p class="text-xs text-gray-500">Cadastre aqui para alimentar o novo sistema da loja</p>
+      </div>
+      <button id="btnToggleNewProdForm" class="text-sm bg-blue-600 text-white px-3 py-2 rounded">
+        Abrir Formulário
+      </button>
+    </div>
+
+    <div id="newProdFormWrap" class="hidden mt-4 border-t pt-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Nome do Produto *</label>
+          <input id="npName" class="w-full border rounded p-2" placeholder="Ex: Coca-Cola 2L" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Categoria</label>
+          <input id="npCategory" class="w-full border rounded p-2" placeholder="Ex: Bebidas" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Código de Barras / SKU</label>
+          <input id="npCode" class="w-full border rounded p-2" placeholder="789..." />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Preço Unitário *</label>
+          <input id="npPrice" type="number" step="0.01" class="w-full border rounded p-2" placeholder="0,00" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Custo Unitário</label>
+          <input id="npCost" type="number" step="0.01" class="w-full border rounded p-2" placeholder="0,00" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Preço Promocional</label>
+          <input id="npPromoPrice" type="number" step="0.01" class="w-full border rounded p-2" placeholder="0,00" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="text-xs font-bold text-gray-600 block mb-1">Descrição</label>
+          <textarea id="npDescription" class="w-full border rounded p-2 h-20" placeholder="Detalhes do produto..."></textarea>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="npDisplay" checked class="w-4 h-4" />
+          <label for="npDisplay" class="text-xs font-bold text-gray-600">Exibir no catálogo</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="npHighlight" class="w-4 h-4" />
+          <label for="npHighlight" class="text-xs font-bold text-gray-600">Destacar</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="npFractioned" class="w-4 h-4" />
+          <label for="npFractioned" class="text-xs font-bold text-gray-600">Fracionado?</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="npTrackStock" class="w-4 h-4" />
+          <label for="npTrackStock" class="text-xs font-bold text-gray-600">Controlar estoque</label>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Estoque Atual</label>
+          <input id="npStockCurrent" type="number" step="0.1" class="w-full border rounded p-2" placeholder="0" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Estoque Mínimo</label>
+          <input id="npStockMin" type="number" step="0.1" class="w-full border rounded p-2" placeholder="0" />
+        </div>
+      </div>
+
+      <button id="btnSaveNewProd" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-xl mt-6 shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
+        SALVAR PRODUTO NO SISTEMA
+      </button>
+    </div>
+  </div>
 
   <!-- Escala -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
@@ -348,6 +428,7 @@
     <button class="ger-tab" data-tab="listas">📝 Listas</button>
     <button class="ger-tab" data-tab="feedback">💬 Feedback</button>
     <button class="ger-tab" data-tab="config">⚙️ Config</button>
+    <button class="ger-tab" data-tab="novo_sistema">📊 Planilha</button>
   </div>
 
   <!-- PANEL: PRODUTOS -->
@@ -598,19 +679,31 @@
     </div>
   </div>
 
-  <div class="bg-white p-4 rounded-xl shadow">
-    <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
-    <div class="flex gap-2 mb-3 flex-wrap">
-      <button id="btnShareAllWhatsApp" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm flex items-center gap-1">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.584l-.386-.232-3.332 1.117 1.117-3.332-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-        Exportar tudo (WhatsApp)
-      </button>
-      <button id="btnDeleteAllTasksWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-        Excluir TODAS tarefas (semana)
-      </button>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div class="bg-white p-4 rounded-xl shadow">
+      <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
+      <div class="flex gap-2 mb-3 flex-wrap">
+        <button id="btnShareAllWhatsApp" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.584l-.386-.232-3.332 1.117 1.117-3.332-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          Exportar tudo (WhatsApp)
+        </button>
+        <button id="btnDeleteAllTasksWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+          Excluir TODAS tarefas (semana)
+        </button>
+      </div>
+      <div id="gerTasks" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
+      <p class="text-xs text-gray-500 mt-2">✅ Você pode marcar cada item como <b>Comprado</b> ou <b>Não tem</b> (marcados ficam por último).</p>
     </div>
-    <div id="gerTasks" class="text-sm space-y-3 max-h-[72vh] overflow-auto"></div>
-    <p class="text-xs text-gray-500 mt-2">✅ Você pode marcar cada item como <b>Comprado</b> ou <b>Não tem</b> (marcados ficam por último).</p>
+
+    <div class="bg-white p-4 rounded-xl shadow">
+      <h3 class="font-semibold mb-2">Itens em falta</h3>
+      <div class="flex gap-2 mb-3">
+        <button id="btnDeleteAllMissingWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+          Excluir TODAS faltas (semana)
+        </button>
+      </div>
+      <div id="gerMissing" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
+    </div>
   </div>
   </div> <!-- /panel tarefas -->
 
@@ -705,11 +798,39 @@
       <p class="text-xs text-gray-500 mt-2" id="qrUrl"></p>
       <button id="btnPrintQR" class="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">🖨️ Imprimir Cartaz QR</button>
     </div>
-    <div id="feedbackList" class="mt-4 space-y-3">
-      <div class="text-gray-500">Carregando...</div>
+
+    <div class="mt-6 border-t pt-4">
+      <h4 class="text-sm font-bold mb-2">Mensagens recentes:</h4>
+      <div id="feedbackList" class="space-y-2 max-h-[60vh] overflow-auto">
+        <div class="text-gray-500">Carregando...</div>
+      </div>
     </div>
   </div>
   </div> <!-- /panel feedback -->
+
+  <!-- PANEL: NOVO SISTEMA -->
+  <div class="ger-panel" data-panel="novo_sistema">
+    <div class="bg-white p-4 rounded-xl shadow mb-4">
+      <h3 class="font-semibold">Planilha Novo Sistema</h3>
+      <p class="text-xs text-gray-500 mb-4">Exporte os produtos cadastrados pelos funcionários para o formato compatível com o novo sistema.</p>
+      
+      <div class="flex gap-2 flex-wrap">
+        <button id="btnExportNewSystem" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-bold">
+          📥 BAIXAR PLANILHA (CSV)
+        </button>
+        <button id="btnDeleteAllNewProds" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm">
+          ⚠️ Limpar Todos os Cadastros
+        </button>
+      </div>
+      
+      <div class="mt-6 border-t pt-4">
+        <h4 class="text-sm font-bold mb-2">Produtos cadastrados recentemente:</h4>
+        <div id="newProdsList" class="space-y-2 max-h-[50vh] overflow-auto text-sm">
+           <div class="text-gray-500">Nenhum produto cadastrado ainda.</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- PANEL: CONFIG -->
   <div class="ger-panel" data-panel="config">
@@ -724,68 +845,79 @@
 </section>
 
 <!-- Toast (sem alert bugado) -->
-<div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 hidden z-50">
-  <div id="toastBox" class="bg-gray-900 text-white px-4 py-3 rounded-xl shadow-lg text-sm"></div>
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[999] hidden">
+  <div id="toastBox" class="bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+    </svg>
+    <span class="text-sm font-bold tracking-tight">Sucesso!</span>
+  </div>
 </div>
 
-<!-- FEEDBACK FORM (cliente) -->
-<section id="feedbackForm" class="hidden">
-  <div style="background:linear-gradient(135deg,#f8fafc,#e2e8f0);min-height:100vh;padding:16px">
-    <div style="max-width:480px;margin:0 auto;padding-top:24px">
-      <div style="text-align:center;margin-bottom:24px">
-        <div style="width:64px;height:64px;margin:0 auto 12px;background:linear-gradient(135deg,#6366f1,#818cf8);border-radius:16px;display:flex;align-items:center;justify-content:center">
-          <span style="font-size:32px">🍞</span>
+<!-- Modal Feedback para o cliente -->
+<div id="feedbackForm" class="hidden bg-gray-100 min-h-screen">
+  <div class="max-w-xl mx-auto p-4 pt-8">
+    <div class="fb-card p-6 rounded-2xl shadow-xl">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+          </svg>
         </div>
-        <h1 style="font-size:1.5rem;font-weight:800;color:#1e293b;margin:0">Padaria MANÁ DE DEUS</h1>
-        <p class="fb-sub" style="margin-top:8px;font-size:1.1rem;font-weight:700;color:#6366f1">Fale Conosco</p>
-        <p class="fb-sub" style="margin-top:4px;font-size:0.9rem">Sua opinião é muito importante para nós</p>
+        <h1 class="text-2xl font-bold text-gray-900">Fale Conosco</h1>
+        <p class="fb-sub text-sm">Sua opinião é muito importante para nós!</p>
       </div>
-      <div class="fb-card" style="border-radius:16px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
-        <div style="margin-bottom:16px">
+
+      <div class="space-y-4">
+        <div>
           <label class="fb-label">Assunto *</label>
-          <select id="fbCategory" style="width:100%;padding:12px;border-radius:10px;font-size:1rem">
+          <select id="fbCategory" class="w-full border p-3 rounded-xl">
             <option value="">Selecione...</option>
+            <option value="elogio">⭐ Elogio</option>
+            <option value="sugestao">💡 Sugestão</option>
             <option value="atendimento">😊 Atendimento</option>
             <option value="produtos">📦 Produtos</option>
             <option value="reclamacao">😤 Reclamação</option>
-            <option value="sugestao">💡 Sugestão</option>
-            <option value="elogio">⭐ Elogio</option>
             <option value="outro">📝 Outro</option>
           </select>
         </div>
-        <div style="margin-bottom:16px">
-          <label class="fb-label">Mensagem *</label>
-          <textarea id="fbMessage" rows="4" style="width:100%;padding:12px;border-radius:10px;font-size:1rem;resize:vertical" placeholder="Conte-nos como foi sua experiência..."></textarea>
+
+        <div>
+          <label class="fb-label">Sua Mensagem *</label>
+          <textarea id="fbMessage" class="w-full border p-3 rounded-xl h-32" placeholder="Como podemos melhorar?"></textarea>
         </div>
-        <div style="margin-bottom:16px">
-          <label class="fb-label">Foto (opcional)</label>
-          <input type="file" id="fbPhoto" accept="image/*" capture="environment" style="width:100%;padding:10px;border-radius:10px;font-size:0.9rem" />
+
+        <div>
+          <label class="fb-label">Seu Nome (Opcional)</label>
+          <input id="fbName" class="w-full border p-3 rounded-xl" placeholder="Ex: Maria Silva" />
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
-          <div>
-            <label class="fb-label" style="font-weight:400;color:#6b7280 !important">Nome (opcional)</label>
-            <input id="fbName" style="width:100%;padding:12px;border-radius:10px" placeholder="Seu nome" />
+
+        <div>
+          <label class="fb-label">WhatsApp para Retorno (Opcional)</label>
+          <input id="fbPhone" class="w-full border p-3 rounded-xl" placeholder="(00) 00000-0000" />
+        </div>
+
+        <div>
+          <label class="fb-label">Anexar Foto (Opcional)</label>
+          <input id="fbPhoto" type="file" accept="image/*" class="w-full border p-3 rounded-xl text-sm" />
+        </div>
+
+        <button id="btnSubmitFeedback" class="fb-btn mt-4">ENVIAR FEEDBACK</button>
+
+        <div id="fbThankYou" class="hidden flex-col items-center justify-center p-8 text-center animate-bounce">
+          <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-green-600" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
           </div>
-          <div>
-            <label class="fb-label" style="font-weight:400;color:#6b7280 !important">Telefone (opcional)</label>
-            <input id="fbPhone" inputmode="tel" style="width:100%;padding:12px;border-radius:10px" placeholder="(xx) xxxxx-xxxx" />
-          </div>
+          <h2 class="text-xl font-bold text-gray-900">Obrigado!</h2>
+          <p class="text-gray-600">Sua mensagem foi enviada com sucesso.</p>
         </div>
-        <button id="btnSubmitFeedback" class="fb-btn">Enviar Feedback</button>
       </div>
-      <p style="text-align:center;font-size:0.7rem;color:#9ca3af;margin-top:16px">🔒 Suas informações são tratadas com sigilo • Padaria MANÁ DE DEUS</p>
     </div>
+    <div class="text-center mt-8 text-gray-400 text-xs">Missões da Loja — Sistema de Gestão</div>
   </div>
-  <div id="fbThankYou" class="hidden" style="position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:linear-gradient(135deg,#f8fafc,#e2e8f0)">
-    <div style="text-align:center;padding:32px">
-      <div style="font-size:72px;margin-bottom:16px">✅</div>
-      <h2 style="font-size:1.5rem;font-weight:800;color:#1e293b">Obrigado!</h2>
-      <p style="color:#4b5563;margin-top:8px">Seu feedback foi enviado com sucesso.</p>
-      <p style="color:#6366f1;margin-top:12px;font-weight:600">Padaria MANÁ DE DEUS agradece sua opinião!</p>
-      <p style="color:#9ca3af;margin-top:16px;font-size:0.8rem">Você pode fechar esta página.</p>
-    </div>
-  </div>
-</section>
+</div>
 
 <script type="module">
   // =========================
@@ -1076,7 +1208,7 @@
       }
 
       div.innerHTML = `
-        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3"
+        <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
             <div class="flex items-center gap-2">
               <span class="text-sm font-semibold">${catLabels[fb.category] || fb.category}</span>
@@ -1158,6 +1290,130 @@
     }
     box.classList.remove("hidden");
     box.textContent = msg;
+  }
+
+  // ✅ NOVO SISTEMA DE PRODUTOS (Planilha)
+  let newProductsAll = [];
+  const colNewProducts = () => collection(db, "stores", STORE_ID, "new_products");
+
+  async function saveNewProduct() {
+    const name = $("npName").value.trim();
+    const price = $("npPrice").value.trim();
+    if (!name || !price) return toast("Nome e Preço são obrigatórios.");
+
+    const btn = $("btnSaveNewProd");
+    btn.disabled = true;
+    btn.innerText = "Salvando...";
+
+    try {
+      await addDoc(colNewProducts(), {
+        name,
+        category: $("npCategory").value.trim() || "Geral",
+        code: $("npCode").value.trim() || "-",
+        description: $("npDescription").value.trim() || "-",
+        cost: $("npCost").value.trim() || "0,00",
+        price: price,
+        promoPrice: $("npPromoPrice").value.trim() || "0,00",
+        display: $("npDisplay").checked ? "S" : "N",
+        highlight: $("npHighlight").checked ? "S" : "N",
+        fractioned: $("npFractioned").checked ? "S" : "N",
+        trackStock: $("npTrackStock").checked ? "S" : "N",
+        stockCurrent: $("npStockCurrent").value.trim() || "0",
+        stockMin: $("npStockMin").value.trim() || "0",
+        createdAt: serverTimestamp(),
+        createdBy: currentUser
+      });
+
+      toast("Produto salvo com sucesso!");
+      // Reset form
+      $("npName").value = "";
+      $("npPrice").value = "";
+      $("npCategory").value = "";
+      $("npCode").value = "";
+      $("npDescription").value = "";
+      $("npCost").value = "";
+      $("npPromoPrice").value = "";
+      $("npStockCurrent").value = "";
+      $("npStockMin").value = "";
+      $("npDisplay").checked = true;
+      $("npHighlight").checked = false;
+      $("npFractioned").checked = false;
+      $("npTrackStock").checked = false;
+      
+    } catch (e) {
+      console.error(e);
+      toast("Erro ao salvar produto.");
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "SALVAR PRODUTO NO SISTEMA";
+    }
+  }
+
+  function renderNewProdsList() {
+    const wrap = $("newProdsList");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+
+    if (!newProductsAll.length) {
+      wrap.innerHTML = '<div class="text-gray-500">Nenhum produto cadastrado ainda.</div>';
+      return;
+    }
+
+    newProductsAll.forEach(p => {
+      const div = document.createElement("div");
+      div.className = "border rounded p-2 bg-gray-50 flex justify-between items-center";
+      div.innerHTML = `
+        <div class="min-w-0">
+          <div class="font-bold truncate">${p.name}</div>
+          <div class="text-xs text-gray-500">R$ ${p.price} • ${p.category}</div>
+        </div>
+        <button data-del-np="${p.id}" class="text-red-600 font-bold p-1 px-2 hover:bg-red-50 rounded shrink-0">EXCLUIR</button>
+      `;
+      div.querySelector("[data-del-np]").onclick = async () => {
+        if (!confirm("Excluir este cadastro?")) return;
+        try {
+          await deleteDoc(doc(db, "stores", STORE_ID, "new_products", p.id));
+          toast("Excluído.");
+        } catch (e) { toast("Erro."); }
+      };
+      wrap.appendChild(div);
+    });
+  }
+
+  function exportNewSystemCSV() {
+    if (!newProductsAll.length) return toast("Nenhum produto para exportar.");
+    
+    // Headers conforme solicitado
+    const headers = [
+      "Nome*", "Categoria", "Código", "Descrição", "Custo unitário", 
+      "Preço unitário*", "Preço promocional", "Exibir no catálogo", 
+      "Destacar", "Fracionado?", "Controlar estoque", "Estoque atual", "Estoque mínimo"
+    ];
+
+    let csv = "\ufeff" + headers.join(";") + "\n"; // BOM for Excel + semicolon separator
+
+    newProductsAll.forEach(p => {
+      const row = [
+        p.name, p.category, p.code, p.description, p.cost, 
+        p.price, p.promoPrice, p.display, p.highlight, 
+        p.fractioned, p.trackStock, p.stockCurrent, p.stockMin
+      ];
+      const cleanRow = row.map(v => {
+        let s = String(v || "").replace(/;/g, ",").replace(/\n/g, " ");
+        return s;
+      });
+      csv += cleanRow.join(";") + "\n";
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `planilha_produtos_novo_sistema_${currentWeekKey}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast("Planilha baixada!");
   }
 
   function warnManager(msg){
@@ -2614,7 +2870,7 @@
       row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
       row.innerHTML = `
         <div class="min-w-0">
-          <div class="font-semibold break-words leading-5">${it.text || "-"}</div>
+          <div class="font-semibold truncate">${it.text || "-"}</div>
           <div class="text-xs text-gray-600">
             <span class="inline-flex items-center px-2 py-1 rounded border ${st.cls}">${st.text}</span>
             <span class="ml-2">${it.updatedAtHuman || ""}</span>
@@ -2677,7 +2933,7 @@
           div.innerHTML = `
             <div class="min-w-0">
               <div class="flex items-center gap-2">
-                <div class="font-semibold break-words leading-5">${g.name || "GLOBAL"}</div>
+                <div class="font-semibold truncate">${g.name || "GLOBAL"}</div>
                 ${status}
               </div>
               <div class="text-xs text-gray-600">Criada: ${g.createdAtHuman || "-"} • ${g.createdBy || "-"}${who}</div>
@@ -2742,15 +2998,15 @@
             const st = itensStatus?.[k] || "open";
             const sl = statusLabel(st);
             html += `
-              <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 border-b last:border-b-0 py-3">
+              <div class="flex items-center justify-between gap-2 border-b last:border-b-0 py-2">
                 <div class="min-w-0">
-                  <div class="text-sm text-gray-800 break-words leading-5">${k}</div>
+                  <div class="text-sm text-gray-800 truncate">${k}</div>
                   <div class="text-xs text-gray-600">
                     <span class="inline-flex items-center px-2 py-1 rounded border ${sl.cls}">${sl.text}</span>
                   </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 shrink-0 lg:justify-end">
-                  <div class="text-sm font-semibold whitespace-nowrap mr-1">Qtd ${q}</div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <div class="text-sm font-semibold whitespace-nowrap">Qtd ${q}</div>
                   <button data-task="${r.id}" data-item="${encodeURIComponent(k)}" data-action="bought"
                     class="px-2 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Comprado</button>
                   <button data-task="${r.id}" data-item="${encodeURIComponent(k)}" data-action="missing"
@@ -2793,6 +3049,39 @@
       });
     }
 
+    // faltas
+    const m = $("gerMissing");
+    m.innerHTML = "";
+    const mo = missingReports.slice(0, 350);
+    if (!mo.length){
+      m.innerHTML = "<p class='text-gray-500'>Nenhuma falta nesta semana.</p>";
+    } else {
+      mo.forEach((r)=>{
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 bg-gray-50";
+        div.innerHTML =
+          `<div class="flex items-start justify-between gap-2">
+            <div>
+              <div class='font-semibold'>${r.user}</div>
+              <div class='text-xs text-gray-600'>${(r.when || "")}</div>
+              <div class='text-sm mt-1'>${r.item}</div>
+            </div>
+            <button data-id="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
+          </div>`;
+        m.appendChild(div);
+
+        div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
+          if (!confirm("Excluir este item em falta?")) return;
+          try{
+            await deleteDoc(doc(db,"stores",STORE_ID,"missing", r.id));
+            toast("Falta excluída.");
+          } catch(e){
+            console.error(e);
+            toast("Erro ao excluir falta.");
+          }
+        });
+      });
+    }
   }
 
   // ===== Collapses (com callback) =====
@@ -3019,7 +3308,7 @@
       toast("Erro ao excluir tarefas.");
     }
   });
-  $("btnDeleteAllMissingWeek")?.addEventListener("click", async ()=>{
+  $("btnDeleteAllMissingWeek").addEventListener("click", async ()=>{
     if (!isManager()) return toast("Apenas o gerente.");
     if (!confirm("Excluir TODOS os itens em falta desta semana?")) return;
     try{
@@ -3053,8 +3342,34 @@
       await deleteGlobalsByWeek(currentWeekKey);
       toast("Semana zerada.");
     } catch(e){
-      console.error(e);
       toast("Erro ao zerar semana.");
+    }
+  });
+
+  // ===== NOVO SISTEMA (Handlers) =====
+  $("btnToggleNewProdForm")?.addEventListener("click", () => {
+    const wrap = $("newProdFormWrap");
+    const btn = $("btnToggleNewProdForm");
+    const isOpen = wrap.classList.toggle("hidden");
+    btn.innerText = isOpen ? "Abrir Formulário" : "Fechar Formulário";
+  });
+
+  $("btnSaveNewProd")?.addEventListener("click", saveNewProduct);
+
+  $("btnExportNewSystem")?.addEventListener("click", exportNewSystemCSV);
+
+  $("btnDeleteAllNewProds")?.addEventListener("click", async () => {
+    if (!isManager()) return toast("Apenas o gerente.");
+    if (!confirm("CUIDADO: Isso apagará TODOS os produtos cadastrados para o novo sistema. Tem certeza?")) return;
+    try {
+      const qs = await getDocs(colNewProducts());
+      const batch = writeBatch(db);
+      qs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+      toast("Todos os cadastros excluídos.");
+    } catch (e) {
+      console.error(e);
+      toast("Erro ao excluir cadastros.");
     }
   });
 
@@ -3415,13 +3730,17 @@
       renderRanking();
       updateTopBar();
 
-      // feedback watcher
-      const fbQ = query(colFeedback(), orderBy("createdAt","desc"), limit(200));
-      onSnapshot(fbQ, (qs)=>{
+      onSnapshot(query(colFeedback(), orderBy("createdAt","desc"), limit(200)), (qs)=>{
         feedbackAll = qs.docs.map(d=>({ id:d.id, ...d.data() }));
         if (isManager()) renderFeedbackList();
       });
 
+      // ✅ NEW PRODUCTS Watcher
+      onSnapshot(query(colNewProducts(), orderBy("createdAt", "desc")), (qs) => {
+        newProductsAll = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderNewProdsList();
+      });
+      
       // setup tabs
       setupGerTabs();
 
@@ -3538,6 +3857,8 @@ function printProductLabels() {
         font-family: 'Inter', sans-serif;
         background: #fff;
         color: #111;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
