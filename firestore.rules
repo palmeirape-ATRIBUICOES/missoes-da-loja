@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper: Usuário logado
+    function loggedIn() {
+      return request.auth != null;
+    }
+
+    match /stores/{storeId} {
+      // Permite leitura pública dos metadados da loja (necessário para inicializar o app)
+      allow read: if true;
+
+      // Configurações (funcionários, categorias, produtos, etc)
+      match /config/{document=**} {
+        allow read: if true;
+        allow write: if loggedIn();
+      }
+      
+      // Estado da aplicação (escalas, scores, etc)
+      match /state/{document=**} {
+        allow read: if true;
+        allow write: if loggedIn();
+      }
+      
+      // Metadados técnicos
+      match /meta/{document=**} {
+        allow read: if true;
+        allow write: if loggedIn();
+      }
+      
+      // Dados de usuários/PINs
+      match /users/{userId} {
+        allow read: if true;
+        allow write: if loggedIn();
+      }
+      
+      // Coleções operacionais
+      match /tasks/{id} { allow read, write: if loggedIn(); }
+      match /missing/{id} { allow read, write: if loggedIn(); }
+      match /globals/{id} { allow read, write: if loggedIn(); }
+      match /lists/{id} { allow read, write: if loggedIn(); }
+      match /feedback/{id} { allow read, write: if true; } // Feedback via QR code
+      match /new_products/{id} { allow read, write: if loggedIn(); }
+    }
+  }
+}
