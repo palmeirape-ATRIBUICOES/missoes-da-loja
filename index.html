@@ -1005,20 +1005,23 @@
   // =========================
   // ✅ ANTI-CACHE (PWA / SW)
   // =========================
-  const BUILD_ID = "2026-04-30-fix-rules";
+  const BUILD_ID = "2026-05-14-push-notif";
   console.log("BUILD_ID", BUILD_ID);
+  let swReg = null;
 
   try {
     if ("serviceWorker" in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      for (const r of regs) await r.unregister();
+      // Register SW for Messaging
+      swReg = await navigator.serviceWorker.register("firebase-messaging-sw.js");
+      console.log("Service Worker registrado para notificações.");
     }
+    // Anti-cache logic (optional)
     if ("caches" in window) {
       const keys = await caches.keys();
       for (const k of keys) await caches.delete(k);
     }
   } catch (e) {
-    console.warn("Anti-cache falhou (não é crítico):", e);
+    console.warn("Service Worker / Anti-cache falhou:", e);
   }
 
   // ====== PWA: Manifest + Icon ======
@@ -1081,6 +1084,7 @@
     onSnapshot, query, orderBy, limit, serverTimestamp, increment,
     deleteDoc, getDocs, writeBatch, where, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js";
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
@@ -1197,6 +1201,30 @@
       });
       setTimeout(()=> n.close(), 8000);
     } catch(e){ console.warn("Notif error:", e); }
+  }
+
+  // ✅ PUSH NOTIFICATIONS (App Fechado)
+  async function registerPushToken() {
+    if (!swReg || notifPermission !== "granted") return;
+    try {
+      const messaging = getMessaging(app);
+      // O VAPID KEY é necessário para Push com o app fechado.
+      // Você encontra no Console Firebase > Configurações do Projeto > Cloud Messaging > Certificados da Web
+      const token = await getToken(messaging, { 
+        vapidKey: "BMM_INSIRA_AQUI_SUA_CHAVE_VAPID_DO_FIREBASE_CONSOLE", 
+        serviceWorkerRegistration: swReg 
+      });
+      if (token) {
+        await setDoc(doc(db, "stores", STORE_ID, "tokens", currentUser), {
+          token: token,
+          user: currentUser,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        console.log("Token de Push registrado com sucesso.");
+      }
+    } catch (e) { 
+      console.warn("Erro ao obter token de push (VAPID key pode estar faltando):", e); 
+    }
   }
 
   let prevGlobalsOpenCount = -1;
@@ -3734,13 +3762,13 @@
         await saveEscala(escalaLocalGer);
       };
       show("gerente");
-      requestNotifPermission(); // Solicitar ao logar
+      requestNotifPermission().then(registerPushToken); // Solicitar e registrar push
     } else {
       renderEmployee();
       maybeSetupEscalaUI();
       renderEscalaViewer();
       show("funcionario");
-      requestNotifPermission(); // Solicitar ao logar
+      requestNotifPermission().then(registerPushToken); // Solicitar e registrar push
     }
 
     updateTopBar();
