@@ -3848,17 +3848,6 @@
       onSnapshot(query(colNewProducts(), orderBy("createdAt", "desc")), (qs) => {
         newProductsAll = qs.docs.map(d => ({ id: d.id, ...d.data() }));
         renderNewProdsList();
-      });
-    } catch(e){
-      fatal("Erro ao iniciar sincronização.", e);
-    }
-  }
-      const fbQ = query(colFeedback(), orderBy("createdAt","desc"), limit(200));
-      onSnapshot(fbQ, (qs)=>{
-        feedbackAll = qs.docs.map(d=>({ id:d.id, ...d.data() }));
-        if (isManager()) renderFeedbackList();
-      });
-
       // setup tabs
       setupGerTabs();
 
@@ -3873,6 +3862,7 @@
       throw e;
     }
   }
+
 
   // ===== Boot com sessão =====
   try{
