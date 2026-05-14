@@ -896,18 +896,21 @@
           <input id="lblMarginPage" type="number" class="w-full border rounded p-2" value="10" />
         </div>
         <div>
-          <label class="text-xs font-bold text-gray-600 block mb-1">Posição Cifrão (R$)</label>
-          <select id="lblCurrencyPos" class="w-full border rounded p-2">
-            <option value="left">Esquerda (Padrão)</option>
-            <option value="right">Direita (Lado do preço)</option>
+          <label class="text-xs font-bold text-gray-600 block mb-1">Alinhamento Cifrão (R$)</label>
+          <select id="lblCurrencyAlign" class="w-full border rounded p-2">
+            <option value="left">Esquerda (Borda)</option>
+            <option value="center">Centralizado</option>
+            <option value="right">Direita (Borda)</option>
+            <option value="beside">Ao lado do Preço</option>
           </select>
         </div>
         
         <div>
           <label class="text-xs font-bold text-gray-600 block mb-1">Alinhamento Preço</label>
           <select id="lblPriceAlign" class="w-full border rounded p-2">
+            <option value="left">Esquerda</option>
             <option value="center">Centralizado</option>
-            <option value="spread">Afastado (Bordas)</option>
+            <option value="right">Direita</option>
           </select>
         </div>
         <div>
@@ -1636,7 +1639,7 @@
     marginPage: 10,
     showDesc: false,
     showQR: false,
-    currencyPos: "left",
+    currencyAlign: "left",
     priceAlign: "center",
     serverKey: ""
   };
@@ -1661,7 +1664,7 @@
       marginPage: Number($("lblMarginPage").value) || 10,
       showDesc: $("lblShowDesc").value === "yes",
       showQR: $("lblShowQR").value === "yes",
-      currencyPos: $("lblCurrencyPos").value,
+      currencyAlign: $("lblCurrencyAlign").value,
       priceAlign: $("lblPriceAlign").value,
       serverKey: $("lblServerKey")?.value || "",
       updatedAt: serverTimestamp()
@@ -1694,7 +1697,7 @@
     if ($("lblMarginPage")) $("lblMarginPage").value = cfg.marginPage || 10;
     if ($("lblShowDesc")) $("lblShowDesc").value = cfg.showDesc ? "yes" : "no";
     if ($("lblShowQR")) $("lblShowQR").value = cfg.showQR ? "yes" : "no";
-    if ($("lblCurrencyPos")) $("lblCurrencyPos").value = cfg.currencyPos || "left";
+    if ($("lblCurrencyAlign")) $("lblCurrencyAlign").value = cfg.currencyAlign || "left";
     if ($("lblPriceAlign")) $("lblPriceAlign").value = cfg.priceAlign || "center";
     if ($("lblServerKey")) $("lblServerKey").value = cfg.serverKey || "";
   }
@@ -4300,7 +4303,7 @@ function printProductLabels() {
   const lMarginPage = lc.marginPage || 10;
   const lShowDesc = !!lc.showDesc;
   const lShowQR = !!lc.showQR;
-  const lCurrencyPos = lc.currencyPos || "left";
+  const lCurrencyAlign = lc.currencyAlign || "left";
   const lPriceAlign = lc.priceAlign || "center";
 
   const html = `
@@ -4396,6 +4399,7 @@ function printProductLabels() {
         flex-direction: column;
         align-items: center;
         justify-content: flex-end;
+        position: relative;
       }
       .old-price {
         font-size: 7pt;
@@ -4408,20 +4412,27 @@ function printProductLabels() {
         width: 100%;
         display: flex;
         align-items: baseline;
-        justify-content: ${lPriceAlign === 'spread' ? 'space-between' : 'center'};
+        justify-content: ${
+          lPriceAlign === 'left' ? 'flex-start' : 
+          lPriceAlign === 'right' ? 'flex-end' : 'center'
+        };
         gap: 0.5mm;
         color: ${lColorPrice};
+        position: relative;
       }
       .currency {
         font-size: ${lFontSizeCurrency}pt;
         font-weight: 800;
-        order: ${lCurrencyPos === 'left' ? 0 : 2};
+        position: ${lCurrencyAlign === 'beside' ? 'static' : 'absolute'};
+        ${lCurrencyAlign === 'left' ? 'left: 0;' : ''}
+        ${lCurrencyAlign === 'right' ? 'right: 0;' : ''}
+        ${lCurrencyAlign === 'center' ? 'left: 50%; transform: translateX(-50%);' : ''}
+        bottom: 1.5mm;
       }
       .price {
         font-size: ${lFontSizePrice}pt;
         font-weight: 900;
         letter-spacing: -1.5px;
-        order: 1;
         line-height: 1;
       }
       .qr-box {
