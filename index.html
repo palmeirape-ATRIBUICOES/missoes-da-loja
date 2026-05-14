@@ -892,6 +892,12 @@
           </select>
         </div>
 
+        <div class="md:col-span-2">
+          <label class="text-xs font-bold text-gray-600 block mb-1">Chave Servidor FCM (Para Push app fechado)</label>
+          <input id="lblServerKey" type="password" class="w-full border rounded p-2" placeholder="Chave Legada (Server Key) do Firebase Console" />
+          <p class="text-[10px] text-gray-500 mt-1">Necessária para enviar notificações quando o app está fechado.</p>
+        </div>
+
         <div>
           <label class="text-xs font-bold text-gray-600 block mb-1">Tamanho Nome (pt)</label>
           <input id="lblFontSizeName" type="number" class="w-full border rounded p-2" value="10" />
@@ -1594,7 +1600,8 @@
     showDesc: false,
     showQR: false,
     currencyPos: "left",
-    priceAlign: "center"
+    priceAlign: "center",
+    serverKey: ""
   };
 
   async function saveLabelConfig() {
@@ -1615,6 +1622,7 @@
       showQR: $("lblShowQR").value === "yes",
       currencyPos: $("lblCurrencyPos").value,
       priceAlign: $("lblPriceAlign").value,
+      serverKey: $("lblServerKey")?.value || "",
       updatedAt: serverTimestamp()
     };
     try {
@@ -1643,6 +1651,7 @@
     if ($("lblShowQR")) $("lblShowQR").value = cfg.showQR ? "yes" : "no";
     if ($("lblCurrencyPos")) $("lblCurrencyPos").value = cfg.currencyPos || "left";
     if ($("lblPriceAlign")) $("lblPriceAlign").value = cfg.priceAlign || "center";
+    if ($("lblServerKey")) $("lblServerKey").value = cfg.serverKey || "";
   }
 
   function nowHuman(){ return new Date().toLocaleString(); }
@@ -2192,6 +2201,51 @@
       createdAtHuman: nowHuman(),
       createdBy: currentUser
     });
+
+    // Enviar PUSH para todos os tokens registrados
+    broadcastPushNotification("🎯 Nova missão Global!", tpl.name + " está disponível. Seja o primeiro!");
+  }
+
+  async function broadcastPushNotification(title, body) {
+    const key = labelConfig?.serverKey;
+    if (!key) {
+      console.warn("Push cancelado: Chave Servidor (FCM Server Key) não configurada.");
+      return;
+    }
+
+    try {
+      const snap = await getDocs(collection(db, "stores", STORE_ID, "tokens"));
+      if (snap.empty) return;
+
+      const tokens = snap.docs.map(d => d.data().token).filter(Boolean);
+      if (!tokens.length) return;
+
+      console.log(`Enviando push para ${tokens.length} dispositivos...`);
+
+      // Envia via FCM Legacy API (mais simples para client-side sem OAuth)
+      const res = await fetch("https://fcm.googleapis.com/fcm/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "key=" + key
+        },
+        body: JSON.stringify({
+          registration_ids: tokens,
+          notification: {
+            title: title,
+            body: body,
+            icon: "https://palmeirape-atribuicoes.github.io/missoes-da-loja/favicon.ico",
+            click_action: window.location.origin + window.location.pathname
+          },
+          priority: "high"
+        })
+      });
+
+      const result = await res.json();
+      console.log("Resultado Push Broadcast:", result);
+    } catch (e) {
+      console.error("Erro ao transmitir Push:", e);
+    }
   }
 
   async function deleteGlobalDoc(globalId){
