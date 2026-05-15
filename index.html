@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Missoes</title>
 
-  <meta name="theme-color" content="#2563eb" />
+  <meta name="theme-color" content="#7c3aed" />
 
   <link id="appIcon" rel="icon" type="image/svg+xml" href="" />
   <link id="appAppleIcon" rel="apple-touch-icon" href="" />
@@ -16,24 +16,32 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-primary: #0f172a;
-      --bg-card: rgba(30, 41, 59, 0.85);
-      --bg-inner: rgba(51, 65, 85, 0.5);
-      --border: rgba(148, 163, 184, 0.1);
-      --text-primary: #f1f5f9;
-      --text-secondary: #94a3b8;
+      --bg-primary: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-inner: #f1f5f9;
+      --border: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
       --text-muted: #64748b;
-      --accent: #6366f1;
+      --accent: #7c3aed;
     }
     * { font-family: 'Inter', system-ui, sans-serif !important; }
     body.bg-gray-100 {
-      background: linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #0f172a 100%) !important;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
       background-attachment: fixed !important;
       color: var(--text-secondary) !important;
     }
     /* Cards */
-    .bg-white { background: var(--bg-card) !important; border: 1px solid var(--border) !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important; transition: transform 0.2s, box-shadow 0.25s, border-color 0.25s !important; }
-    section .bg-white:hover, #gerente .bg-white:hover, #funcionario .bg-white:hover { border-color: rgba(148,163,184,0.2) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.25) !important; }
+    .bg-white { 
+      background: var(--bg-card) !important; 
+      border: 1px solid var(--border) !important; 
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+      transition: transform 0.2s, box-shadow 0.25s, border-color 0.25s !important; 
+    }
+    section .bg-white:hover, #gerente .bg-white:hover, #funcionario .bg-white:hover { 
+      border-color: rgba(124, 58, 237, 0.2) !important; 
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04) !important; 
+    }
     .bg-gray-50 { background: var(--bg-inner) !important; }
     .bg-gray-100 { background: transparent !important; }
     /* Text */
@@ -41,63 +49,57 @@
     .text-gray-500, .text-xs.text-gray-500 { color: var(--text-muted) !important; }
     .text-gray-600, .text-gray-700 { color: var(--text-secondary) !important; }
     .text-gray-800, .text-gray-900 { color: var(--text-primary) !important; }
-    .text-sm.text-gray-800 { color: #cbd5e1 !important; }
+    .text-sm.text-gray-800 { color: var(--text-secondary) !important; }
     .text-2xl.font-bold { color: var(--text-primary) !important; }
     /* Forms */
-    input, select, textarea { background: rgba(15,23,42,0.6) !important; border: 1px solid rgba(148,163,184,0.2) !important; color: #e2e8f0 !important; transition: border-color 0.2s, box-shadow 0.2s !important; }
-    input:focus, select:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important; outline: none !important; }
-    input::placeholder { color: var(--text-muted) !important; opacity: 0.7 !important; }
+    input, select, textarea { 
+      background: #ffffff !important; 
+      border: 1px solid #cbd5e1 !important; 
+      color: #1e293b !important; 
+      transition: border-color 0.2s, box-shadow 0.2s !important; 
+    }
+    input:focus, select:focus { 
+      border-color: var(--accent) !important; 
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1) !important; 
+      outline: none !important; 
+    }
+    input::placeholder { color: #94a3b8 !important; }
     /* Buttons */
-    .bg-blue-600 { background: linear-gradient(135deg, #6366f1, #818cf8) !important; box-shadow: 0 4px 15px rgba(99,102,241,0.3) !important; }
-    .bg-blue-600:hover { box-shadow: 0 6px 20px rgba(99,102,241,0.45) !important; transform: translateY(-1px); }
-    .bg-emerald-600, .bg-green-600 { background: linear-gradient(135deg, #059669, #34d399) !important; box-shadow: 0 4px 15px rgba(5,150,105,0.3) !important; }
-    .bg-emerald-600:hover, .bg-green-600:hover { box-shadow: 0 6px 20px rgba(5,150,105,0.45) !important; transform: translateY(-1px); }
-    .bg-red-600 { background: linear-gradient(135deg, #dc2626, #f87171) !important; box-shadow: 0 4px 15px rgba(220,38,38,0.3) !important; }
-    .bg-red-600:hover { box-shadow: 0 6px 20px rgba(220,38,38,0.45) !important; transform: translateY(-1px); }
-    .bg-gray-200 { background: rgba(71,85,105,0.6) !important; color: var(--text-primary) !important; }
-    .bg-gray-200:hover { background: rgba(100,116,139,0.7) !important; }
-    .bg-gray-900 { background: linear-gradient(135deg, #334155, #475569) !important; }
+    .bg-blue-600 { background: linear-gradient(135deg, #7c3aed, #9333ea) !important; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2) !important; }
+    .bg-blue-600:hover { box-shadow: 0 6px 15px rgba(124, 58, 237, 0.3) !important; transform: translateY(-1px); }
+    .bg-emerald-600, .bg-green-600 { background: linear-gradient(135deg, #059669, #10b981) !important; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2) !important; }
+    .bg-emerald-600:hover, .bg-green-600:hover { box-shadow: 0 6px 15px rgba(5, 150, 105, 0.3) !important; transform: translateY(-1px); }
+    .bg-red-600 { background: linear-gradient(135deg, #dc2626, #ef4444) !important; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.2) !important; }
+    .bg-red-600:hover { box-shadow: 0 6px 15px rgba(220, 38, 38, 0.3) !important; transform: translateY(-1px); }
+    .bg-gray-200 { background: #e2e8f0 !important; color: var(--text-primary) !important; }
+    .bg-gray-200:hover { background: #cbd5e1 !important; }
+    .bg-gray-900 { background: linear-gradient(135deg, #1e293b, #334155) !important; }
     button { transition: all 0.2s ease !important; }
     /* Status badges */
-    .bg-emerald-50 { background: rgba(5,150,105,0.15) !important; } .border-emerald-200 { border-color: rgba(52,211,153,0.3) !important; } .text-emerald-900 { color: #34d399 !important; }
-    .bg-red-50 { background: rgba(220,38,38,0.15) !important; } .border-red-200 { border-color: rgba(248,113,113,0.3) !important; } .text-red-900 { color: #f87171 !important; }
-    .bg-blue-50 { background: rgba(99,102,241,0.15) !important; } .border-blue-100 { border-color: rgba(129,140,248,0.2) !important; } .text-blue-700, .text-blue-900 { color: #818cf8 !important; }
-    .bg-yellow-50 { background: rgba(234,179,8,0.12) !important; } .border-yellow-200 { border-color: rgba(250,204,21,0.25) !important; } .text-yellow-900 { color: #fbbf24 !important; }
+    .bg-emerald-50 { background: #ecfdf5 !important; } .border-emerald-200 { border-color: #a7f3d0 !important; } .text-emerald-900 { color: #065f46 !important; }
+    .bg-red-50 { background: #fef2f2 !important; } .border-red-200 { border-color: #fecaca !important; } .text-red-900 { color: #991b1b !important; }
+    .bg-blue-50 { background: #f5f3ff !important; } .border-blue-100 { border-color: #ddd6fe !important; } .text-blue-700, .text-blue-900 { color: #5b21b6 !important; }
+    .bg-yellow-50 { background: #fffbeb !important; } .border-yellow-200 { border-color: #fef3c7 !important; } .text-yellow-900 { color: #92400e !important; }
     /* Header */
-    header .bg-white { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1)) !important; border: 1px solid rgba(139,92,246,0.2) !important; }
+    header .bg-white { background: #ffffff !important; border-bottom: 2px solid #7c3aed !important; }
     /* Borders */
     .border { border-color: var(--border) !important; } .border-t { border-top-color: var(--border) !important; } .border-b { border-bottom-color: var(--border) !important; }
-    .border-2.border-blue-200 { border-color: rgba(99,102,241,0.35) !important; background: rgba(99,102,241,0.08) !important; }
+    .border-2.border-blue-200 { border-color: #bfdbfe !important; background: #eff6ff !important; }
     /* Toast */
-    #toastBox { background: linear-gradient(135deg, var(--accent), #818cf8) !important; border-radius: 16px !important; font-weight: 600 !important; box-shadow: 0 8px 30px rgba(99,102,241,0.4) !important; }
+    #toastBox { background: linear-gradient(135deg, #7c3aed, #9333ea) !important; border-radius: 16px !important; font-weight: 600 !important; box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4) !important; }
     /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: rgba(15,23,42,0.3); } ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.25); border-radius: 3px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: #f1f5f9; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     /* Login error */
-    #loginErrorBox { background: rgba(220,38,38,0.12) !important; border-color: rgba(248,113,113,0.25) !important; color: #fca5a5 !important; }
+    #loginErrorBox { background: #fef2f2 !important; border-color: #fecaca !important; color: #b91c1c !important; }
     /* Animations */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     section:not(.hidden) { animation: fadeInUp 0.4s ease-out; }
-    /* Mobile fix */
-    @media (max-width: 640px) {
-      .flex.items-center.justify-between.gap-2, .flex.items-start.justify-between.gap-2 { flex-wrap: wrap; }
-      .flex.items-center.gap-2.shrink-0 { flex-wrap: wrap; justify-content: flex-start; }
-    }
-    /* Feedback form (light theme override) */
-    #feedbackForm { position: fixed; inset: 0; z-index: 100; overflow-y: auto; }
-    #feedbackForm, #feedbackForm * { font-family: 'Inter', sans-serif !important; }
-    #feedbackForm .fb-card { background: #fff !important; border: 1px solid #e5e7eb !important; color: #111 !important; backdrop-filter: none !important; }
-    #feedbackForm input, #feedbackForm select, #feedbackForm textarea { background: #fff !important; border: 1px solid #d1d5db !important; color: #111 !important; }
-    #feedbackForm input::placeholder, #feedbackForm textarea::placeholder { color: #9ca3af !important; }
-    #feedbackForm .fb-label { color: #374151 !important; font-size: 0.875rem; font-weight: 600; display: block; margin-bottom: 4px; }
-    #feedbackForm .fb-sub { color: #6b7280 !important; }
-    #feedbackForm .fb-btn { background: linear-gradient(135deg, #6366f1, #818cf8) !important; color: #fff !important; border: none !important; font-weight: 700; padding: 14px; border-radius: 12px; font-size: 1rem; cursor: pointer; width: 100%; }
-    #feedbackForm .fb-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.4); }
     /* Tab bar */
     .ger-tab-bar { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .ger-tab-bar::-webkit-scrollbar { display: none; }
-    .ger-tab { padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); transition: all 0.2s; }
-    .ger-tab.active { background: linear-gradient(135deg, #6366f1, #818cf8) !important; color: #fff !important; border-color: #6366f1 !important; box-shadow: 0 4px 15px rgba(99,102,241,0.3); }
-    .ger-tab:hover:not(.active) { border-color: rgba(148,163,184,0.3); }
+    .ger-tab { padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; border: 1px solid var(--border); background: #ffffff; color: var(--text-secondary); transition: all 0.2s; }
+    .ger-tab.active { background: linear-gradient(135deg, #7c3aed, #9333ea) !important; color: #fff !important; border-color: #7c3aed !important; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); }
+    .ger-tab:hover:not(.active) { border-color: #cbd5e1; background: #f8fafc; }
     .ger-panel { display: none; }
     .ger-panel.active { display: block; }
   </style>
