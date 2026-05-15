@@ -9,6 +9,25 @@ Write-Host "===============================" -ForegroundColor Cyan
 Write-Host "  DEPLOY - Missoes da Loja" -ForegroundColor Cyan  
 Write-Host "===============================" -ForegroundColor Cyan
 
+# --- CORRECAO DE PATH AUTOMATICA ---
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    $commonGitPaths = @(
+        "C:\Program Files\Git\bin\git.exe",
+        "C:\Program Files\Git\cmd\git.exe",
+        "C:\Program Files\Git\mingw64\libexec\git-core\git.exe",
+        "C:\Program Files (x86)\Git\bin\git.exe"
+    )
+    foreach ($path in $commonGitPaths) {
+        if (Test-Path $path) {
+            $gitDir = Split-Path $path
+            $env:Path += ";$gitDir"
+            Write-Host "[INFO] Git localizado em: $path" -ForegroundColor Gray
+            break
+        }
+    }
+}
+# -----------------------------------
+
 # Verifica se ha mudancas
 $status = git status --porcelain
 if (-not $status) {
@@ -35,3 +54,4 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "`n[ERRO] Falha no push. Verifique as credenciais do GitHub." -ForegroundColor Red
     Write-Host "Dica: O Windows vai pedir login no GitHub na primeira vez." -ForegroundColor Yellow
 }
+
