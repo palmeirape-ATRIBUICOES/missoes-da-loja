@@ -4721,13 +4721,44 @@ function printProductLabels() {
       }).join("")}
     </div>
     <div class="footer">Missões da Loja — Sistema de Gestão • ${storeName} • ${today}</div>
+    <script>
+      window.onload = function() {
+        document.querySelectorAll('.label').forEach(label => {
+          const nameEl = label.querySelector('.name');
+          if (!nameEl) return;
+          
+          let fontSizeName = ${lFontSizeName};
+          let fontSizePrice = ${lFontSizePrice};
+          let safety = 0;
+          
+          // Encolhe fonte se o conteúdo exceder a altura física da etiqueta
+          while (label.scrollHeight > label.clientHeight && safety < 100) {
+            if (fontSizeName > 6) {
+              fontSizeName -= 0.5;
+              nameEl.style.fontSize = fontSizeName + 'pt';
+            } else if (fontSizePrice > 10) {
+              fontSizePrice -= 0.5;
+              const priceEl = label.querySelector('.price');
+              if (priceEl) priceEl.style.fontSize = fontSizePrice + 'pt';
+            } else {
+              break;
+            }
+            safety++;
+          }
+        });
+        
+        // Dispara a impressão após realizar todos os ajustes
+        setTimeout(() => {
+          window.print();
+        }, 300);
+      };
+    </script>
   </body>
   </html>`;
 
   win.document.write(html);
   win.document.close();
   win.focus();
-  setTimeout(()=> win.print(), 500);
 }
 
 $("btnPrintPrices")?.addEventListener("click", printProductLabels);
