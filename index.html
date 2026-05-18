@@ -24,82 +24,204 @@
       --text-secondary: #334155;
       --text-muted: #64748b;
       --accent: #7c3aed;
+      --accent-glow: rgba(124, 58, 237, 0.15);
     }
-    * { font-family: 'Inter', system-ui, sans-serif !important; }
+    * { 
+      font-family: 'Inter', system-ui, sans-serif !important; 
+    }
     body.bg-gray-100 {
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+      background: radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.05) 0%, rgba(147, 51, 234, 0.02) 50%, #f8fafc 100%) !important;
       background-attachment: fixed !important;
       color: var(--text-secondary) !important;
     }
-    /* Cards */
+    /* Cards - Elegant glassmorphism & soft shadows */
     .bg-white { 
-      background: var(--bg-card) !important; 
-      border: 1px solid var(--border) !important; 
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
-      transition: transform 0.2s, box-shadow 0.25s, border-color 0.25s !important; 
+      background: rgba(255, 255, 255, 0.9) !important; 
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      border: 1px solid rgba(226, 232, 240, 0.8) !important; 
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.02), 0 2px 8px -1px rgba(0, 0, 0, 0.01) !important;
+      border-radius: 18px !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important; 
     }
     section .bg-white:hover, #gerente .bg-white:hover, #funcionario .bg-white:hover { 
-      border-color: rgba(124, 58, 237, 0.2) !important; 
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04) !important; 
+      border-color: rgba(124, 58, 237, 0.25) !important; 
+      box-shadow: 0 20px 25px -5px rgba(124, 58, 237, 0.05), 0 10px 10px -5px rgba(124, 58, 237, 0.02) !important; 
+      transform: translateY(-2px);
     }
-    .bg-gray-50 { background: var(--bg-inner) !important; }
+    .bg-gray-50 { 
+      background: rgba(241, 245, 249, 0.6) !important; 
+      border-radius: 12px !important;
+      border: 1px solid rgba(226, 232, 240, 0.5) !important;
+    }
     .bg-gray-100 { background: transparent !important; }
-    /* Text */
-    .font-semibold, .font-bold { color: var(--text-primary) !important; }
+    
+    /* Text rendering improvements */
+    .font-semibold, .font-bold { 
+      color: var(--text-primary) !important; 
+      letter-spacing: -0.02em !important;
+    }
     .text-gray-500, .text-xs.text-gray-500 { color: var(--text-muted) !important; }
     .text-gray-600, .text-gray-700 { color: var(--text-secondary) !important; }
     .text-gray-800, .text-gray-900 { color: var(--text-primary) !important; }
     .text-sm.text-gray-800 { color: var(--text-secondary) !important; }
     .text-2xl.font-bold { color: var(--text-primary) !important; }
-    /* Forms */
+    
+    /* Elegant Form controls */
     input, select, textarea { 
       background: #ffffff !important; 
       border: 1px solid #cbd5e1 !important; 
       color: #1e293b !important; 
-      transition: border-color 0.2s, box-shadow 0.2s !important; 
+      border-radius: 10px !important;
+      padding: 10px 14px !important;
+      transition: all 0.2s ease !important; 
     }
     input:focus, select:focus { 
       border-color: var(--accent) !important; 
-      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1) !important; 
+      box-shadow: 0 0 0 4px var(--accent-glow) !important; 
       outline: none !important; 
     }
     input::placeholder { color: #94a3b8 !important; }
-    /* Buttons */
-    .bg-blue-600 { background: linear-gradient(135deg, #7c3aed, #9333ea) !important; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2) !important; }
-    .bg-blue-600:hover { box-shadow: 0 6px 15px rgba(124, 58, 237, 0.3) !important; transform: translateY(-1px); }
-    .bg-emerald-600, .bg-green-600 { background: linear-gradient(135deg, #059669, #10b981) !important; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2) !important; }
-    .bg-emerald-600:hover, .bg-green-600:hover { box-shadow: 0 6px 15px rgba(5, 150, 105, 0.3) !important; transform: translateY(-1px); }
-    .bg-red-600 { background: linear-gradient(135deg, #dc2626, #ef4444) !important; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.2) !important; }
-    .bg-red-600:hover { box-shadow: 0 6px 15px rgba(220, 38, 38, 0.3) !important; transform: translateY(-1px); }
-    .bg-gray-200 { background: #e2e8f0 !important; color: var(--text-primary) !important; }
-    .bg-gray-200:hover { background: #cbd5e1 !important; }
-    .bg-gray-900 { background: linear-gradient(135deg, #1e293b, #334155) !important; }
-    button { transition: all 0.2s ease !important; }
-    /* Status badges */
-    .bg-emerald-50 { background: #ecfdf5 !important; } .border-emerald-200 { border-color: #a7f3d0 !important; } .text-emerald-900 { color: #065f46 !important; }
+    
+    /* Beautiful Premium Gradient Buttons */
+    .bg-blue-600 { 
+      background: linear-gradient(135deg, #7c3aed, #6d28d9) !important; 
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25) !important; 
+      border-radius: 10px !important;
+      font-weight: 600 !important;
+      border: none !important;
+    }
+    .bg-blue-600:hover { 
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35) !important; 
+      transform: translateY(-1px); 
+      filter: brightness(1.05);
+    }
+    .bg-blue-600:active { transform: translateY(1px); }
+
+    .bg-emerald-600, .bg-green-600 { 
+      background: linear-gradient(135deg, #059669, #047857) !important; 
+      box-shadow: 0 4px 14px rgba(5, 150, 105, 0.2) !important; 
+      border-radius: 10px !important;
+      font-weight: 600 !important;
+      border: none !important;
+    }
+    .bg-emerald-600:hover, .bg-green-600:hover { 
+      box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3) !important; 
+      transform: translateY(-1px); 
+      filter: brightness(1.05);
+    }
+    .bg-emerald-600:active, .bg-green-600:active { transform: translateY(1px); }
+
+    .bg-red-600 { 
+      background: linear-gradient(135deg, #dc2626, #b91c1c) !important; 
+      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.2) !important; 
+      border-radius: 10px !important;
+      font-weight: 600 !important;
+      border: none !important;
+    }
+    .bg-red-600:hover { 
+      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3) !important; 
+      transform: translateY(-1px); 
+      filter: brightness(1.05);
+    }
+    .bg-red-600:active { transform: translateY(1px); }
+
+    .bg-gray-200 { 
+      background: #f1f5f9 !important; 
+      color: var(--text-primary) !important; 
+      border-radius: 10px !important;
+      font-weight: 600 !important;
+      border: 1px solid #e2e8f0 !important;
+    }
+    .bg-gray-200:hover { background: #e2e8f0 !important; }
+    .bg-gray-900 { 
+      background: linear-gradient(135deg, #1e293b, #0f172a) !important; 
+      border-radius: 10px !important;
+      font-weight: 600 !important;
+    }
+    
+    button { 
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important; 
+      cursor: pointer;
+    }
+    
+    /* Glossy status badges */
+    .bg-emerald-50 { background: #f0fdf4 !important; } .border-emerald-200 { border-color: #bbf7d0 !important; } .text-emerald-900 { color: #166534 !important; }
     .bg-red-50 { background: #fef2f2 !important; } .border-red-200 { border-color: #fecaca !important; } .text-red-900 { color: #991b1b !important; }
-    .bg-blue-50 { background: #f5f3ff !important; } .border-blue-100 { border-color: #ddd6fe !important; } .text-blue-700, .text-blue-900 { color: #5b21b6 !important; }
-    .bg-yellow-50 { background: #fffbeb !important; } .border-yellow-200 { border-color: #fef3c7 !important; } .text-yellow-900 { color: #92400e !important; }
-    /* Header */
-    header .bg-white { background: #ffffff !important; border-bottom: 2px solid #7c3aed !important; }
+    .bg-blue-50 { background: #f5f3ff !important; } .border-blue-100 { border-color: #ddd6fe !important; } .text-blue-700, .text-blue-900 { color: #6d28d9 !important; }
+    .bg-yellow-50 { background: #fffbeb !important; } .border-yellow-200 { border-color: #fef3c7 !important; } .text-yellow-900 { color: #854d0e !important; }
+    
+    /* Header layout */
+    header .bg-white { 
+      background: rgba(255, 255, 255, 0.95) !important; 
+      border-bottom: 3px solid #7c3aed !important; 
+    }
+    
     /* Borders */
-    .border { border-color: var(--border) !important; } .border-t { border-top-color: var(--border) !important; } .border-b { border-bottom-color: var(--border) !important; }
-    .border-2.border-blue-200 { border-color: #c4b5fd !important; background: #f5f3ff !important; }
-    /* Toast */
-    #toastBox { background: linear-gradient(135deg, #7c3aed, #9333ea) !important; border-radius: 16px !important; font-weight: 600 !important; box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4) !important; }
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track { background: #f1f5f9; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-    /* Login error */
+    .border { border-color: var(--border) !important; } 
+    .border-t { border-top-color: var(--border) !important; } 
+    .border-b { border-bottom-color: var(--border) !important; }
+    .border-2.border-blue-200 { border-color: #ddd6fe !important; background: #faf5ff !important; }
+    
+    /* Toast alerts */
+    #toastBox { 
+      background: linear-gradient(135deg, #7c3aed, #9333ea) !important; 
+      border-radius: 16px !important; 
+      font-weight: 600 !important; 
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.35) !important; 
+    }
+    
+    /* Beautiful Scrollbars */
+    ::-webkit-scrollbar { width: 8px; height: 8px; } 
+    ::-webkit-scrollbar-track { background: #f1f5f9; } 
+    ::-webkit-scrollbar-thumb { background: #c084fc; border-radius: 4px; border: 2px solid #f1f5f9; }
+    ::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+    
+    /* Error display */
     #loginErrorBox { background: #fef2f2 !important; border-color: #fecaca !important; color: #b91c1c !important; }
-    /* Animations */
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-    section:not(.hidden) { animation: fadeInUp 0.4s ease-out; }
-    /* Tab bar */
-    .ger-tab-bar { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    
+    /* Elegant Micro-animations */
+    @keyframes fadeInUp { 
+      from { opacity: 0; transform: translateY(12px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
+    section:not(.hidden) { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    
+    /* Gorgeous Tab bars */
+    .ger-tab-bar { 
+      display: flex; 
+      gap: 6px; 
+      overflow-x: auto; 
+      padding: 4px; 
+      margin-bottom: 16px; 
+      background: rgba(241, 245, 249, 0.5);
+      border-radius: 14px;
+      border: 1px solid rgba(226, 232, 240, 0.6);
+      -webkit-overflow-scrolling: touch; 
+      scrollbar-width: none; 
+    }
     .ger-tab-bar::-webkit-scrollbar { display: none; }
-    .ger-tab { padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; border: 1px solid var(--border); background: #ffffff; color: var(--text-secondary); transition: all 0.2s; }
-    .ger-tab.active { background: linear-gradient(135deg, #7c3aed, #9333ea) !important; color: #fff !important; border-color: #7c3aed !important; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); }
-    .ger-tab:hover:not(.active) { border-color: #cbd5e1; background: #f8fafc; }
+    .ger-tab { 
+      padding: 10px 18px; 
+      border-radius: 10px; 
+      font-size: 0.85rem; 
+      font-weight: 600; 
+      cursor: pointer; 
+      white-space: nowrap; 
+      border: none !important; 
+      background: transparent; 
+      color: var(--text-secondary); 
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .ger-tab.active { 
+      background: #ffffff !important; 
+      color: var(--accent) !important; 
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important; 
+    }
+    .ger-tab:hover:not(.active) { 
+      color: var(--text-primary); 
+      background: rgba(255, 255, 255, 0.4); 
+    }
     .ger-panel { display: none; }
     .ger-panel.active { display: block; }
   </style>
@@ -572,6 +694,20 @@
             </button>
           </div>
           <p class="text-xs text-gray-500 mt-2">Você pode alterar nome, itens (quantidade) e excluir.</p>
+        </div>
+      </div>
+
+      <!-- ✅ PROGRAMAÇÃO AUTOMÁTICA DE GLOBAIS -->
+      <div class="mt-4 border-t pt-4">
+        <div class="flex items-center justify-between">
+          <h4 class="font-semibold text-sm flex items-center gap-1 text-purple-700">
+             <span>📅 Agendamento Automático de Globais</span>
+          </h4>
+          <span class="text-[10px] text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full font-bold">Toda Segunda-feira</span>
+        </div>
+        <p class="text-xs text-gray-500 mt-1 mb-3">Selecione e configure abaixo o horário de disparo automático para cada template cadastrado.</p>
+        <div id="autoPublishList" class="space-y-2 max-h-[45vh] overflow-auto border rounded bg-gray-50 p-2">
+          <div class="text-gray-500 text-xs p-2 text-center">Carregando agendamentos...</div>
         </div>
       </div>
 
@@ -2155,6 +2291,63 @@
     if (prev && ordered.some(t=>t.id===prev)) sel.value = prev;
 
     hydrateTplEditorFromSelected();
+    renderAutoPublishList();
+  }
+
+  function renderAutoPublishList(){
+    const wrap = $("autoPublishList");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+
+    const ordered = (globalTemplates || []).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    if (!ordered.length){
+      wrap.innerHTML = `<div class="text-gray-500 text-xs p-4 text-center">Nenhum template salvo. Crie um template abaixo para agendar.</div>`;
+      return;
+    }
+
+    ordered.forEach(t => {
+      const row = document.createElement("div");
+      row.className = "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-white rounded-xl border hover:border-purple-200 transition-all shadow-sm";
+      
+      const hasTime = !!t.autoTime;
+      const badge = hasTime 
+        ? `<span class="bg-purple-50 border border-purple-200 text-purple-700 text-[10px] px-2 py-0.5 rounded-full font-bold">⏰ AGENDADO (${t.autoTime})</span>`
+        : `<span class="bg-gray-50 border border-gray-200 text-gray-400 text-[10px] px-2 py-0.5 rounded-full font-bold">MANUAL</span>`;
+
+      row.innerHTML = `
+        <div class="min-w-0 flex-1 text-left">
+          <div class="font-bold text-sm flex items-center gap-2 flex-wrap">
+            <span>${t.name}</span>
+            ${badge}
+          </div>
+          <div class="text-xs text-gray-500 truncate mt-1">Itens: ${Array.isArray(t.items) ? t.items.join(", ") : ""}</div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0 self-stretch sm:self-auto justify-between bg-gray-50 p-2 sm:p-0 rounded-lg sm:bg-transparent">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs text-gray-600 font-medium">Segunda às:</span>
+            <input type="time" class="border p-1 rounded text-sm w-28 bg-white focus:ring-2 focus:ring-purple-200" value="${t.autoTime || ""}" data-auto-time-id="${t.id}" />
+          </div>
+          <button class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all transform active:scale-95" data-save-time-id="${t.id}">Definir</button>
+        </div>
+      `;
+
+      wrap.appendChild(row);
+      
+      row.querySelector(`button[data-save-time-id="${t.id}"]`).addEventListener("click", async () => {
+        const timeVal = row.querySelector(`input[data-auto-time-id="${t.id}"]`).value;
+        try {
+          const next = (globalTemplates || []).map(item => {
+            if (item.id === t.id) return { ...item, autoTime: timeVal, updatedAtHuman: nowHuman() };
+            return item;
+          });
+          await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
+          toast("🕒 Agendamento salvo!");
+        } catch(e) {
+          console.error(e);
+          toast("Erro ao atualizar agendamento.");
+        }
+      });
+    });
   }
 
   async function ensureGlobalTemplatesDoc(){
