@@ -570,6 +570,11 @@
           <div class="grid md:grid-cols-4 gap-2">
             <input id="tplEditName" class="border p-2 rounded md:col-span-2" placeholder="Novo nome do template" />
             <input id="tplEditItems" class="border p-2 rounded md:col-span-2" placeholder="Itens (separados por vírgula)" />
+            <div class="md:col-span-4 mt-1 bg-white p-2 rounded border">
+               <label class="text-xs text-gray-600 font-bold">Auto-publicar na Segunda-feira às (HH:MM):</label>
+               <input id="tplEditAutoTime" type="time" class="border p-1 rounded ml-2" />
+               <span class="text-xs text-gray-500 ml-2">(Deixe vazio para manual)</span>
+            </div>
           </div>
           <div class="grid md:grid-cols-4 gap-2 mt-2">
             <button id="btnSaveTplEdits" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded md:col-span-2">
@@ -614,6 +619,11 @@
         <div class="grid md:grid-cols-4 gap-2 mt-2">
           <input id="tplName" class="border p-2 rounded md:col-span-2" placeholder="Nome do template (ex: Conferir geladeira)" />
           <input id="tplItems" class="border p-2 rounded md:col-span-2" placeholder="Itens separados por vírgula (ex: Coca, Guaraná...)" />
+          <div class="md:col-span-4 mt-1 bg-white p-2 rounded border">
+             <label class="text-xs text-gray-600 font-bold">Auto-publicar na Segunda-feira às (HH:MM):</label>
+             <input id="tplAutoTime" type="time" class="border p-1 rounded ml-2" />
+             <span class="text-xs text-gray-500 ml-2">(Deixe vazio para manual)</span>
+          </div>
         </div>
       </div>
     </div>
@@ -697,31 +707,19 @@
     </div>
   </div>
 
-  <div class="grid md:grid-cols-2 gap-4">
-    <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
-      <div class="flex gap-2 mb-3 flex-wrap">
-        <button id="btnShareAllWhatsApp" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm flex items-center gap-1">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.584l-.386-.232-3.332 1.117 1.117-3.332-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-          Exportar tudo (WhatsApp)
-        </button>
-        <button id="btnDeleteAllTasksWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-          Excluir TODAS tarefas (semana)
-        </button>
-      </div>
-      <div id="gerTasks" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
-      <p class="text-xs text-gray-500 mt-2">✅ Você pode marcar cada item como <b>Comprado</b> ou <b>Não tem</b> (marcados ficam por último).</p>
+  <div class="bg-white p-4 rounded-xl shadow mb-4">
+    <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
+    <div class="flex gap-2 mb-3 flex-wrap">
+      <button id="btnShareAllWhatsApp" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.611.611l4.458-1.495A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 01-5.39-1.584l-.386-.232-3.332 1.117 1.117-3.332-.232-.386A9.94 9.94 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Exportar tudo (WhatsApp)
+      </button>
+      <button id="btnDeleteAllTasksWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+        Excluir TODAS tarefas (semana)
+      </button>
     </div>
-
-    <div class="bg-white p-4 rounded-xl shadow">
-      <h3 class="font-semibold mb-2">Itens em falta</h3>
-      <div class="flex gap-2 mb-3">
-        <button id="btnDeleteAllMissingWeek" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-          Excluir TODAS faltas (semana)
-        </button>
-      </div>
-      <div id="gerMissing" class="text-sm space-y-2 max-h-[60vh] overflow-auto"></div>
-    </div>
+    <div id="gerTasks" class="grid md:grid-cols-2 gap-3 max-h-[70vh] overflow-auto"></div>
+    <p class="text-xs text-gray-500 mt-2">✅ Você pode marcar cada item como <b>Comprado</b> ou <b>Não tem</b> (marcados ficam por último).</p>
   </div>
   </div> <!-- /panel tarefas -->
 
@@ -2193,6 +2191,7 @@
       id,
       name,
       items,
+      autoTime: $("tplAutoTime")?.value || "",
       createdAtHuman: nowHuman()
     }]);
 
@@ -2206,9 +2205,10 @@
     if (!name) throw new Error("Nome do template vazio.");
     if (!items.length) throw new Error("Template precisa ter pelo menos 1 item.");
 
+    const autoTime = $("tplEditAutoTime")?.value || "";
     const next = (globalTemplates || []).map(t=>{
       if (t.id !== id) return t;
-      return { ...t, name, items, updatedAtHuman: nowHuman() };
+      return { ...t, name, items, autoTime, updatedAtHuman: nowHuman() };
     });
 
     await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
@@ -2233,6 +2233,7 @@
     }
     $("tplEditName").value = tpl.name || "";
     $("tplEditItems").value = Array.isArray(tpl.items) ? tpl.items.join(", ") : "";
+    if ($("tplEditAutoTime")) $("tplEditAutoTime").value = tpl.autoTime || "";
   }
 
   // ===== MULTI-GLOBAIS =====
@@ -2244,27 +2245,87 @@
     return `Publicadas: ${total} • Abertas: ${open} • Concluídas: ${done} • Limite semana: 20`;
   }
 
-  async function publishGlobalFromTemplate(tpl){
-    if (!canManageGlobals()) throw new Error("Apenas o gerente.");
+  async function publishGlobalFromTemplate(tpl, isAuto = false){
+    if (!isAuto && !canManageGlobals()) throw new Error("Apenas o gerente.");
 
     const wk = normalizeWeekKeyLoose(currentWeekKey);
     const countWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey)===wk).length;
     if (countWeek >= 20) throw new Error("Limite de 20 GLOBAIS por semana atingido.");
 
-    await addDoc(colGlobals(), {
-      weekKey: currentWeekKey,
-      status: "open",
-      name: tpl.name,
-      items: tpl.items || [],
-      templateId: tpl.id || "",
-      createdAt: serverTimestamp(),
-      createdAtHuman: nowHuman(),
-      createdBy: currentUser
-    });
+    const docId = isAuto ? `auto_${wk}_${tpl.id}` : undefined;
+    const docRef = docId ? doc(db,"stores",STORE_ID,"globals",docId) : doc(colGlobals());
 
-    // Enviar PUSH para todos os tokens registrados
-    broadcastPushNotification("🎯 Nova missão Global!", tpl.name + " está disponível. Seja o primeiro!");
+    if (isAuto) {
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(docRef);
+        if (snap.exists()) return; 
+        tx.set(docRef, {
+          weekKey: currentWeekKey,
+          status: "open",
+          name: tpl.name,
+          items: tpl.items || [],
+          templateId: tpl.id || "",
+          createdAt: serverTimestamp(),
+          createdAtHuman: nowHuman(),
+          createdBy: "Sistema Automático",
+          isAuto: true
+        });
+      });
+    } else {
+      await setDoc(docRef, {
+        weekKey: currentWeekKey,
+        status: "open",
+        name: tpl.name,
+        items: tpl.items || [],
+        templateId: tpl.id || "",
+        createdAt: serverTimestamp(),
+        createdAtHuman: nowHuman(),
+        createdBy: currentUser
+      });
+    }
+
+    if (!isAuto || !globalsAll.some(g => g.id === docId)) {
+      broadcastPushNotification("🎯 Nova missão Global!", tpl.name + " está disponível. Seja o primeiro!");
+    }
   }
+
+  async function checkAndAutoPublishGlobals() {
+    if (!globalTemplates || !globalTemplates.length) return;
+    const now = new Date();
+    const wk = normalizeWeekKeyLoose(currentWeekKey);
+    
+    const day = now.getDay(); 
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+
+    for (const tpl of globalTemplates) {
+      if (!tpl.autoTime) continue; 
+      
+      const [tH, tM] = tpl.autoTime.split(":").map(Number);
+      
+      let shouldPublish = false;
+      if (day === 1) { 
+        if (currentHours > tH || (currentHours === tH && currentMinutes >= tM)) {
+          shouldPublish = true;
+        }
+      } else if (day > 1 || day === 0) { 
+        shouldPublish = true;
+      }
+
+      if (shouldPublish) {
+        const docId = `auto_${wk}_${tpl.id}`;
+        const already = globalsAll.some(g => g.id === docId);
+        if (!already) {
+           console.log("Auto-publishing global:", tpl.name);
+           try {
+             await publishGlobalFromTemplate(tpl, true);
+           } catch(e) { console.error(e); }
+        }
+      }
+    }
+  }
+
+  setInterval(checkAndAutoPublishGlobals, 30000); // Check every 30s
 
   async function broadcastPushNotification(title, body) {
     const key = labelConfig?.serverKey;
@@ -4118,6 +4179,7 @@
           if (isManager()) renderManager();
           else renderEmployee();
         }
+        checkAndAutoPublishGlobals();
       }, (err)=>{
         console.error("Erro snapshot globals:", err);
         warnManager("Erro ao carregar globals (veja o console).");
@@ -4347,7 +4409,8 @@ function printProductLabels() {
       .header p { font-size: 9pt; color: #64748b; margin-top: 2mm; }
       .grid {
         display: grid;
-        grid-template-columns: repeat(${lCols}, 1fr);
+        grid-template-columns: repeat(${lCols}, ${lWidth}cm);
+        justify-content: space-evenly;
         gap: 1.5mm;
         width: 100%;
       }
@@ -4361,7 +4424,7 @@ function printProductLabels() {
         justify-content: flex-start;
         text-align: center;
         height: ${lHeight}cm;
-        width: 100%;
+        width: ${lWidth}cm;
         page-break-inside: avoid;
         break-inside: avoid;
         position: relative;
