@@ -3482,39 +3482,7 @@
       });
     }
 
-    // faltas
-    const m = $("gerMissing");
-    m.innerHTML = "";
-    const mo = missingReports.slice(0, 350);
-    if (!mo.length){
-      m.innerHTML = "<p class='text-gray-500'>Nenhuma falta nesta semana.</p>";
-    } else {
-      mo.forEach((r)=>{
-        const div = document.createElement("div");
-        div.className = "border rounded p-2 bg-gray-50";
-        div.innerHTML =
-          `<div class="flex items-start justify-between gap-2">
-            <div>
-              <div class='font-semibold'>${r.user}</div>
-              <div class='text-xs text-gray-600'>${(r.when || "")}</div>
-              <div class='text-sm mt-1'>${r.item}</div>
-            </div>
-            <button data-id="${r.id}" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Excluir</button>
-          </div>`;
-        m.appendChild(div);
 
-        div.querySelector("button[data-id]")?.addEventListener("click", async ()=>{
-          if (!confirm("Excluir este item em falta?")) return;
-          try{
-            await deleteDoc(doc(db,"stores",STORE_ID,"missing", r.id));
-            toast("Falta excluída.");
-          } catch(e){
-            console.error(e);
-            toast("Erro ao excluir falta.");
-          }
-        });
-      });
-    }
   }
 
   // ===== Collapses (com callback) =====
