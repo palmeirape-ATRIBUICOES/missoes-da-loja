@@ -9,7 +9,7 @@ export default function Products({ onBack }) {
   const { products, saveProduct, deleteProduct } = useStore()
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '' })
+  const [form, setForm] = useState({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '', photo: '' })
   const [showForm, setShowForm] = useState(false)
   
   // Barcode & Labels state
@@ -29,7 +29,7 @@ export default function Products({ onBack }) {
   }, [products, search])
 
   function resetForm() {
-    setForm({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '' })
+    setForm({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '', photo: '' })
     setEditing(null)
     setShowForm(false)
   }
@@ -42,7 +42,8 @@ export default function Products({ onBack }) {
       oldPrice: product.oldPrice || '',
       promoPrice: product.promoPrice || '',
       category: product.category || '',
-      code: product.code || ''
+      code: product.code || '',
+      photo: product.photo || ''
     })
     setEditing(product.id)
     setShowForm(true)
@@ -58,7 +59,8 @@ export default function Products({ onBack }) {
       oldPrice: form.oldPrice,
       promoPrice: form.promoPrice,
       category: form.category.trim(),
-      code: form.code.trim()
+      code: form.code.trim(),
+      photo: form.photo || ''
     }
     await saveProduct(product)
     resetForm()
@@ -76,13 +78,17 @@ export default function Products({ onBack }) {
       const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${form.code}.json`)
       const data = await res.json()
       if (data.status === 1 && data.product) {
+        let rawName = data.product.product_name_pt || data.product.product_name || ''
+        rawName = rawName.toUpperCase().substring(0, 30) // Nome simplificado
+        
         setForm(f => ({
           ...f,
-          name: f.name || data.product.product_name_pt || data.product.product_name || f.name,
-          category: f.category || (data.product.categories?.split(',')[0]) || f.category
+          name: f.name || rawName || f.name,
+          category: f.category || (data.product.categories?.split(',')[0]) || f.category,
+          photo: f.photo || data.product.image_front_url || data.product.image_url || ''
         }))
       } else {
-        alert('Produto não encontrado no banco de dados público.')
+        alert('Produto não encontrado no banco de dados público gratuito.')
       }
     } catch (e) {
       console.error(e)
@@ -158,6 +164,12 @@ export default function Products({ onBack }) {
                 {loadingBarcode ? '⏳' : '🔍 Buscar'}
               </button>
             </div>
+
+            {form.photo && (
+              <div className="mb-3 flex justify-center">
+                <img src={form.photo} alt="Produto" className="h-32 w-auto rounded-xl shadow-sm border border-gray-200 object-contain bg-white p-2" />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <input className="input" placeholder="Nome do produto *" value={form.name}
@@ -248,6 +260,12 @@ export default function Products({ onBack }) {
                       ${isSelected ? 'bg-brand-500 border-brand-500 text-white' : 'border-gray-300'}`}>
                       {isSelected && '✓'}
                     </div>
+
+                    {p.photo ? (
+                      <img src={p.photo} alt="" className="w-12 h-12 rounded-lg object-contain bg-white border border-gray-100 shrink-0 p-1" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-xl shrink-0">📦</div>
+                    )}
                     
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
