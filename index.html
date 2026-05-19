@@ -313,7 +313,7 @@
     <div class="flex items-center justify-between gap-2">
       <div>
         <h2 class="text-lg font-semibold">Produtos & Preços</h2>
-        <p class="text-xs text-gray-500">Consulta para todos • Gerência: gerente e Claudia</p>
+        <p class="text-xs text-gray-500">Consulta para todos • Gerência: funcionários autorizados</p>
       </div>
       <button id="btnTogglePricesEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
         Minimizar
@@ -336,7 +336,7 @@
         </div>
       </div>
 
-      <!-- Gerência (aparece só para gerente/Claudia) -->
+      <!-- Gerência (aparece só para autorizados) -->
       <div id="pricesManageEmp" class="hidden mt-4 border-t pt-4">
         <div class="flex items-center justify-between">
           <div class="font-semibold">Gerenciar preços</div>
@@ -449,46 +449,7 @@
     </div>
   </div>
 
-  <!-- Escala -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h2 class="text-lg font-semibold">Escala da Semana</h2>
-        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscala">-</span></p>
-      </div>
 
-      <div class="flex items-center gap-2">
-        <div class="text-xs text-gray-500">
-          <span id="escalaPermLabel">Somente leitura</span>
-        </div>
-        <button id="btnToggleEscalaEmp" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-          Minimizar
-        </button>
-      </div>
-    </div>
-
-    <div id="escalaEmpContent" class="mt-3">
-      <div id="escalaViewer" class="text-sm space-y-2"></div>
-
-      <div id="escalaEditorWrap" class="hidden mt-4 border-t pt-4">
-        <div class="flex items-center justify-between">
-          <div class="font-semibold text-sm">Editar escala</div>
-          <div class="flex gap-2">
-            <button id="btnClearEscala" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-              Limpar escala
-            </button>
-            <button id="btnSaveEscala" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
-              Salvar escala
-            </button>
-          </div>
-        </div>
-        <p class="text-xs text-gray-500 mt-2">
-          Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
-        </p>
-        <div id="escalaEditor" class="mt-3 space-y-3"></div>
-      </div>
-    </div>
-  </div>
 
   <!-- Header usuário -->
   <div class="bg-white p-4 rounded-xl shadow mb-4">
@@ -544,18 +505,18 @@
     <button class="ger-tab" data-tab="listas">📝 Listas</button>
     <button class="ger-tab" data-tab="feedback">💬 Feedback</button>
     <button class="ger-tab" data-tab="config">⚙️ Config</button>
-    <button class="ger-tab" data-tab="novo_sistema">📊 Planilha</button>
+
   </div>
 
   <!-- PANEL: PRODUTOS -->
   <div class="ger-panel" data-panel="produtos">
-  <!-- Produtos & preços (gerente e Claudia podem gerenciar) -->
+  <!-- Produtos & preços (gerente e autorizados podem gerenciar) -->
 <div class="bg-white p-4 rounded-xl shadow mb-4">
   <div class="flex items-center justify-between gap-2">
     <div>
       <h3 class="font-semibold">Produtos & Preços</h3>
       <p class="text-xs text-gray-500">
-        Consulta para todos • Cadastro/edição: gerente e Claudia
+        Consulta para todos • Cadastro/edição: gerente e funcionários autorizados
       </p>
     </div>
     <div class="flex gap-2">
@@ -822,33 +783,7 @@
     </div>
   </div>
 
-  <!-- Escala -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between">
-      <div>
-        <h3 class="font-semibold">Escala da Semana</h3>
-        <p class="text-xs text-gray-500">Semana: <span id="weekKeyLabelEscalaGer">-</span></p>
-      </div>
-      <div class="flex items-center gap-2">
-        <button id="btnToggleEscalaGer" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-          Minimizar
-        </button>
-        <button id="btnClearEscalaGer" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-          Limpar escala
-        </button>
-        <button id="btnSaveEscalaGer" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm">
-          Salvar escala
-        </button>
-      </div>
-    </div>
-    <p class="text-xs text-gray-500 mt-2">
-      Regras: Manhã e Tarde sempre 2 funcionários • Ninguém dobra (mesmo dia) • Folga 1 funcionário.
-    </p>
 
-    <div id="escalaGerContent" class="mt-3">
-      <div id="escalaEditorGer" class="space-y-3"></div>
-    </div>
-  </div>
 
   <div class="bg-white p-4 rounded-xl shadow mb-4">
     <h3 class="font-semibold mb-2">Tarefas concluídas (semana)</h3>
@@ -869,21 +804,7 @@
   <!-- PANEL: EQUIPE -->
   <div class="ger-panel" data-panel="equipe">
 
-  <!-- Ranking -->
-  <div class="bg-white p-4 rounded-xl shadow mb-4">
-    <div class="flex items-center justify-between gap-2">
-      <div>
-        <h3 class="font-semibold">Ranking do mês</h3>
-        <p class="text-xs text-gray-500">Mês: <span id="monthKeyLabelGer2">-</span></p>
-      </div>
-      <button id="btnToggleRanking2" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 px-3 py-2 rounded">
-        Expandir
-      </button>
-    </div>
-    <div id="rankingContent2" class="hidden mt-3">
-      <div id="rankingList2" class="space-y-2 text-sm"></div>
-    </div>
-  </div>
+
 
   <div class="bg-white p-4 rounded-xl shadow mt-4">
     <div class="flex items-center justify-between gap-2">
@@ -1104,29 +1025,7 @@
     </div>
   </div>
 
-  <!-- PANEL: NOVO SISTEMA -->
-  <div class="ger-panel" data-panel="novo_sistema">
-    <div class="bg-white p-4 rounded-xl shadow mb-4">
-      <h3 class="font-semibold">Planilha Novo Sistema</h3>
-      <p class="text-xs text-gray-500 mb-4">Exporte os produtos cadastrados pelos funcionários para o formato compatível com o novo sistema.</p>
-      
-      <div class="flex gap-2 flex-wrap">
-        <button id="btnExportNewSystem" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded font-bold">
-          📥 BAIXAR PLANILHA (CSV)
-        </button>
-        <button id="btnDeleteAllNewProds" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm">
-          ⚠️ Limpar Todos os Cadastros
-        </button>
-      </div>
-      
-      <div class="mt-6 border-t pt-4">
-        <h4 class="text-sm font-bold mb-2">Produtos cadastrados recentemente:</h4>
-        <div id="newProdsList" class="space-y-2 max-h-[50vh] overflow-auto text-sm">
-           <div class="text-gray-500">Nenhum produto cadastrado ainda.</div>
-        </div>
-      </div>
-    </div>
-  </div>
+
 </section>
 
 <!-- Toast (sem alert bugado) -->
@@ -2035,12 +1934,9 @@
   function isManager(){ return currentUser === getManagerUser(); }
   function canManagePrices(){
     if (isManager()) return true;
-    if (storeKey === "loja_principal" && currentUser === "Claudia") return true;
-    return false;
-  }
-  function canEditEscala(){
-    if (isManager()) return true;
-    if (storeKey === "loja_principal" && currentUser === "Claudia") return true;
+    const emp = employees.find(e => e.name === currentUser);
+    if (emp && emp.canEditPrices) return true;
+    if (storeKey === "loja_principal" && currentUser === "Claudia") return true; // Backward compatível
     return false;
   }
   function canManageGlobals(){
@@ -2173,10 +2069,24 @@
 
     ordered.forEach((e)=>{
       const row = document.createElement("div");
-      row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2";
+      row.className = "border rounded p-2 bg-gray-50 flex items-center justify-between gap-2 flex-wrap";
 
       const left = document.createElement("div");
-      left.innerHTML = `<div class="font-semibold">${e.name}</div><div class="text-xs text-gray-600">${e.active ? "Ativo" : "Bloqueado"}</div>`;
+      left.innerHTML = `<div class="font-semibold">${e.name}</div><div class="text-xs text-gray-600">${e.active ? "Ativo" : "Bloqueado"} • ${e.canEditPrices ? "Pode gerenciar produtos" : "Apenas leitura produtos"}</div>`;
+
+      const rightWrap = document.createElement("div");
+      rightWrap.className = "flex items-center gap-2";
+
+      const btnProd = document.createElement("button");
+      btnProd.className = e.canEditPrices
+        ? "bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-1 rounded text-xs"
+        : "bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs";
+      btnProd.innerText = e.canEditPrices ? "Remover prod." : "Liberar prod.";
+      btnProd.onclick = async ()=>{
+        if (!isManager()) return toast("Apenas o gerente.");
+        const next = employees.map(x => x.name===e.name ? ({...x, canEditPrices: !x.canEditPrices}) : x);
+        await setEmployees(next);
+      };
 
       const btn = document.createElement("button");
       btn.className = e.active
@@ -2189,8 +2099,11 @@
         await setEmployees(next);
       };
 
+      rightWrap.appendChild(btnProd);
+      rightWrap.appendChild(btn);
+
       row.appendChild(left);
-      row.appendChild(btn);
+      row.appendChild(rightWrap);
       wrap.appendChild(row);
     });
   }
@@ -2225,9 +2138,7 @@
   };
 
   const defaultDataBogados = {
-    bogados: {
-      "Rotina": ["Abrir loja", "Conferir caixa", "Repor geladeira", "Limpar balcão"]
-    }
+    bogados: {}
   };
 
   function defaultDataForStore(){
