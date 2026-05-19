@@ -19,8 +19,7 @@ export default function Products({ onBack }) {
   const [selectedForPrint, setSelectedForPrint] = useState([])
   const [printConfig, setPrintConfig] = useState({ widthMm: 40, heightMm: 25, fontSizePx: 20 })
   const [showScanner, setShowScanner] = useState(false)
-  const [suggestedImages, setSuggestedImages] = useState([])
-  const [loadingImages, setLoadingImages] = useState(false)
+  // Removed unstable image search state
 
   const filtered = useMemo(() => {
     if (!search.trim()) return products
@@ -52,68 +51,9 @@ export default function Products({ onBack }) {
     }
   }, [showScanner])
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (form.name && form.name.length > 3 && !form.photo) {
-        searchImages(form.name)
-      } else {
-        setSuggestedImages([])
-      }
-    }, 800)
-    return () => clearTimeout(timer)
-  }, [form.name, form.photo])
+  // Removed automatic search due to API instability
 
-  async function searchImages(query) {
-    setLoadingImages(true)
-    try {
-      // Direct client-side JSONP to call MercadoLivre API (0 CORS blocks, no unstable proxies, lightning-fast)
-      const data = await new Promise((resolve, reject) => {
-        const callbackName = 'ml_jsonp_' + Math.random().toString(36).substr(2, 9)
-        const timeoutId = setTimeout(() => {
-          cleanup()
-          reject(new Error('MercadoLivre JSONP Timeout'))
-        }, 6000)
-
-        function cleanup() {
-          clearTimeout(timeoutId)
-          delete window[callbackName]
-          const script = document.getElementById(callbackName)
-          if (script) script.remove()
-        }
-
-        window[callbackName] = function(response) {
-          cleanup()
-          if (response && response[0] >= 200 && response[0] < 300) {
-            resolve(response[2]) // Body containing the ML results
-          } else {
-            reject(new Error('MercadoLivre API Error Status: ' + (response ? response[0] : 'unknown')))
-          }
-        }
-
-        const script = document.createElement('script')
-        script.id = callbackName
-        script.src = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=10&callback=${callbackName}`
-        script.onerror = function() {
-          cleanup()
-          reject(new Error('JSONP Script Load Error'))
-        }
-        document.body.appendChild(script)
-      })
-
-      if (data.results && data.results.length > 0) {
-        const imgs = data.results
-          .map(p => p.thumbnail?.replace('http://', 'https://')?.replace('-I.jpg', '-O.jpg')) // Enforce HTTPS & High Quality
-          .filter(Boolean)
-        setSuggestedImages(Array.from(new Set(imgs)).slice(0, 5))
-      } else {
-        setSuggestedImages([])
-      }
-    } catch (e) {
-      console.error('Erro ao buscar imagens:', e)
-      setSuggestedImages([])
-    }
-    setLoadingImages(false)
-  }
+  // Removed searchImages function since free public APIs are blocked or unstable
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0]
@@ -289,20 +229,7 @@ export default function Products({ onBack }) {
                 <input className="input w-full" placeholder="Nome do produto *" value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus />
                 
-                {suggestedImages.length > 0 && (
-                  <div className="mt-2 bg-gray-50 border border-gray-100 rounded-xl p-2 animate-fade-in">
-                    <div className="text-xs font-semibold text-gray-500 mb-2">Sugestões de Imagem (clique para usar):</div>
-                    <div className="flex gap-2 overflow-x-auto pb-2 snap-x">
-                      {suggestedImages.map((img, i) => (
-                        <img key={i} src={img} alt="Sugestão" 
-                          onClick={() => setForm(f => ({ ...f, photo: img }))}
-                          className={`h-16 w-16 object-contain rounded-lg border-2 cursor-pointer shrink-0 snap-start transition-all hover:scale-105 bg-white
-                            ${form.photo === img ? 'border-brand-500 ring-2 ring-brand-200' : 'border-gray-200'}`} />
-                      ))}
-                      {loadingImages && <div className="h-16 w-16 flex items-center justify-center text-xs text-gray-400 shrink-0">⏳</div>}
-                    </div>
-                  </div>
-                )}
+                {/* Automatic suggestions removed for stability. Use the direct upload/link option below. */}
               </div>
 
               <div className="relative">
