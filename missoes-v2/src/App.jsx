@@ -9,15 +9,28 @@ import Products from './pages/manager/Products'
 import Team from './pages/manager/Team'
 import Globals from './pages/manager/Globals'
 import Tasks from './pages/manager/Tasks'
+import Config from './pages/manager/Config'
+import Feedback from './pages/manager/Feedback'
+import PublicStore from './pages/PublicStore'
 
 function ProductsPage() { const n = useNavigate(); return <Products onBack={() => n('/gerente')} /> }
 function TeamPage() { const n = useNavigate(); return <Team onBack={() => n('/gerente')} /> }
 function GlobalsPage() { const n = useNavigate(); return <Globals onBack={() => n('/gerente')} /> }
 function TasksPage() { const n = useNavigate(); return <Tasks onBack={() => n('/gerente')} /> }
+function ConfigPage() { const n = useNavigate(); return <Config onBack={() => n('/gerente')} /> }
+function FeedbackPage() { const n = useNavigate(); return <Feedback onBack={() => n('/gerente')} /> }
 
 function AppRoutes() {
   const { currentUser, isManager, loading, firebaseUser } = useAuth()
   const location = useLocation()
+
+  if (location.pathname.startsWith('/cliente/')) {
+    return (
+      <Routes>
+        <Route path="/cliente/:storeId" element={<PublicStore />} />
+      </Routes>
+    )
+  }
 
   if (loading || !firebaseUser) {
     return (
@@ -48,6 +61,8 @@ function AppRoutes() {
         <Route path="/gerente/equipe" element={isManager ? <TeamPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/globais" element={isManager ? <GlobalsPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/tarefas" element={isManager ? <TasksPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/config" element={isManager ? <ConfigPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/feedback" element={isManager ? <FeedbackPage /> : <Navigate to="/funcionario" />} />
         <Route path="/funcionario" element={!isManager ? <EmployeeDashboard /> : <Navigate to="/gerente" />} />
         <Route path="*" element={<Navigate to={location.pathname.startsWith('/pdv') ? '/pdv' : (isManager ? '/gerente' : '/funcionario')} />} />
       </Routes>
