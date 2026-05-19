@@ -65,7 +65,8 @@ export default function PDV() {
         name: product.name,
         price,
         qty: 1,
-        unit: product.fractioned ? 'kg' : 'un'
+        unit: product.fractioned ? 'kg' : 'un',
+        photo: product.photo
       }]
     })
   }
@@ -251,16 +252,23 @@ export default function PDV() {
                   const price = parseCurrency(p.promoPrice || p.price || p.oldPrice)
                   return (
                     <button key={p.id} onClick={() => addToCart(p)}
-                      className="pdv-product-btn">
-                      <span className="text-xs font-bold truncate w-full">{p.name}</span>
-                      <span className="text-brand-700 font-extrabold text-sm">
-                        {formatCurrency(price)}
-                      </span>
-                      {p.promoPrice && p.oldPrice && (
-                        <span className="text-[10px] text-red-400 line-through">
-                          {formatCurrency(p.oldPrice)}
-                        </span>
+                      className="pdv-product-btn" style={{ minHeight: p.photo ? '120px' : '80px', justifyContent: p.photo ? 'space-between' : 'center' }}>
+                      {p.photo && (
+                        <div className="w-full h-14 flex items-center justify-center shrink-0 mb-1">
+                          <img src={p.photo} alt={p.name} className="max-h-full max-w-full object-contain rounded-md" />
+                        </div>
                       )}
+                      <div className="flex flex-col items-center w-full min-w-0 mt-auto">
+                        <span className="text-[11px] font-bold truncate w-full">{p.name}</span>
+                        <span className="text-brand-700 font-extrabold text-sm leading-none mt-1">
+                          {formatCurrency(price)}
+                        </span>
+                        {p.promoPrice && p.oldPrice && (
+                          <span className="text-[10px] text-red-400 line-through mt-0.5">
+                            {formatCurrency(p.oldPrice)}
+                          </span>
+                        )}
+                      </div>
                     </button>
                   )
                 })}
@@ -297,7 +305,12 @@ export default function PDV() {
               </div>
             ) : (
               cart.map((item, idx) => (
-                <div key={idx} className="cart-item animate-fade-in">
+                <div key={idx} className="cart-item animate-fade-in gap-3">
+                  {item.photo ? (
+                    <img src={item.photo} alt="" className="w-10 h-10 object-contain rounded-md bg-white border border-gray-100 shrink-0 p-0.5" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-xl shrink-0">📦</div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold text-sm text-gray-900 truncate">{item.name}</div>
                     <div className="text-xs text-gray-500">{formatCurrency(item.price)} / {item.unit}</div>
