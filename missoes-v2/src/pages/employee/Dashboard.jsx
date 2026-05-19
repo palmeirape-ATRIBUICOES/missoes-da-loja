@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useStore } from '../../hooks/useStore'
-import { formatCurrency, normalizeWeekKeyLoose } from '../../utils/constants'
+import { formatCurrency, normalizeWeekKeyLoose, nowHuman } from '../../utils/constants'
 
 export default function EmployeeDashboard() {
   const { currentUser, store, logout } = useAuth()
@@ -51,28 +52,11 @@ export default function EmployeeDashboard() {
               </span>
             </div>
             <div className="text-xs text-gray-500 mb-3">
-              A GLOBAL some quando alguém conclui primeiro. Seja rápido!
+              A GLOBAL some quando alguém conclui primeiro. Responda os itens e envie!
             </div>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {globalsOpen.map(g => (
-                <div key={g.id} className="p-4 rounded-xl bg-blue-50 border-2 border-blue-200">
-                  <div className="font-bold text-gray-900">{g.name || 'GLOBAL'}</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Publicada por {g.createdBy || '-'} • {g.createdAtHuman || '-'}
-                  </div>
-                  {g.items?.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {g.items.map((item, i) => (
-                        <span key={i} className="text-xs bg-white border border-blue-200 px-2 py-0.5 rounded-full text-blue-700">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <button className="mt-3 btn btn-success w-full">
-                    ✅ Concluir GLOBAL
-                  </button>
-                </div>
+                <GlobalMissionItem key={g.id} globalDoc={g} />
               ))}
             </div>
           </div>
@@ -103,6 +87,61 @@ export default function EmployeeDashboard() {
           </div>
         </div>
       </main>
+    </div>
+  )
+}
+
+function GlobalMissionItem({ globalDoc }) {
+  const { currentUser } = useAuth()
+  const { updateGlobal } = useStore()
+  const [responses, setResponses] = useState(
+    (globalDoc.items || []).map(name => ({ itemName: name, employeeNote: '', managerStatus: null }))
+  )
+  const [loading, setLoading] = useState(false)
+
+  function updateNote(index, note) {
+    const next = [...responses]
+    next[index].employeeNote = note
+    setResponses(next)
+  }
+
+  async function submit() {
+    setLoading(true)
+    await updateGlobal(globalDoc.id, {
+      status: 'review',
+      responses,
+      completedBy: currentUser,
+      completedAtHuman: nowHuman(),
+      updatedAtMs: Date.now()
+    })
+    setLoading(false)
+  }
+
+  return (
+    <div className="p-4 rounded-xl bg-blue-50 border-2 border-blue-200">
+      <div className="font-bold text-gray-900 text-lg mb-1">{globalDoc.name || 'GLOBAL'}</div>
+      <div className="text-xs text-gray-500 mb-4">
+        Publicada por {globalDoc.createdBy || '-'} • {globalDoc.createdAtHuman || '-'}
+      </div>
+
+      <div className="space-y-3 mb-4">
+        {responses.map((res, i) => (
+          <div key={i} className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-800">{res.itemName}</label>
+            <input
+              type="text"
+              placeholder="Ex: Falta 3, OK, etc."
+              value={res.employeeNote}
+              onChange={e => updateNote(i, e.target.value)}
+              className="input bg-white"
+            />
+          </div>
+        ))}
+      </div>
+
+      <button onClick={submit} disabled={loading} className="btn btn-success w-full h-12 text-base shadow-sm">
+        {loading ? '⏳ Enviando...' : '✅ Concluir GLOBAL'}
+      </button>
     </div>
   )
 }

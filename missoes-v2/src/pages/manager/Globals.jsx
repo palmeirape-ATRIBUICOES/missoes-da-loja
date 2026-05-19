@@ -85,13 +85,17 @@ export default function Globals({ onBack }) {
 
       <main className="max-w-3xl mx-auto p-4 space-y-4">
         {/* Tabs */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
           <button onClick={() => setTab('published')}
-            className={`pdv-cat-tab ${tab === 'published' ? 'active' : ''}`}>
-            📡 Publicadas ({globalsWeek.length})
+            className={`pdv-cat-tab whitespace-nowrap shrink-0 ${tab === 'published' ? 'active' : ''}`}>
+            📡 Abertas ({globalsOpen.length})
+          </button>
+          <button onClick={() => setTab('review')}
+            className={`pdv-cat-tab whitespace-nowrap shrink-0 ${tab === 'review' ? 'active' : ''}`}>
+            👀 Revisão ({globalsWeek.filter(g => g.status === 'review' || g.status === 'completed').length})
           </button>
           <button onClick={() => setTab('templates')}
-            className={`pdv-cat-tab ${tab === 'templates' ? 'active' : ''}`}>
+            className={`pdv-cat-tab whitespace-nowrap shrink-0 ${tab === 'templates' ? 'active' : ''}`}>
             📁 Templates ({globalTemplates.length})
           </button>
         </div>
@@ -99,19 +103,19 @@ export default function Globals({ onBack }) {
         {/* Published Globals */}
         {tab === 'published' && (
           <div className="space-y-3">
-            {globalsWeek.length === 0 ? (
+            {globalsOpen.length === 0 ? (
               <div className="text-center p-8 text-gray-400">
                 <div className="text-4xl mb-2">🎯</div>
-                <div className="font-semibold">Nenhuma global publicada esta semana</div>
+                <div className="font-semibold">Nenhuma global aberta</div>
               </div>
             ) : (
-              globalsWeek.map(g => (
-                <div key={g.id} className={`card p-4 ${g.status === 'open' ? 'border-l-4 border-l-blue-500' : 'border-l-4 border-l-emerald-500'}`}>
+              globalsOpen.map(g => (
+                <div key={g.id} className="card p-4 border-l-4 border-l-blue-500">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-bold text-gray-900">{g.name || 'GLOBAL'}</div>
                       <div className="text-xs text-gray-500">
-                        {g.status === 'open' ? '🔵 Aberta' : '✅ Concluída'} • {g.createdBy || '-'} • {g.createdAtHuman || '-'}
+                        🔵 Aberta • {g.createdBy || '-'} • {g.createdAtHuman || '-'}
                       </div>
                       {g.items?.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
@@ -121,13 +125,27 @@ export default function Globals({ onBack }) {
                         </div>
                       )}
                     </div>
-                    {g.status === 'open' && (
-                      <button onClick={() => handleDeleteGlobal(g.id)}
-                        className="btn btn-danger text-xs py-1 px-3">🗑 Excluir</button>
-                    )}
+                    <button onClick={() => handleDeleteGlobal(g.id)}
+                      className="btn btn-danger text-xs py-1 px-3">🗑 Excluir</button>
                   </div>
                 </div>
               ))
+            )}
+          </div>
+        )}
+
+        {/* Review Globals */}
+        {tab === 'review' && (
+          <div className="space-y-4">
+            {globalsWeek.filter(g => g.status === 'review' || g.status === 'completed').length === 0 ? (
+               <div className="text-center p-8 text-gray-400">
+                 <div className="text-4xl mb-2">👀</div>
+                 <div className="font-semibold">Nenhuma missão para revisar</div>
+               </div>
+            ) : (
+               globalsWeek.filter(g => g.status === 'review' || g.status === 'completed').map(g => (
+                 <GlobalReviewCard key={g.id} globalDoc={g} />
+               ))
             )}
           </div>
         )}
@@ -199,6 +217,89 @@ export default function Globals({ onBack }) {
           </div>
         )}
       </main>
+    </div>
+  )
+}
+
+function GlobalReviewCard({ globalDoc }) {
+  const { updateGlobal } = useStore()
+  const responses = globalDoc.responses || []
+
+  // Sort: items with managerStatus placed at the bottom
+  const sorted = [...responses].sort((a, b) => {
+    if (a.managerStatus && !b.managerStatus) return 1
+    if (!a.managerStatus && b.managerStatus) return -1
+    return 0
+  })
+
+  async function setItemStatus(originalIndex, mStatus) {
+    const next = [...responses]
+    next[originalIndex].managerStatus = mStatus
+    await updateGlobal(globalDoc.id, { responses: next })
+  }
+
+  async function archive() {
+    await updateGlobal(globalDoc.id, { status: 'completed' })
+  }
+
+  return (
+    <div className={`card p-4 border-l-4 ${globalDoc.status === 'completed' ? 'border-l-emerald-500 opacity-70' : 'border-l-orange-500'}`}>
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="font-bold text-gray-900 text-lg">{globalDoc.name}</div>
+          <div className="text-xs text-gray-500">
+            Concluída por {globalDoc.completedBy} • {globalDoc.completedAtHuman}
+          </div>
+        </div>
+        {globalDoc.status === 'review' && (
+          <button onClick={archive} className="btn btn-ghost text-xs">
+            📦 Arquivar
+          </button>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {sorted.map((res, i) => {
+          const originalIndex = responses.indexOf(res)
+          return (
+            <div key={i} className={`p-3 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-2
+              ${res.managerStatus ? 'bg-gray-50 border-gray-200' : 'bg-white border-blue-100'}`}>
+              
+              <div className="min-w-0">
+                <div className={`font-semibold text-sm ${res.managerStatus ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+                  {res.itemName}
+                </div>
+                {res.employeeNote && (
+                  <div className="text-xs text-blue-700 font-medium mt-0.5">
+                    ↳ {res.employeeNote}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {res.managerStatus === 'comprado' && <span className="text-xs font-bold text-emerald-600">✅ Comprado</span>}
+                {res.managerStatus === 'falta' && <span className="text-xs font-bold text-red-600">❌ Em Falta</span>}
+                
+                {!res.managerStatus && (
+                  <>
+                    <button onClick={() => setItemStatus(originalIndex, 'comprado')} 
+                      className="px-3 py-1.5 rounded bg-emerald-50 text-emerald-700 text-xs font-bold active:scale-95">
+                      Comprado
+                    </button>
+                    <button onClick={() => setItemStatus(originalIndex, 'falta')} 
+                      className="px-3 py-1.5 rounded bg-red-50 text-red-700 text-xs font-bold active:scale-95">
+                      Falta
+                    </button>
+                  </>
+                )}
+                {res.managerStatus && (
+                  <button onClick={() => setItemStatus(originalIndex, null)} className="text-xs text-gray-400 underline">Desfazer</button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

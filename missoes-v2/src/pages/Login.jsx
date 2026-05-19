@@ -4,7 +4,7 @@ import { STORE_MAP } from '../utils/constants'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
-export default function Login() {
+export default function Login({ mode = 'app' }) {
   const { login } = useAuth()
   const [storeKey, setStoreKey] = useState('loja_principal')
   const [users, setUsers] = useState([])
@@ -12,7 +12,7 @@ export default function Login() {
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState('store') // store -> user -> pin
+  const [step, setStep] = useState('store')
 
   const store = STORE_MAP[storeKey]
 
@@ -66,10 +66,14 @@ export default function Login() {
         <div className="text-center mb-8">
           <div className="w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, #7c3aed, #a78bfa)' }}>
-            <span className="text-4xl">🎯</span>
+            <span className="text-4xl">{mode === 'pdv' ? '🖥️' : '🎯'}</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Missões da Loja</h1>
-          <p className="text-sm text-gray-500 mt-1">Sistema de Gestão & PDV</p>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+            {mode === 'pdv' ? 'Caixa PDV' : 'Missões da Loja'}
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {mode === 'pdv' ? 'Sistema de Frente de Caixa' : 'Acesso da Equipe'}
+          </p>
         </div>
 
         {/* Step: Store Selection */}

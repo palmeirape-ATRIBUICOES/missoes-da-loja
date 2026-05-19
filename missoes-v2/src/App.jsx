@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { StoreProvider } from './hooks/useStore'
 import Login from './pages/Login'
@@ -17,6 +17,7 @@ function TasksPage() { const n = useNavigate(); return <Tasks onBack={() => n('/
 
 function AppRoutes() {
   const { currentUser, isManager, loading, firebaseUser } = useAuth()
+  const location = useLocation()
 
   if (loading || !firebaseUser) {
     return (
@@ -35,20 +36,20 @@ function AppRoutes() {
   }
 
   if (!currentUser) {
-    return <Login />
+    return <Login mode={location.pathname.startsWith('/pdv') ? 'pdv' : 'app'} />
   }
 
   return (
     <StoreProvider>
       <Routes>
         <Route path="/pdv" element={<PDV />} />
-        <Route path="/gerente" element={isManager ? <ManagerDashboard /> : <Navigate to="/" />} />
-        <Route path="/gerente/produtos" element={isManager ? <ProductsPage /> : <Navigate to="/" />} />
-        <Route path="/gerente/equipe" element={isManager ? <TeamPage /> : <Navigate to="/" />} />
-        <Route path="/gerente/globais" element={isManager ? <GlobalsPage /> : <Navigate to="/" />} />
-        <Route path="/gerente/tarefas" element={isManager ? <TasksPage /> : <Navigate to="/" />} />
-        <Route path="/funcionario" element={!isManager ? <EmployeeDashboard /> : <Navigate to="/" />} />
-        <Route path="*" element={<Navigate to={isManager ? '/gerente' : '/funcionario'} />} />
+        <Route path="/gerente" element={isManager ? <ManagerDashboard /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/produtos" element={isManager ? <ProductsPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/equipe" element={isManager ? <TeamPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/globais" element={isManager ? <GlobalsPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/tarefas" element={isManager ? <TasksPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/funcionario" element={!isManager ? <EmployeeDashboard /> : <Navigate to="/gerente" />} />
+        <Route path="*" element={<Navigate to={location.pathname.startsWith('/pdv') ? '/pdv' : (isManager ? '/gerente' : '/funcionario')} />} />
       </Routes>
     </StoreProvider>
   )
@@ -56,10 +57,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter basename="/missoes-da-loja">
+    <HashRouter>
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   )
 }

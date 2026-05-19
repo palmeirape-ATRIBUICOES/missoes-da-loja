@@ -3,13 +3,14 @@ import { useStore } from '../../hooks/useStore'
 import { useAuth } from '../../hooks/useAuth'
 import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../../config/firebase'
-import { nowHuman } from '../../utils/constants'
+import { nowHuman, weekKey } from '../../utils/constants'
 
 export default function Tasks({ onBack }) {
   const { storeId, currentUser, isManager } = useAuth()
-  const { tasksAll, activeNames, colRef } = useStore()
+  const { tasksAll, activeNames, colRef, currentWeekKey } = useStore()
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ title: '', description: '', assignedTo: '', priority: 'normal' })
+  const [expandedWeeks, setExpandedWeeks] = useState({ [currentWeekKey]: true })
 
   async function createTask() {
     if (!form.title.trim()) return
@@ -22,7 +23,8 @@ export default function Tasks({ onBack }) {
       status: 'pending',
       createdBy: currentUser,
       createdAt: serverTimestamp(),
-      createdAtHuman: nowHuman()
+      createdAtHuman: nowHuman(),
+      weekKey: currentWeekKey
     })
     setForm({ title: '', description: '', assignedTo: '', priority: 'normal' })
     setShowForm(false)
@@ -33,7 +35,8 @@ export default function Tasks({ onBack }) {
     await setDoc(doc(db, 'stores', storeId, 'tasks', taskId), {
       status: newStatus,
       completedAt: newStatus === 'done' ? nowHuman() : null,
-      completedBy: newStatus === 'done' ? currentUser : null
+      completedBy: newStatus === 'done' ? currentUser : null,
+      completedWeek: newStatus === 'done' ? weekKey() : null
     }, { merge: true })
   }
 
@@ -44,6 +47,17 @@ export default function Tasks({ onBack }) {
 
   const pending = tasksAll.filter(t => t.status !== 'done')
   const done = tasksAll.filter(t => t.status === 'done')
+
+  const doneByWeek = {}
+  done.forEach(t => {
+    const wk = t.completedWeek || t.weekKey || 'Semana Anterior'
+    if (!doneByWeek[wk]) doneByWeek[wk] = []
+    doneByWeek[wk].push(t)
+  })
+
+  function toggleWeek(wk) {
+    setExpandedWeeks(prev => ({ ...prev, [wk]: !prev[wk] }))
+  }
 
   const priorityColors = {
     urgent: 'bg-red-100 text-red-700 border-l-red-500',
@@ -133,28 +147,35 @@ export default function Tasks({ onBack }) {
           </div>
         )}
 
-        {/* Done */}
-        {done.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Concluídas</h3>
-            <div className="space-y-2">
-              {done.slice(0, 20).map(task => (
-                <div key={task.id} className="card p-3 opacity-60">
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => toggleTask(task.id, task.status)}
-                      className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0 active:scale-90">
-                      ✅
-                    </button>
-                    <div className="min-w-0">
-                      <div className="font-medium text-gray-700 line-through text-sm">{task.title}</div>
-                      <div className="text-[10px] text-gray-400">{task.completedBy} • {task.completedAt}</div>
+        {/* Done Grouped by Week */}
+        {Object.keys(doneByWeek).sort().reverse().map(wk => (
+          <div key={wk} className="mb-4">
+            <button onClick={() => toggleWeek(wk)} 
+              className="w-full flex items-center justify-between text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2 active:opacity-70">
+              <span>Semana {wk} ({doneByWeek[wk].length})</span>
+              <span>{expandedWeeks[wk] ? '▼' : '▶'}</span>
+            </button>
+            
+            {expandedWeeks[wk] && (
+              <div className="space-y-2">
+                {doneByWeek[wk].map(task => (
+                  <div key={task.id} className="card p-3 opacity-60">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => toggleTask(task.id, task.status)}
+                        className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0 active:scale-90">
+                        ✅
+                      </button>
+                      <div className="min-w-0">
+                        <div className="font-medium text-gray-700 line-through text-sm">{task.title}</div>
+                        <div className="text-[10px] text-gray-400">{task.completedBy} • {task.completedAt}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        ))}
 
         {tasksAll.length === 0 && (
           <div className="text-center p-8 text-gray-400">

@@ -104,6 +104,7 @@ export function StoreProvider({ children }) {
   const wk = normalizeWeekKeyLoose(currentWeekKey)
   const globalsWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey) === wk)
   const globalsOpen = globalsWeek.filter(g => g.status === 'open')
+  const globalsReview = globalsWeek.filter(g => g.status === 'review' || g.status === 'completed')
   const activeEmployees = employees.filter(e => e.active)
   const activeNames = activeEmployees.map(e => e.name)
 
@@ -137,6 +138,10 @@ export function StoreProvider({ children }) {
       createdAt: serverTimestamp(),
       createdAtHuman: nowHuman()
     })
+  }
+
+  async function updateGlobal(globalId, data) {
+    await setDoc(doc(db, 'stores', storeId, 'globals', globalId), data, { merge: true })
   }
 
   async function deleteGlobalDoc(globalId) {
@@ -192,12 +197,12 @@ export function StoreProvider({ children }) {
     <StoreContext.Provider value={{
       currentWeekKey, setCurrentWeekKey,
       employees, activeEmployees, activeNames, products,
-      globalsAll, globalsWeek, globalsOpen, globalTemplates,
+      globalsAll, globalsWeek, globalsOpen, globalsReview, globalTemplates,
       tasksAll, scoresDoc, listsAll, feedbackAll,
       pdvSales, labelConfig, loading,
       getMonthPoints,
       saveProduct, deleteProduct, savePdvSale,
-      deleteGlobalDoc, publishGlobal,
+      updateGlobal, deleteGlobalDoc, publishGlobal,
       saveEmployees, saveLabelConfig,
       cfgRef, stateRef, colRef
     }}>
