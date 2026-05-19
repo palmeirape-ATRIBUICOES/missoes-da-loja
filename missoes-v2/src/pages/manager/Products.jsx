@@ -110,8 +110,14 @@ export default function Products({ onBack }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {isManager && selectedForPrint.length > 0 && (
-            <button onClick={() => setShowPrintModal(true)} className="btn bg-brand-100 text-brand-700 text-sm border-0 font-bold px-3">
+          {isManager && (
+            <button onClick={() => {
+              if (selectedForPrint.length === 0) {
+                alert('Selecione os produtos marcando a caixinha (☑) na lista abaixo primeiro!')
+              } else {
+                setShowPrintModal(true)
+              }
+            }} className={`btn text-sm font-bold px-3 ${selectedForPrint.length > 0 ? 'bg-brand-100 text-brand-700 border-0' : 'btn-ghost text-gray-500'}`}>
               🖨️ Imprimir ({selectedForPrint.length})
             </button>
           )}
@@ -263,6 +269,17 @@ export default function Products({ onBack }) {
                   </div>
                   
                   <div className="flex items-center gap-1 shrink-0">
+                    {isManager && (
+                      <button onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setSelectedForPrint([p]); 
+                        setShowPrintModal(true); 
+                      }}
+                        className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-sm active:scale-90"
+                        title="Imprimir Etiqueta deste produto">
+                        🖨️
+                      </button>
+                    )}
                     <button onClick={(e) => { e.stopPropagation(); startEdit(p) }}
                       className="w-9 h-9 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center text-sm active:scale-90">
                       ✏️
