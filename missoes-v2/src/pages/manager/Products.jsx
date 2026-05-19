@@ -115,6 +115,21 @@ export default function Products({ onBack }) {
     setLoadingImages(false)
   }
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Por favor, selecione um arquivo de imagem válido.')
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setForm(f => ({ ...f, photo: reader.result }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   function resetForm() {
     setForm({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '', photo: '' })
     setEditing(null)
@@ -315,15 +330,49 @@ export default function Products({ onBack }) {
                 onChange={e => setForm(f => ({ ...f, promoPrice: e.target.value }))} />
             </div>
 
-            {form.photo && (
-              <div className="mb-4 relative rounded-xl border border-gray-200 bg-white p-3 flex justify-center group">
-                <button onClick={() => setForm(f => ({ ...f, photo: '' }))} 
-                  className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                  ✖
-                </button>
-                <img src={form.photo} alt="Produto" className="h-32 w-auto object-contain" />
-              </div>
-            )}
+            {/* Upload de Foto Premium */}
+            <div className="mb-4">
+              <label className="text-xs font-semibold text-gray-500 mb-2 block">Foto do Produto</label>
+              {form.photo ? (
+                <div className="relative rounded-2xl border-2 border-dashed border-green-200 bg-green-50/20 p-4 flex flex-col items-center justify-center gap-2 group transition-all">
+                  <button 
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, photo: '' }))} 
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200 flex items-center justify-center font-bold transition-all shadow-sm">
+                    ✖
+                  </button>
+                  <img src={form.photo} alt="Produto" className="h-32 w-auto object-contain rounded-xl shadow-md bg-white p-1" />
+                  <span className="text-xs text-green-700 font-semibold flex items-center gap-1">✨ Foto adicionada com sucesso!</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Opção A: Upload de Arquivo / Tirar Foto com a Câmera */}
+                  <label className="flex flex-col items-center justify-center p-5 border-2 border-dashed border-gray-300 hover:border-brand-500 rounded-2xl bg-white hover:bg-brand-50/10 cursor-pointer transition-all text-center group active:scale-98">
+                    <span className="text-3xl mb-1 group-hover:animate-bounce">📤</span>
+                    <span className="text-sm font-bold text-gray-700">Tirar Foto ou Enviar</span>
+                    <span className="text-xs text-gray-400 mt-0.5">Câmera do celular ou galeria</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageUpload} 
+                      className="hidden" 
+                    />
+                  </label>
+
+                  {/* Opção B: Inserir Link/URL Direto */}
+                  <div className="flex flex-col justify-center p-4 border border-gray-200 rounded-2xl bg-white gap-2">
+                    <span className="text-xs font-bold text-gray-500">Ou cole o link da foto:</span>
+                    <input 
+                      type="text" 
+                      placeholder="https://exemplo.com/foto.png" 
+                      value={form.photo}
+                      onChange={e => setForm(f => ({ ...f, photo: e.target.value }))}
+                      className="input w-full text-xs" 
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
             <button onClick={handleSave} className="btn btn-success w-full mt-4 h-12 text-base shadow-sm">
               {editing ? '💾 Atualizar Produto' : '✅ Salvar Produto'}
             </button>
