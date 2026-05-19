@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useStore } from '../../hooks/useStore'
 import { useAuth } from '../../hooks/useAuth'
 import { formatCurrency, parseCurrency } from '../../utils/constants'
 import { printLabels } from '../../services/printer'
+import { Html5QrcodeScanner } from 'html5-qrcode'
 
 export default function Products({ onBack }) {
   const { isManager } = useAuth()
@@ -17,6 +18,7 @@ export default function Products({ onBack }) {
   const [showPrintModal, setShowPrintModal] = useState(false)
   const [selectedForPrint, setSelectedForPrint] = useState([])
   const [printConfig, setPrintConfig] = useState({ widthMm: 40, heightMm: 25, fontSizePx: 20 })
+  const [showScanner, setShowScanner] = useState(false)
 
   const filtered = useMemo(() => {
     if (!search.trim()) return products
@@ -28,10 +30,31 @@ export default function Products({ onBack }) {
     )
   }, [products, search])
 
+  useEffect(() => {
+    if (showScanner) {
+      const scanner = new Html5QrcodeScanner('reader', {
+        qrbox: { width: 250, height: 150 },
+        fps: 10
+      }, false)
+      
+      scanner.render((decodedText) => {
+        setForm(f => ({ ...f, code: decodedText }))
+        scanner.clear()
+        setShowScanner(false)
+        setTimeout(() => handleBarcodeSearch(decodedText), 500)
+      }, () => {})
+
+      return () => {
+        scanner.clear().catch(e => console.error(e))
+      }
+    }
+  }, [showScanner])
+
   function resetForm() {
     setForm({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '', photo: '' })
     setEditing(null)
     setShowForm(false)
+    setShowScanner(false)
   }
 
   function startEdit(product) {
@@ -71,11 +94,12 @@ export default function Products({ onBack }) {
     await deleteProduct(id)
   }
 
-  async function handleBarcodeSearch() {
-    if (!form.code) return
+  async function handleBarcodeSearch(codeToSearch) {
+    const code = codeToSearch || form.code
+    if (!code) return
     setLoadingBarcode(true)
     try {
-      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${form.code}.json`)
+      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`)
       const data = await res.json()
       if (data.status === 1 && data.product) {
         let rawName = data.product.product_name_pt || data.product.product_name || ''
@@ -83,6 +107,7 @@ export default function Products({ onBack }) {
         
         setForm(f => ({
           ...f,
+          code: code,
           name: f.name || rawName || f.name,
           category: f.category || (data.product.categories?.split(',')[0]) || f.category,
           photo: f.photo || data.product.image_front_url || data.product.image_url || ''
@@ -155,14 +180,28 @@ export default function Products({ onBack }) {
               <button onClick={resetForm} className="text-sm text-gray-500 font-semibold">Cancelar</button>
             </div>
             
-            <div className="mb-3 p-3 bg-blue-50 rounded-xl border border-blue-100 flex gap-2">
-              <input className="input flex-1 bg-white" placeholder="Código de barras" value={form.code}
-                onChange={e => setForm(f => ({ ...f, code: e.target.value }))}
-                onKeyDown={e => e.key === 'Enter' && handleBarcodeSearch()} />
-              <button onClick={handleBarcodeSearch} disabled={loadingBarcode || !form.code} 
-                className="btn btn-primary shrink-0">
-                {loadingBarcode ? '⏳' : '🔍 Buscar'}
-              </button>
+            <div className="mb-3 p-3 bg-blue-50 rounded-xl border border-blue-100 flex flex-col gap-2">
+              <div className="flex gap-2 w-full">
+                <input className="input flex-1 bg-white" placeholder="Código de barras" value={form.code}
+                  onChange={e => setForm(f => ({ ...f, code: e.target.value }))}
+                  onKeyDown={e => e.key === 'Enter' && handleBarcodeSearch()} />
+                
+                <button onClick={() => setShowScanner(!showScanner)} 
+                  className={`btn shrink-0 ${showScanner ? 'bg-red-50 text-red-600' : 'bg-white text-gray-700 border border-gray-200'}`}>
+                  {showScanner ? '✖' : '📷'}
+                </button>
+                
+                <button onClick={() => handleBarcodeSearch()} disabled={loadingBarcode || !form.code} 
+                  className="btn btn-primary shrink-0">
+                  {loadingBarcode ? '⏳' : '🔍'}
+                </button>
+              </div>
+
+              {showScanner && (
+                <div className="w-full bg-black rounded-xl overflow-hidden mt-2 relative">
+                  <div id="reader" className="w-full"></div>
+                </div>
+              )}
             </div>
 
             {form.photo && (
