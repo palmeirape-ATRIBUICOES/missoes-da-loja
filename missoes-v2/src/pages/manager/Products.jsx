@@ -65,66 +65,71 @@ export default function Products({ onBack }) {
 
   async function searchImages(query) {
     setLoadingImages(true)
-    let results = []
-    const targetUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=10`
-    
-    // Proxy 1: corsproxy.io (Very fast, direct JSON response)
-    if (results.length === 0) {
-      try {
-        const res = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`)
-        if (res.ok) {
-          const data = await res.json()
-          if (data.results && data.results.length > 0) {
-            results = data.results
-          }
+    const suggested = new Set()
+
+    // 1. Direct Search on OpenFoodFacts v2 (100% Reliable, 0 CORS, Instant browser-native)
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/api/v2/search?terms=${encodeURIComponent(query)}&fields=image_front_url&page_size=6`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.products) {
+          data.products.forEach(p => {
+            if (p.image_front_url) {
+              suggested.add(p.image_front_url.replace('http://', 'https://'))
+            }
+          })
         }
-      } catch (err) {
-        console.warn('Proxy 1 (corsproxy.io) falhou, tentando o próximo:', err)
       }
+    } catch (err) {
+      console.warn('Busca direta no OpenFoodFacts v2 falhou:', err)
     }
 
-    // Proxy 2: codetabs proxy (Direct JSON response)
-    if (results.length === 0) {
-      try {
-        const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`)
-        if (res.ok) {
-          const data = await res.json()
-          if (data.results && data.results.length > 0) {
-            results = data.results
-          }
+    // 2. Supplementary Search on MercadoLivre via Proxies (High Quality Studio Photos)
+    const mlTargetUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=5`
+
+    // Proxy 1: codetabs proxy
+    try {
+      const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(mlTargetUrl)}`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.results) {
+          data.results.forEach(p => {
+            if (p.thumbnail) {
+              const secureImg = p.thumbnail.replace('http://', 'https://').replace('-I.jpg', '-O.jpg')
+              suggested.add(secureImg)
+            }
+          })
         }
-      } catch (err) {
-        console.warn('Proxy 2 (codetabs) falhou, tentando o próximo:', err)
       }
+    } catch (err) {
+      console.warn('Busca no MercadoLivre via Codetabs falhou:', err)
     }
 
-    // Proxy 3: AllOrigins (Wrapped JSON response, stable backup)
-    if (results.length === 0) {
+    // Proxy 2: AllOrigins
+    if (suggested.size < 5) {
       try {
-        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`)
+        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(mlTargetUrl)}`)
         if (res.ok) {
           const data = await res.json()
           if (data.contents) {
             const mlData = JSON.parse(data.contents)
-            if (mlData.results && mlData.results.length > 0) {
-              results = mlData.results
+            if (mlData.results) {
+              mlData.results.forEach(p => {
+                if (p.thumbnail) {
+                  const secureImg = p.thumbnail.replace('http://', 'https://').replace('-I.jpg', '-O.jpg')
+                  suggested.add(secureImg)
+                }
+              })
             }
           }
         }
       } catch (err) {
-        console.warn('Proxy 3 (AllOrigins) falhou:', err)
+        console.warn('Busca no MercadoLivre via AllOrigins falhou:', err)
       }
     }
 
-    // Process and filter the collected results
-    if (results.length > 0) {
-      const imgs = results
-        .map(p => p.thumbnail?.replace('http://', 'https://')?.replace('-I.jpg', '-O.jpg')) // Enforce HTTPS & High Quality
-        .filter(Boolean)
-      setSuggestedImages(Array.from(new Set(imgs)).slice(0, 5))
-    } else {
-      setSuggestedImages([])
-    }
+    // Update suggestions state with the unique results collected
+    setSuggestedImages(Array.from(suggested).slice(0, 5))
     setLoadingImages(false)
   }
 
