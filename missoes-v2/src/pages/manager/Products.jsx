@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react'
 import { useStore } from '../../hooks/useStore'
+import { useAuth } from '../../hooks/useAuth'
 import { formatCurrency, parseCurrency } from '../../utils/constants'
 import { printLabels } from '../../services/printer'
 
 export default function Products({ onBack }) {
+  const { isManager } = useAuth()
   const { products, saveProduct, deleteProduct } = useStore()
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState(null)
@@ -108,7 +110,7 @@ export default function Products({ onBack }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {selectedForPrint.length > 0 && (
+          {isManager && selectedForPrint.length > 0 && (
             <button onClick={() => setShowPrintModal(true)} className="btn bg-brand-100 text-brand-700 text-sm border-0 font-bold px-3">
               🖨️ Imprimir ({selectedForPrint.length})
             </button>
@@ -265,10 +267,12 @@ export default function Products({ onBack }) {
                       className="w-9 h-9 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center text-sm active:scale-90">
                       ✏️
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); handleDelete(p.id) }}
-                      className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-sm active:scale-90">
-                      🗑️
-                    </button>
+                    {isManager && (
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete(p.id) }}
+                        className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-sm active:scale-90">
+                        🗑️
+                      </button>
+                    )}
                   </div>
                 </div>
               )

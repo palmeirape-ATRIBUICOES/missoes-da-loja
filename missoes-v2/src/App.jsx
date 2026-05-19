@@ -14,6 +14,7 @@ import Feedback from './pages/manager/Feedback'
 import PublicStore from './pages/PublicStore'
 
 function ProductsPage() { const n = useNavigate(); return <Products onBack={() => n('/gerente')} /> }
+function ProductsPageFunc() { const n = useNavigate(); return <Products onBack={() => n('/funcionario')} /> }
 function TeamPage() { const n = useNavigate(); return <Team onBack={() => n('/gerente')} /> }
 function GlobalsPage() { const n = useNavigate(); return <Globals onBack={() => n('/gerente')} /> }
 function TasksPage() { const n = useNavigate(); return <Tasks onBack={() => n('/gerente')} /> }
@@ -64,6 +65,7 @@ function AppRoutes() {
         <Route path="/gerente/config" element={isManager ? <ConfigPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/feedback" element={isManager ? <FeedbackPage /> : <Navigate to="/funcionario" />} />
         <Route path="/funcionario" element={!isManager ? <EmployeeDashboard /> : <Navigate to="/gerente" />} />
+        <Route path="/funcionario/produtos" element={!isManager ? <ProductsPageFunc /> : <Navigate to="/gerente" />} />
         <Route path="*" element={<Navigate to={location.pathname.startsWith('/pdv') ? '/pdv' : (isManager ? '/gerente' : '/funcionario')} />} />
       </Routes>
     </StoreProvider>

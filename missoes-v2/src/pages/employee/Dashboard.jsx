@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useStore } from '../../hooks/useStore'
 import { formatCurrency, normalizeWeekKeyLoose, nowHuman } from '../../utils/constants'
@@ -6,6 +7,7 @@ import { formatCurrency, normalizeWeekKeyLoose, nowHuman } from '../../utils/con
 export default function EmployeeDashboard() {
   const { currentUser, store, logout } = useAuth()
   const { currentWeekKey, globalsOpen, products, getMonthPoints } = useStore()
+  const navigate = useNavigate()
 
   const points = getMonthPoints(currentUser)
 
@@ -77,14 +79,14 @@ export default function EmployeeDashboard() {
 
         {/* Quick actions */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="card p-4 text-center">
+          <button className="card p-4 text-center cursor-not-allowed opacity-50">
             <div className="text-2xl mb-2">📋</div>
             <div className="font-semibold text-sm text-gray-900">Minhas Tarefas</div>
-          </div>
-          <div className="card p-4 text-center">
+          </button>
+          <button onClick={() => navigate('/funcionario/produtos')} className="card p-4 text-center hover:bg-gray-100 active:scale-95 transition-transform">
             <div className="text-2xl mb-2">📦</div>
             <div className="font-semibold text-sm text-gray-900">Cadastrar Produto</div>
-          </div>
+          </button>
         </div>
       </main>
     </div>
