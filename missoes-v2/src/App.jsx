@@ -12,6 +12,7 @@ import Tasks from './pages/manager/Tasks'
 import Config from './pages/manager/Config'
 import Feedback from './pages/manager/Feedback'
 import PublicStore from './pages/PublicStore'
+import PermissionsRequest from './components/PermissionsRequest'
 
 function ProductsPage() { const n = useNavigate(); return <Products onBack={() => n('/gerente')} /> }
 function ProductsPageFunc() { const n = useNavigate(); return <Products onBack={() => n('/funcionario')} /> }
@@ -55,6 +56,7 @@ function AppRoutes() {
 
   return (
     <StoreProvider>
+      <PermissionsRequest />
       <Routes>
         <Route path="/pdv" element={<PDV />} />
         <Route path="/gerente" element={isManager ? <ManagerDashboard /> : <Navigate to="/funcionario" />} />
