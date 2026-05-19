@@ -2282,7 +2282,11 @@
         const dayVal = Number(row.querySelector(`select[data-auto-day-id="${t.id}"]`).value);
         try {
           const next = (globalTemplates || []).map(item => {
-            if (item.id === t.id) return { ...item, autoTime: timeVal, autoDay: dayVal, updatedAtHuman: nowHuman(), updatedAtMs: Date.now() };
+            if (item.id === t.id) {
+              const wk = normalizeWeekKeyLoose(currentWeekKey);
+              const cancelled = Array.isArray(item.cancelledWeeks) ? item.cancelledWeeks.filter(w => w !== wk) : [];
+              return { ...item, autoTime: timeVal, autoDay: dayVal, cancelledWeeks: cancelled, updatedAtHuman: nowHuman(), updatedAtMs: Date.now() };
+            }
             return item;
           });
           await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
@@ -2377,7 +2381,7 @@
     if (!isAuto && !canManageGlobals()) throw new Error("Apenas o gerente.");
 
     const wk = normalizeWeekKeyLoose(currentWeekKey);
-    const countWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey)===wk && g.status !== "deleted").length;
+    const countWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey)===wk).length;
     if (countWeek >= 20) throw new Error("Limite de 20 GLOBAIS por semana atingido.");
 
     const docId = isAuto ? `auto_${wk}_${tpl.id}` : undefined;
@@ -2425,6 +2429,10 @@
 
     for (const tpl of globalTemplates) {
       if (!tpl.autoTime) continue; 
+
+      // Se esta semana foi cancelada para este agendamento/template, não publica
+      const isCancelled = Array.isArray(tpl.cancelledWeeks) && tpl.cancelledWeeks.includes(wk);
+      if (isCancelled) continue;
 
       const [tH, tM] = tpl.autoTime.split(":").map(Number);
       const targetDay = tpl.autoDay !== undefined ? Number(tpl.autoDay) : 1; // Default to Monday
@@ -2511,7 +2519,24 @@
     if (!canManageGlobals()) return toast("Apenas o gerente.");
     if (!confirm("Excluir esta GLOBAL?")) return;
     try{
-      await setDoc(doc(db,"stores",STORE_ID,"globals", globalId), { status: "deleted", deletedAt: serverTimestamp() }, { merge: true });
+      const gDoc = globalsAll.find(x => x.id === globalId);
+      if (gDoc && gDoc.templateId) {
+        const tpl = globalTemplates.find(t => t.id === gDoc.templateId);
+        if (tpl) {
+          const wk = normalizeWeekKeyLoose(currentWeekKey);
+          const cancelled = Array.isArray(tpl.cancelledWeeks) ? [...tpl.cancelledWeeks] : [];
+          if (!cancelled.includes(wk)) {
+            cancelled.push(wk);
+          }
+          const next = globalTemplates.map(t => {
+            if (t.id === tpl.id) return { ...t, cancelledWeeks: cancelled };
+            return t;
+          });
+          await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge: false });
+        }
+      }
+
+      await deleteDoc(doc(db,"stores",STORE_ID,"globals", globalId));
       toast("GLOBAL excluída.");
     } catch(e){
       console.error(e);
@@ -3966,7 +3991,7 @@
           return { id:d.id, ...o, createdAtMs: ms };
         });
         const wk = normalizeWeekKeyLoose(currentWeekKey);
-        globalsWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey) === wk && g.status !== "deleted");
+        globalsWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey) === wk);
         globalsOpen = globalsWeek.filter(g => g.status === "open");
 
         // ✅ Notificação quando nova GLOBAL aparece (para funcionários)
