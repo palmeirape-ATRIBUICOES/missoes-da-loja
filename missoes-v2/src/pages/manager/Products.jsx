@@ -71,7 +71,7 @@ export default function Products({ onBack }) {
       const data = await res.json()
       if (data.results && data.results.length > 0) {
         const imgs = data.results
-          .map(p => p.thumbnail?.replace('-I.jpg', '-O.jpg')) // Replace -I with -O for higher quality
+          .map(p => p.thumbnail?.replace('http://', 'https://')?.replace('-I.jpg', '-O.jpg')) // Replace http with https to avoid mixed content block, and -I with -O for high quality
           .filter(Boolean)
         setSuggestedImages(Array.from(new Set(imgs)).slice(0, 5))
       } else {
