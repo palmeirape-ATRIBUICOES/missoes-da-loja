@@ -1,0 +1,272 @@
+@import "tailwindcss";
+
+/* ===== DESIGN SYSTEM - MISSÕES DA LOJA V2 ===== */
+
+@theme {
+  /* Colors */
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+
+  --color-surface: #f8fafc;
+  --color-surface-card: rgba(255, 255, 255, 0.92);
+  --color-surface-inner: #f1f5f9;
+  --color-border-soft: rgba(226, 232, 240, 0.8);
+
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-warning-500: #f59e0b;
+  --color-info-500: #3b82f6;
+
+  /* Font */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  /* Shadows */
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 8px -1px rgba(0, 0, 0, 0.02);
+  --shadow-card-hover: 0 20px 25px -5px rgba(124, 58, 237, 0.06), 0 10px 10px -5px rgba(124, 58, 237, 0.03);
+  --shadow-elevated: 0 10px 40px -10px rgba(0, 0, 0, 0.12);
+  --shadow-touch: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== BASE ===== */
+@layer base {
+  @font-face {
+    font-family: 'Inter';
+    src: url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-surface);
+    background-image: radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.04) 0%, transparent 60%);
+    background-attachment: fixed;
+    color: #334155;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ===== COMPONENTS ===== */
+@layer components {
+  /* Card */
+  .card {
+    background: var(--color-surface-card);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card:hover {
+    border-color: rgba(124, 58, 237, 0.2);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Touch Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: all 0.15s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    min-height: 44px;
+    padding: 10px 20px;
+    font-size: 0.875rem;
+  }
+  .btn:active {
+    transform: scale(0.96);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--color-brand-600), var(--color-brand-700));
+    color: white;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+  }
+  .btn-primary:hover { opacity: 0.92; }
+  .btn-primary:active { box-shadow: none; }
+
+  .btn-success {
+    background: linear-gradient(135deg, var(--color-success-500), var(--color-success-600));
+    color: white;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  }
+
+  .btn-danger {
+    background: linear-gradient(135deg, var(--color-danger-500), var(--color-danger-600));
+    color: white;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  }
+
+  .btn-ghost {
+    background: rgba(241, 245, 249, 0.8);
+    color: #475569;
+    border: 1px solid var(--color-border-soft);
+  }
+  .btn-ghost:hover { background: #e2e8f0; }
+
+  /* Touch target for PDV */
+  .touch-target {
+    min-width: 48px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  .touch-target:active {
+    transform: scale(0.95);
+    opacity: 0.85;
+  }
+
+  /* PDV Product Grid */
+  .pdv-product-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px 8px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    min-height: 80px;
+    transition: all 0.12s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+  .pdv-product-btn:active {
+    transform: scale(0.94);
+    border-color: var(--color-brand-500);
+    background: var(--color-brand-50);
+  }
+
+  /* PDV Category Tab */
+  .pdv-cat-tab {
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s ease;
+    min-height: 40px;
+  }
+  .pdv-cat-tab.active {
+    background: var(--color-brand-600);
+    color: white;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+  }
+  .pdv-cat-tab:not(.active) {
+    background: white;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* Input */
+  .input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    color: #1e293b;
+    background: white;
+    transition: all 0.2s ease;
+    min-height: 48px;
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  }
+
+  /* PDV Cart Item */
+  .cart-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+  }
+  .cart-item:active {
+    background: #f8fafc;
+  }
+
+  /* Animations */
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pulse-brand {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(124, 58, 237, 0); }
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease forwards;
+  }
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease forwards;
+  }
+
+  /* Scrollbar */
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+
+  /* Print 80mm */
+  @media print {
+    @page {
+      size: 80mm auto;
+      margin: 2mm;
+    }
+    body { font-family: monospace !important; font-size: 11px; }
+    .no-print { display: none !important; }
+  }
+}
