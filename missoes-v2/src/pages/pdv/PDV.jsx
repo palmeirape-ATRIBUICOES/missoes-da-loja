@@ -13,7 +13,7 @@ export default function PDV() {
 
   const [cart, setCart] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeCategory, setActiveCategory] = useState('TODOS')
+  const [categoryPath, setCategoryPath] = useState([])
   const [showCheckout, setShowCheckout] = useState(false)
   const [showShift, setShowShift] = useState(false)
   const [showCashOps, setShowCashOps] = useState(false)
@@ -21,19 +21,32 @@ export default function PDV() {
   const [lastSale, setLastSale] = useState(null)
   const searchRef = useRef(null)
 
-  // Categories from products
-  const categories = useMemo(() => {
+  const getParts = (cat) => (cat || '').toUpperCase().split('>').map(s => s.trim()).filter(Boolean)
+
+  const subcategories = useMemo(() => {
     const cats = new Set()
-    products.forEach(p => { if (p.category) cats.add(p.category.toUpperCase()) })
-    return ['TODOS', ...Array.from(cats).sort()]
-  }, [products])
+    products.forEach(p => {
+      const parts = getParts(p.category)
+      const matchesPath = categoryPath.every((pathPart, idx) => parts[idx] === pathPart)
+      if (matchesPath) {
+        const nextLevelCat = parts[categoryPath.length]
+        if (nextLevelCat) cats.add(nextLevelCat)
+      }
+    })
+    return Array.from(cats).sort()
+  }, [products, categoryPath])
 
   // Filter products
   const filteredProducts = useMemo(() => {
     let list = products.filter(p => p.name && (p.price || p.oldPrice))
-    if (activeCategory !== 'TODOS') {
-      list = list.filter(p => (p.category || '').toUpperCase() === activeCategory)
+    
+    if (categoryPath.length > 0) {
+      list = list.filter(p => {
+        const parts = getParts(p.category)
+        return categoryPath.every((pathPart, idx) => parts[idx] === pathPart)
+      })
     }
+    
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
       list = list.filter(p =>
@@ -43,7 +56,7 @@ export default function PDV() {
       )
     }
     return list.slice(0, 60)
-  }, [products, activeCategory, searchQuery])
+  }, [products, categoryPath, searchQuery])
 
   // Cart helpers
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0)
@@ -226,11 +239,31 @@ export default function PDV() {
           </div>
 
           {/* Categories */}
-          <div className="flex gap-2 px-3 py-2 overflow-x-auto scrollbar-thin bg-gray-50 border-b border-gray-200 shrink-0">
-            {categories.map(cat => (
-              <button key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`pdv-cat-tab ${activeCategory === cat ? 'active' : ''}`}>
+          <div className="flex gap-2 px-3 py-2 overflow-x-auto scrollbar-thin bg-gray-50 border-b border-gray-200 shrink-0 items-center">
+            <button onClick={() => setCategoryPath([])} 
+              className={`pdv-cat-tab ${categoryPath.length === 0 ? 'active' : ''}`}>
+              TODOS
+            </button>
+            
+            {categoryPath.map((pathPart, idx) => (
+              <div key={`path-${idx}`} className="flex items-center gap-2">
+                <span className="text-gray-400 text-sm font-bold">›</span>
+                <button 
+                  onClick={() => setCategoryPath(categoryPath.slice(0, idx + 1))}
+                  className={`pdv-cat-tab ${idx === categoryPath.length - 1 && subcategories.length === 0 ? 'active' : 'bg-brand-50 text-brand-700 border-brand-200'}`}>
+                  {pathPart}
+                </button>
+              </div>
+            ))}
+
+            {subcategories.length > 0 && categoryPath.length > 0 && (
+               <span className="text-gray-400 text-sm font-bold ml-1 mr-1">›</span>
+            )}
+
+            {subcategories.map(cat => (
+              <button key={`sub-${cat}`}
+                onClick={() => setCategoryPath(prev => [...prev, cat])}
+                className="pdv-cat-tab">
                 {cat}
               </button>
             ))}
