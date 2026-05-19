@@ -147,3 +147,55 @@ export function printShiftReport({ storeName, cashier, date, sales, byMethod, to
   printWindow.document.close()
   return true
 }
+
+/**
+ * Imprime etiquetas de preço personalizadas
+ */
+export function printLabels(products, widthMm, heightMm, fontSizePx) {
+  let html = `
+    <!DOCTYPE html>
+    <html><head>
+      <meta charset="UTF-8">
+      <title>Etiquetas</title>
+      <style>
+        @page { margin: 0; }
+        body { margin: 0; padding: 0; font-family: sans-serif; display: flex; flex-wrap: wrap; }
+        .label {
+          width: ${widthMm}mm;
+          height: ${heightMm}mm;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          border: 1px dashed #ccc;
+          box-sizing: border-box;
+          padding: 2mm;
+          page-break-inside: avoid;
+        }
+        .name { font-weight: bold; font-size: ${Math.max(10, fontSizePx - 6)}px; margin-bottom: 2mm; line-height: 1.1; max-height: 2.2em; overflow: hidden; text-transform: uppercase; }
+        .price { font-weight: 900; font-size: ${fontSizePx}px; }
+        .code { font-size: 8px; color: #666; margin-top: 1mm; }
+        @media print {
+          .label { border: none; }
+        }
+      </style>
+    </head><body>
+      ${products.map(p => `
+        <div class="label">
+          <div class="name">${p.name}</div>
+          <div class="price">${formatCurrency(p.promoPrice || p.price || p.oldPrice || 0)}</div>
+          ${p.code ? `<div class="code">${p.code}</div>` : ''}
+        </div>
+      `).join('')}
+      <script>
+        setTimeout(() => { window.print(); setTimeout(() => window.close(), 500); }, 300);
+      </script>
+    </body></html>
+  `
+  const printWindow = window.open('', '_blank')
+  if (!printWindow) return false
+  printWindow.document.write(html)
+  printWindow.document.close()
+  return true
+}
