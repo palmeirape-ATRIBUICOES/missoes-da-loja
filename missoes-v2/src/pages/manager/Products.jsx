@@ -65,71 +65,53 @@ export default function Products({ onBack }) {
 
   async function searchImages(query) {
     setLoadingImages(true)
-    const suggested = new Set()
-
-    // 1. Direct Search on OpenFoodFacts v2 (100% Reliable, 0 CORS, Instant browser-native)
     try {
-      const res = await fetch(`https://world.openfoodfacts.org/api/v2/search?terms=${encodeURIComponent(query)}&fields=image_front_url&page_size=6`)
-      if (res.ok) {
-        const data = await res.json()
-        if (data.products) {
-          data.products.forEach(p => {
-            if (p.image_front_url) {
-              suggested.add(p.image_front_url.replace('http://', 'https://'))
-            }
-          })
+      // Direct client-side JSONP to call MercadoLivre API (0 CORS blocks, no unstable proxies, lightning-fast)
+      const data = await new Promise((resolve, reject) => {
+        const callbackName = 'ml_jsonp_' + Math.random().toString(36).substr(2, 9)
+        const timeoutId = setTimeout(() => {
+          cleanup()
+          reject(new Error('MercadoLivre JSONP Timeout'))
+        }, 6000)
+
+        function cleanup() {
+          clearTimeout(timeoutId)
+          delete window[callbackName]
+          const script = document.getElementById(callbackName)
+          if (script) script.remove()
         }
-      }
-    } catch (err) {
-      console.warn('Busca direta no OpenFoodFacts v2 falhou:', err)
-    }
 
-    // 2. Supplementary Search on MercadoLivre via Proxies (High Quality Studio Photos)
-    const mlTargetUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=5`
-
-    // Proxy 1: codetabs proxy
-    try {
-      const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(mlTargetUrl)}`)
-      if (res.ok) {
-        const data = await res.json()
-        if (data.results) {
-          data.results.forEach(p => {
-            if (p.thumbnail) {
-              const secureImg = p.thumbnail.replace('http://', 'https://').replace('-I.jpg', '-O.jpg')
-              suggested.add(secureImg)
-            }
-          })
-        }
-      }
-    } catch (err) {
-      console.warn('Busca no MercadoLivre via Codetabs falhou:', err)
-    }
-
-    // Proxy 2: AllOrigins
-    if (suggested.size < 5) {
-      try {
-        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(mlTargetUrl)}`)
-        if (res.ok) {
-          const data = await res.json()
-          if (data.contents) {
-            const mlData = JSON.parse(data.contents)
-            if (mlData.results) {
-              mlData.results.forEach(p => {
-                if (p.thumbnail) {
-                  const secureImg = p.thumbnail.replace('http://', 'https://').replace('-I.jpg', '-O.jpg')
-                  suggested.add(secureImg)
-                }
-              })
-            }
+        window[callbackName] = function(response) {
+          cleanup()
+          if (response && response[0] >= 200 && response[0] < 300) {
+            resolve(response[2]) // Body containing the ML results
+          } else {
+            reject(new Error('MercadoLivre API Error Status: ' + (response ? response[0] : 'unknown')))
           }
         }
-      } catch (err) {
-        console.warn('Busca no MercadoLivre via AllOrigins falhou:', err)
-      }
-    }
 
-    // Update suggestions state with the unique results collected
-    setSuggestedImages(Array.from(suggested).slice(0, 5))
+        const script = document.createElement('script')
+        script.id = callbackName
+        script.src = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=10&callback=${callbackName}`
+        script.onerror = function() {
+          cleanup()
+          reject(new Error('JSONP Script Load Error'))
+        }
+        document.body.appendChild(script)
+      })
+
+      if (data.results && data.results.length > 0) {
+        const imgs = data.results
+          .map(p => p.thumbnail?.replace('http://', 'https://')?.replace('-I.jpg', '-O.jpg')) // Enforce HTTPS & High Quality
+          .filter(Boolean)
+        setSuggestedImages(Array.from(new Set(imgs)).slice(0, 5))
+      } else {
+        setSuggestedImages([])
+      }
+    } catch (e) {
+      console.error('Erro ao buscar imagens:', e)
+      setSuggestedImages([])
+    }
     setLoadingImages(false)
   }
 
