@@ -66,13 +66,16 @@ export default function Products({ onBack }) {
   async function searchImages(query) {
     setLoadingImages(true)
     try {
-      const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10`)
+      // Mercado Livre API is lightning fast and has a huge variety of Brazilian products
+      const res = await fetch(`https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=10`)
       const data = await res.json()
-      if (data.products) {
-        const imgs = data.products
-          .map(p => p.image_front_url || p.image_url)
+      if (data.results && data.results.length > 0) {
+        const imgs = data.results
+          .map(p => p.thumbnail?.replace('-I.jpg', '-O.jpg')) // Replace -I with -O for higher quality
           .filter(Boolean)
         setSuggestedImages(Array.from(new Set(imgs)).slice(0, 5))
+      } else {
+        setSuggestedImages([])
       }
     } catch (e) {
       console.error(e)
