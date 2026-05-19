@@ -66,19 +66,27 @@ export default function Products({ onBack }) {
   async function searchImages(query) {
     setLoadingImages(true)
     try {
-      // Mercado Livre API is lightning fast and has a huge variety of Brazilian products
-      const res = await fetch(`https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=10`)
+      // Use AllOrigins proxy to bypass MercadoLivre CORS and 403 referrer blocks
+      const targetUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=10`
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`)
       const data = await res.json()
-      if (data.results && data.results.length > 0) {
-        const imgs = data.results
-          .map(p => p.thumbnail?.replace('http://', 'https://')?.replace('-I.jpg', '-O.jpg')) // Replace http with https to avoid mixed content block, and -I with -O for high quality
-          .filter(Boolean)
-        setSuggestedImages(Array.from(new Set(imgs)).slice(0, 5))
+      
+      if (data.contents) {
+        const mlData = JSON.parse(data.contents)
+        if (mlData.results && mlData.results.length > 0) {
+          const imgs = mlData.results
+            .map(p => p.thumbnail?.replace('http://', 'https://')?.replace('-I.jpg', '-O.jpg')) // Enforce HTTPS & High Quality
+            .filter(Boolean)
+          setSuggestedImages(Array.from(new Set(imgs)).slice(0, 5))
+        } else {
+          setSuggestedImages([])
+        }
       } else {
         setSuggestedImages([])
       }
     } catch (e) {
-      console.error(e)
+      console.error('Erro ao buscar imagens:', e)
+      setSuggestedImages([])
     }
     setLoadingImages(false)
   }
