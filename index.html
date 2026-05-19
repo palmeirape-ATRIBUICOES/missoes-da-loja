@@ -2282,7 +2282,7 @@
         const dayVal = Number(row.querySelector(`select[data-auto-day-id="${t.id}"]`).value);
         try {
           const next = (globalTemplates || []).map(item => {
-            if (item.id === t.id) return { ...item, autoTime: timeVal, autoDay: dayVal, updatedAtHuman: nowHuman() };
+            if (item.id === t.id) return { ...item, autoTime: timeVal, autoDay: dayVal, updatedAtHuman: nowHuman(), updatedAtMs: Date.now() };
             return item;
           });
           await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
@@ -2318,7 +2318,9 @@
       items,
       autoTime: $("tplAutoTime")?.value || "",
       autoDay: Number($("tplAutoDay")?.value || 1),
-      createdAtHuman: nowHuman()
+      createdAtHuman: nowHuman(),
+      createdAtMs: Date.now(),
+      updatedAtMs: Date.now()
     }]);
 
     await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
@@ -2331,11 +2333,9 @@
     if (!name) throw new Error("Nome do template vazio.");
     if (!items.length) throw new Error("Template precisa ter pelo menos 1 item.");
 
-    const autoTime = $("tplEditAutoTime")?.value || "";
-    const autoDay = Number($("tplEditAutoDay")?.value || 1);
     const next = (globalTemplates || []).map(t=>{
       if (t.id !== id) return t;
-      return { ...t, name, items, autoTime, autoDay, updatedAtHuman: nowHuman() };
+      return { ...t, name, items, autoTime, autoDay, updatedAtHuman: nowHuman(), updatedAtMs: Date.now() };
     });
 
     await setDoc(cfgGlobalTplRef(), { templates: next, updatedAt: serverTimestamp() }, { merge:false });
@@ -2420,32 +2420,32 @@
   async function checkAndAutoPublishGlobals() {
     if (!globalTemplates || !globalTemplates.length) return;
     const now = new Date();
+    const nowMs = now.getTime();
     const wk = normalizeWeekKeyLoose(currentWeekKey);
-    
-    const day = now.getDay(); 
-    const currentHours = now.getHours();
-    const currentMinutes = now.getMinutes();
 
     for (const tpl of globalTemplates) {
       if (!tpl.autoTime) continue; 
-      
+
       const [tH, tM] = tpl.autoTime.split(":").map(Number);
       const targetDay = tpl.autoDay !== undefined ? Number(tpl.autoDay) : 1; // Default to Monday
+
+      // Calcula o dia de destino relativo a esta semana (segunda-feira como dia 1 a domingo como dia 7)
+      const currentDay = now.getDay() === 0 ? 7 : now.getDay();
+      const targetDayIdx = targetDay === 0 ? 7 : targetDay;
+      const diffDays = targetDayIdx - currentDay;
       
+      const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      targetDate.setDate(targetDate.getDate() + diffDays);
+      targetDate.setHours(tH, tM, 0, 0);
+      const scheduledTime = targetDate.getTime();
+
       let shouldPublish = false;
-      
-      if (day === targetDay) { 
-        if (currentHours > tH || (currentHours === tH && currentMinutes >= tM)) {
-          shouldPublish = true;
-        }
-      } else {
-        // Safe check: if day is already past the target day in this Monday-to-Sunday weekly cycle,
-        // we should publish it if not yet published.
-        const getMondayFirstDayIndex = (d) => (d === 0 ? 7 : d);
-        const currentIdx = getMondayFirstDayIndex(day);
-        const targetIdx = getMondayFirstDayIndex(targetDay);
-        
-        if (currentIdx > targetIdx) {
+      if (nowMs >= scheduledTime) {
+        // Se já passou do horário agendado nesta semana, só publicamos se a última
+        // alteração/criação do agendamento foi antes do horário agendado.
+        // Isso evita que publique na hora ao criar/editar para um dia/hora já passado.
+        const scheduleSetTime = tpl.updatedAtMs || tpl.createdAtMs || 0;
+        if (scheduleSetTime < scheduledTime) {
           shouldPublish = true;
         }
       }
