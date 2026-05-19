@@ -2377,7 +2377,7 @@
     if (!isAuto && !canManageGlobals()) throw new Error("Apenas o gerente.");
 
     const wk = normalizeWeekKeyLoose(currentWeekKey);
-    const countWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey)===wk).length;
+    const countWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey)===wk && g.status !== "deleted").length;
     if (countWeek >= 20) throw new Error("Limite de 20 GLOBAIS por semana atingido.");
 
     const docId = isAuto ? `auto_${wk}_${tpl.id}` : undefined;
@@ -2511,7 +2511,7 @@
     if (!canManageGlobals()) return toast("Apenas o gerente.");
     if (!confirm("Excluir esta GLOBAL?")) return;
     try{
-      await deleteDoc(doc(db,"stores",STORE_ID,"globals", globalId));
+      await setDoc(doc(db,"stores",STORE_ID,"globals", globalId), { status: "deleted", deletedAt: serverTimestamp() }, { merge: true });
       toast("GLOBAL excluída.");
     } catch(e){
       console.error(e);
@@ -3966,7 +3966,7 @@
           return { id:d.id, ...o, createdAtMs: ms };
         });
         const wk = normalizeWeekKeyLoose(currentWeekKey);
-        globalsWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey) === wk);
+        globalsWeek = globalsAll.filter(g => normalizeWeekKeyLoose(g.weekKey) === wk && g.status !== "deleted");
         globalsOpen = globalsWeek.filter(g => g.status === "open");
 
         // ✅ Notificação quando nova GLOBAL aparece (para funcionários)
