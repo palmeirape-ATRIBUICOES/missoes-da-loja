@@ -2762,285 +2762,6 @@
     inp.addEventListener("blur", ()=> setTimeout(hide, 180));
   }
 
-  // ===== ESCALA (mantive sem mudanças para não alongar mais) =====
-  const DAYS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
-  function emptyEscala(){
-    const days = {};
-    for (const d of DAYS) days[d] = { manha: ["",""], tarde: ["",""], folga: [""] };
-    return { weekKey: currentWeekKey, days };
-  }
-  function validateEscala(obj){
-    for (const d of DAYS){
-      const day = obj?.days?.[d];
-      if (!day) return `Dia inválido: ${d}`;
-
-      const m1 = normalizeName(day.manha?.[0] || "");
-      const m2 = normalizeName(day.manha?.[1] || "");
-      const t1 = normalizeName(day.tarde?.[0] || "");
-      const t2 = normalizeName(day.tarde?.[1] || "");
-      const f  = normalizeName(day.folga?.[0] || "");
-
-      if (!m1 || !m2) return `${d}: Manhã precisa ter 2 funcionários.`;
-      if (m1 === m2) return `${d}: Manhã não pode repetir o mesmo funcionário.`;
-
-      if (!t1 || !t2) return `${d}: Tarde precisa ter 2 funcionários.`;
-      if (t1 === t2) return `${d}: Tarde não pode repetir o mesmo funcionário.`;
-
-      if (!f) return `${d}: Folga precisa ter 1 funcionário.`;
-
-      const setWork = new Set([m1,m2,t1,t2].filter(Boolean));
-      if (setWork.has(f)) return `${d}: Folga não pode ser alguém que trabalha no mesmo dia.`;
-
-      const setManha = new Set([m1,m2]);
-      if (setManha.has(t1) || setManha.has(t2)) return `${d}: Não é permitido dobrar (mesma pessoa manhã+tarde).`;
-    }
-    return null;
-  }
-  async function saveEscala(obj){
-    const err = validateEscala(obj);
-    if (err) return toast(err);
-
-    await setDoc(escalaRef(currentWeekKey), {
-      exists: true,
-      weekKey: currentWeekKey,
-      days: obj.days,
-      updatedAt: serverTimestamp(),
-      updatedAtHuman: nowHuman(),
-      updatedBy: currentUser
-    }, { merge:false });
-
-    toast("Escala salva.");
-  }
-  async function clearEscala(){
-    if (!canEditEscala()) return toast("Sem permissão.");
-    if (!confirm("Limpar a escala desta semana?")) return;
-
-    await setDoc(escalaRef(currentWeekKey), {
-      exists: true,
-      weekKey: currentWeekKey,
-      days: emptyEscala().days,
-      updatedAt: serverTimestamp(),
-      updatedAtHuman: nowHuman(),
-      updatedBy: currentUser
-    }, { merge:false });
-
-    toast("Escala limpa.");
-  }
-  function renderEscalaViewer(){
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
-    const view = $("escalaViewer");
-    view.innerHTML = "";
-
-    const s = escala && escala.exists ? escala : null;
-    if (!s){
-      view.innerHTML = `<div class="text-gray-500">Sem escala cadastrada ainda.</div>`;
-      return;
-    }
-
-    const box = document.createElement("div");
-    box.className = "border rounded p-2 bg-gray-50";
-
-    let html = `<div class="text-xs text-gray-600">Atualizada por <b>${s.updatedBy || "-"}</b> em ${s.updatedAtHuman || "-"}</div>`;
-    html += `<div class="mt-2 space-y-2">`;
-
-    for (const d of DAYS){
-      const day = s.days?.[d] || {};
-      const manha = (day.manha||[]).filter(Boolean).join(" + ") || "-";
-      const tarde = (day.tarde||[]).filter(Boolean).join(" + ") || "-";
-      const folga = (day.folga||[]).filter(Boolean).join(" + ") || "-";
-      html += `
-        <div class="border rounded bg-white p-2">
-          <div class="font-semibold">${d}</div>
-          <div class="text-sm mt-1"><b>Manhã:</b> ${manha}</div>
-          <div class="text-sm"><b>Tarde:</b> ${tarde}</div>
-          <div class="text-sm"><b>Folga:</b> ${folga}</div>
-        </div>
-      `;
-    }
-
-    html += `</div>`;
-    box.innerHTML = html;
-    view.appendChild(box);
-  }
-  function buildSelect(options, value){
-    const sel = document.createElement("select");
-    sel.className = "border p-2 rounded w-full";
-    sel.appendChild(new Option("Selecione...", ""));
-    options.forEach(n => sel.appendChild(new Option(n, n)));
-    sel.value = value || "";
-    return sel;
-  }
-  function setSelectOptions(selectEl, options, keepValue){
-    const current = keepValue || "";
-    selectEl.innerHTML = "";
-    selectEl.appendChild(new Option("Selecione...", ""));
-    options.forEach(n => selectEl.appendChild(new Option(n, n)));
-    if (current && options.includes(current)) selectEl.value = current;
-    else selectEl.value = "";
-  }
-  function renderEscalaEditor(containerId){
-    const container = $(containerId);
-    if (!container) return null;
-
-    container.innerHTML = "";
-    const names = activeNames();
-    const base = (escala && escala.exists) ? escala : emptyEscala();
-    const local = clone(base);
-
-    for (const d of DAYS){
-      const day = local.days[d];
-
-      const row = document.createElement("div");
-      row.className = "border rounded p-3 bg-gray-50";
-
-      const title = document.createElement("div");
-      title.className = "font-semibold mb-2";
-      title.innerText = d;
-
-      const grid = document.createElement("div");
-      grid.className = "grid md:grid-cols-3 gap-2";
-
-      const mWrap = document.createElement("div");
-      mWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Manhã (2)</div>`;
-      const m1 = buildSelect(names, day.manha[0]);
-      const m2 = buildSelect(names, day.manha[1]);
-      mWrap.appendChild(m1);
-      mWrap.appendChild(document.createElement("div")).className = "h-2";
-      mWrap.appendChild(m2);
-
-      const tWrap = document.createElement("div");
-      tWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Tarde (2)</div>`;
-      const t1 = buildSelect(names, day.tarde[0]);
-      const t2 = buildSelect(names, day.tarde[1]);
-      tWrap.appendChild(t1);
-      tWrap.appendChild(document.createElement("div")).className = "h-2";
-      tWrap.appendChild(t2);
-
-      const fWrap = document.createElement("div");
-      fWrap.innerHTML = `<div class="text-xs text-gray-600 mb-1">Folga (1)</div>`;
-      const f1 = buildSelect(names, day.folga[0]);
-      fWrap.appendChild(f1);
-
-      grid.appendChild(mWrap);
-      grid.appendChild(tWrap);
-      grid.appendChild(fWrap);
-
-      row.appendChild(title);
-      row.appendChild(grid);
-      container.appendChild(row);
-
-      const getPicked = () => {
-        const picked = new Set();
-        [m1.value, m2.value, t1.value, t2.value, f1.value].forEach(v=>{
-          const vv = normalizeName(v || "");
-          if (vv) picked.add(vv);
-        });
-        return picked;
-      };
-
-      const availableFor = (selfValue) => {
-        const picked = getPicked();
-        const me = normalizeName(selfValue || "");
-        if (me) picked.delete(me);
-        return names.filter(n => !picked.has(n));
-      };
-
-      const sync = () => {
-        day.manha[0] = normalizeName(m1.value);
-        day.manha[1] = normalizeName(m2.value);
-        day.tarde[0] = normalizeName(t1.value);
-        day.tarde[1] = normalizeName(t2.value);
-        day.folga[0] = normalizeName(f1.value);
-
-        setSelectOptions(m1, availableFor(m1.value), m1.value);
-        setSelectOptions(m2, availableFor(m2.value), m2.value);
-        setSelectOptions(t1, availableFor(t1.value), t1.value);
-        setSelectOptions(t2, availableFor(t2.value), t2.value);
-        setSelectOptions(f1, availableFor(f1.value), f1.value);
-
-        day.manha[0] = normalizeName(m1.value);
-        day.manha[1] = normalizeName(m2.value);
-        day.tarde[0] = normalizeName(t1.value);
-        day.tarde[1] = normalizeName(t2.value);
-        day.folga[0] = normalizeName(f1.value);
-      };
-
-      m1.addEventListener("change", sync);
-      m2.addEventListener("change", sync);
-      t1.addEventListener("change", sync);
-      t2.addEventListener("change", sync);
-      f1.addEventListener("change", sync);
-
-      sync();
-    }
-
-    return local;
-  }
-  function maybeSetupEscalaUI(){
-    $("weekKeyLabelEscala").innerText = currentWeekKey;
-
-    const can = canEditEscala();
-    $("escalaPermLabel").innerText = can ? "Você pode editar" : "Somente leitura";
-
-    const editorWrap = $("escalaEditorWrap");
-    if (can){
-      editorWrap.classList.remove("hidden");
-      escalaLocalEmployee = renderEscalaEditor("escalaEditor");
-      $("btnSaveEscala").onclick = async ()=>{
-        if (!escalaLocalEmployee) escalaLocalEmployee = renderEscalaEditor("escalaEditor");
-        await saveEscala(escalaLocalEmployee);
-      };
-      $("btnClearEscala").onclick = clearEscala;
-    } else {
-      editorWrap.classList.add("hidden");
-      escalaLocalEmployee = null;
-    }
-  }
-
-  // ===== Ranking (gerente) =====
-  function renderRanking(){
-    const mk = monthKey(new Date());
-    const mkLabel = $("monthKeyLabelGer2");
-    if (mkLabel) mkLabel.innerText = mk;
-
-    const list = $("rankingList2");
-    if (!list) return;
-    list.innerHTML = "";
-
-    const active = activeNames();
-    const ms = scoresDoc?.monthScores?.[mk] || {};
-
-    const rows = active.map(name => ({
-      name,
-      pts: Number(ms?.[name] || 0)
-    })).sort((a,b)=>{
-      if (b.pts !== a.pts) return b.pts - a.pts;
-      return a.name.localeCompare(b.name);
-    });
-
-    if (!rows.length){
-      list.innerHTML = `<div class="text-gray-500">Sem funcionários ativos.</div>`;
-      return;
-    }
-
-    rows.forEach((r, idx)=>{
-      const div = document.createElement("div");
-      div.className = "border rounded p-2 bg-gray-50 flex items-center justify-between";
-      div.innerHTML = `
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-full bg-white border flex items-center justify-center text-xs font-bold">${idx+1}</div>
-          <div class="font-semibold">${r.name}</div>
-        </div>
-        <div class="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 17.27l5.18 3.04-1.39-5.99 4.64-4.02-6.12-.53L12 4l-2.31 5.77-6.12.53 4.64 4.02-1.39 5.99L12 17.27z"/>
-          </svg>
-          <div class="font-bold text-lg">${r.pts}</div>
-        </div>
-      `;
-      list.appendChild(div);
-    });
-  }
 
   // ✅ status item em tasks (gerente)
   function statusLabel(status){
@@ -3481,10 +3202,8 @@
   // ===== Render gerente (✅ CORRIGIDO: sempre renderiza a lista de GLOBAIS, mesmo minimizada) =====
   function renderManager(){
     $("weekKeyLabelGer").innerText = currentWeekKey;
-    $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
     $("storeLabelGer").innerText = (storeKey === "loja_bogados") ? "Bogados" : "Loja Principal";
 
-    renderRanking();
     renderListsDropdown();
 
     if ($("globalStatus")) $("globalStatus").innerText = globalsStatusText();
@@ -4047,17 +3766,10 @@
 
     if (isManager()){
       renderManager();
-      escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-      $("btnSaveEscalaGer").onclick = async ()=>{
-        if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        await saveEscala(escalaLocalGer);
-      };
       show("gerente");
       requestNotifPermission().then(registerPushToken); // Solicitar e registrar push
     } else {
       renderEmployee();
-      maybeSetupEscalaUI();
-      renderEscalaViewer();
       show("funcionario");
       requestNotifPermission().then(registerPushToken); // Solicitar e registrar push
     }
@@ -4097,8 +3809,6 @@
 
       $("weekKeyLabel").innerText = currentWeekKey;
       $("weekKeyLabelGer").innerText = currentWeekKey;
-      $("weekKeyLabelEscala").innerText = currentWeekKey;
-      $("weekKeyLabelEscalaGer").innerText = currentWeekKey;
 
       await ensureEmployeesConfig();
       renderEmployeesUI();
@@ -4144,13 +3854,7 @@
           show("login");
         }
 
-        if (isManager()){
-          escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        } else if (currentUser){
-          maybeSetupEscalaUI();
         }
-
-        renderRanking();
       });
 
       const catsSnap = await getDoc(cfgCatsRef());
@@ -4179,7 +3883,6 @@
           $("monthPointsInline").innerText = pts;
           $("monthPointsTop").innerText = pts;
         }
-        renderRanking();
         updateTopBar();
       });
 
@@ -4302,23 +4005,7 @@
         warnManager("Erro ao carregar listas (veja o console).");
       });
 
-      // escala watcher
-      onSnapshot(escalaRef(currentWeekKey), (snap)=>{
-        if (!snap.exists()) escala = null;
-        else escala = { id: snap.id, ...snap.data() };
 
-        renderEscalaViewer();
-
-        if (isManager()){
-          escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        }
-        if (currentUser && !isManager()){
-          maybeSetupEscalaUI();
-        }
-      });
-
-      renderEscalaViewer();
-      renderRanking();
       updateTopBar();
 
       onSnapshot(query(colFeedback(), orderBy("createdAt","desc"), limit(200)), (qs)=>{
@@ -4421,11 +4108,6 @@
       const managerUser = getManagerUser();
       if (currentUser === managerUser){
         renderManager();
-        escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-        $("btnSaveEscalaGer").onclick = async ()=>{
-          if (!escalaLocalGer) escalaLocalGer = renderEscalaEditor("escalaEditorGer");
-          await saveEscala(escalaLocalGer);
-        };
         show("gerente");
       } else {
         if (!isEmployeeActive(currentUser)){
@@ -4434,8 +4116,6 @@
           show("login");
         } else {
           renderEmployee();
-          maybeSetupEscalaUI();
-          renderEscalaViewer();
           show("funcionario");
         }
       }
