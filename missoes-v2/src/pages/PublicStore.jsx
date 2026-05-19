@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { doc, collection, setDoc, serverTimestamp } from 'firebase/firestore'
-import { db } from '../../config/firebase'
-import { STORE_MAP, nowHuman } from '../../utils/constants'
+import { db } from '../config/firebase'
+import { STORE_MAP, nowHuman } from '../utils/constants'
 
 export default function PublicStore() {
   const { storeId } = useParams()
