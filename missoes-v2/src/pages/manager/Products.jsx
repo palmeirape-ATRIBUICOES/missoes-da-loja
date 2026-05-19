@@ -19,6 +19,8 @@ export default function Products({ onBack }) {
   const [selectedForPrint, setSelectedForPrint] = useState([])
   const [printConfig, setPrintConfig] = useState({ widthMm: 40, heightMm: 25, fontSizePx: 20 })
   const [showScanner, setShowScanner] = useState(false)
+  const [suggestedImages, setSuggestedImages] = useState([])
+  const [loadingImages, setLoadingImages] = useState(false)
 
   const filtered = useMemo(() => {
     if (!search.trim()) return products
@@ -49,6 +51,34 @@ export default function Products({ onBack }) {
       }
     }
   }, [showScanner])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (form.name && form.name.length > 3 && !form.photo) {
+        searchImages(form.name)
+      } else {
+        setSuggestedImages([])
+      }
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [form.name, form.photo])
+
+  async function searchImages(query) {
+    setLoadingImages(true)
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10`)
+      const data = await res.json()
+      if (data.products) {
+        const imgs = data.products
+          .map(p => p.image_front_url || p.image_url)
+          .filter(Boolean)
+        setSuggestedImages(Array.from(new Set(imgs)).slice(0, 5))
+      }
+    } catch (e) {
+      console.error(e)
+    }
+    setLoadingImages(false)
+  }
 
   function resetForm() {
     setForm({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '', photo: '' })
@@ -204,25 +234,37 @@ export default function Products({ onBack }) {
               )}
             </div>
 
-            {form.photo && (
-              <div className="mb-3 flex justify-center">
-                <img src={form.photo} alt="Produto" className="h-32 w-auto rounded-xl shadow-sm border border-gray-200 object-contain bg-white p-2" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+              <div className="col-span-1 md:col-span-2">
+                <input className="input w-full" placeholder="Nome do produto *" value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus />
+                
+                {suggestedImages.length > 0 && (
+                  <div className="mt-2 bg-gray-50 border border-gray-100 rounded-xl p-2 animate-fade-in">
+                    <div className="text-xs font-semibold text-gray-500 mb-2">Sugestões de Imagem (clique para usar):</div>
+                    <div className="flex gap-2 overflow-x-auto pb-2 snap-x">
+                      {suggestedImages.map((img, i) => (
+                        <img key={i} src={img} alt="Sugestão" 
+                          onClick={() => setForm(f => ({ ...f, photo: img }))}
+                          className={`h-16 w-16 object-contain rounded-lg border-2 cursor-pointer shrink-0 snap-start transition-all hover:scale-105 bg-white
+                            ${form.photo === img ? 'border-brand-500 ring-2 ring-brand-200' : 'border-gray-200'}`} />
+                      ))}
+                      {loadingImages && <div className="h-16 w-16 flex items-center justify-center text-xs text-gray-400 shrink-0">⏳</div>}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <input className="input" placeholder="Nome do produto *" value={form.name}
-                onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus />
               <div className="relative">
-                <input className="input" list="categorias" placeholder="Categoria (ex: Bebidas)" value={form.category}
+                <input className="input w-full" list="categorias" placeholder="Categoria (ex: Bebidas)" value={form.category}
                   onChange={e => setForm(f => ({ ...f, category: e.target.value }))} />
                 <datalist id="categorias">
                   <option value="Bebidas" />
                   <option value="Doces" />
-                  <option value="Eletrônicos" />
-                  <option value="Papelaria" />
-                  <option value="Acessórios" />
-                  <option value="Serviços" />
+                  <option value="Mercearia" />
+                  <option value="Higiene" />
+                  <option value="Limpeza" />
+                  <option value="Frios" />
                   {Array.from(new Set(products.map(p => p.category).filter(Boolean))).map(c => (
                     <option key={c} value={c} />
                   ))}
@@ -237,6 +279,16 @@ export default function Products({ onBack }) {
               <input className="input" placeholder="Preço promocional" type="number" step="0.01" value={form.promoPrice}
                 onChange={e => setForm(f => ({ ...f, promoPrice: e.target.value }))} />
             </div>
+
+            {form.photo && (
+              <div className="mb-4 relative rounded-xl border border-gray-200 bg-white p-3 flex justify-center group">
+                <button onClick={() => setForm(f => ({ ...f, photo: '' }))} 
+                  className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                  ✖
+                </button>
+                <img src={form.photo} alt="Produto" className="h-32 w-auto object-contain" />
+              </div>
+            )}
             <button onClick={handleSave} className="btn btn-success w-full mt-4 h-12 text-base shadow-sm">
               {editing ? '💾 Atualizar Produto' : '✅ Salvar Produto'}
             </button>
