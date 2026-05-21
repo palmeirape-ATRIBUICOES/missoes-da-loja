@@ -16,7 +16,7 @@ export default function Team({ onBack }) {
     if (!newName.trim()) return
     const name = newName.trim()
     if (employees.some(e => e.name === name)) return
-    const next = [...employees, { name, active: true, canEditPrices: false }]
+    const next = [...employees, { name, active: true, canEditPrices: false, canAccessPdv: false }]
     await saveEmployees(next)
     setNewName('')
   }
@@ -28,6 +28,11 @@ export default function Team({ onBack }) {
 
   async function togglePricePermission(name) {
     const next = employees.map(e => e.name === name ? { ...e, canEditPrices: !e.canEditPrices } : e)
+    await saveEmployees(next)
+  }
+
+  async function togglePdvPermission(name) {
+    const next = employees.map(e => e.name === name ? { ...e, canAccessPdv: !e.canAccessPdv } : e)
     await saveEmployees(next)
   }
 
@@ -72,7 +77,7 @@ export default function Team({ onBack }) {
             <div key={emp.name} className={`card p-4 ${!emp.active ? 'opacity-50' : ''}`}>
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="font-bold text-gray-900">{emp.name}</span>
                     {emp.active ? (
                       <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">Ativo</span>
@@ -82,13 +87,16 @@ export default function Team({ onBack }) {
                     {emp.canEditPrices && (
                       <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-semibold">📦 Produtos</span>
                     )}
+                    {emp.canAccessPdv && (
+                      <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">🖥️ PDV</span>
+                    )}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     ⭐ {getMonthPoints(emp.name)} pontos este mês
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex flex-wrap items-center gap-1 shrink-0 justify-end max-w-[65%] sm:max-w-none">
                   <button onClick={() => toggleActive(emp.name)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold active:scale-95 transition-all
                       ${emp.active ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
@@ -98,6 +106,11 @@ export default function Team({ onBack }) {
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold active:scale-95 transition-all
                       ${emp.canEditPrices ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
                     {emp.canEditPrices ? '🔓 Produtos' : '🔒 Produtos'}
+                  </button>
+                  <button onClick={() => togglePdvPermission(emp.name)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold active:scale-95 transition-all
+                      ${emp.canAccessPdv ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                    {emp.canAccessPdv ? '🔓 PDV' : '🔒 PDV'}
                   </button>
                   <button onClick={() => { setEditingPin(emp.name); setPinValue('') }}
                     className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-50 text-purple-600 active:scale-95">

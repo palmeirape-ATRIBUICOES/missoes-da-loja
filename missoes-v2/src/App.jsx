@@ -14,8 +14,32 @@ import Feedback from './pages/manager/Feedback'
 import PublicStore from './pages/PublicStore'
 import PermissionsRequest from './components/PermissionsRequest'
 
+import { useStore } from './hooks/useStore'
+
 function ProductsPage() { const n = useNavigate(); return <Products onBack={() => n('/gerente')} /> }
-function ProductsPageFunc() { const n = useNavigate(); return <Products onBack={() => n('/funcionario')} /> }
+function ProductsPageFunc() {
+  const n = useNavigate()
+  const { currentUser, isManager } = useAuth()
+  const { employees } = useStore()
+  const currentEmp = employees.find(e => e.name === currentUser)
+  const hasAccess = isManager || currentEmp?.canEditPrices
+
+  if (!hasAccess) {
+    return <Navigate to="/funcionario" replace />
+  }
+  return <Products onBack={() => n('/funcionario')} />
+}
+function PDVRoute() {
+  const { currentUser, isManager } = useAuth()
+  const { employees } = useStore()
+  const currentEmp = employees.find(e => e.name === currentUser)
+  const hasAccess = isManager || currentEmp?.canAccessPdv
+
+  if (!hasAccess) {
+    return <Navigate to="/funcionario" replace />
+  }
+  return <PDV />
+}
 function TeamPage() { const n = useNavigate(); return <Team onBack={() => n('/gerente')} /> }
 function GlobalsPage() { const n = useNavigate(); return <Globals onBack={() => n('/gerente')} /> }
 function TasksPage() { const n = useNavigate(); return <Tasks onBack={() => n('/gerente')} /> }
@@ -58,7 +82,7 @@ function AppRoutes() {
     <StoreProvider>
       <PermissionsRequest />
       <Routes>
-        <Route path="/pdv" element={<PDV />} />
+        <Route path="/pdv" element={<PDVRoute />} />
         <Route path="/gerente" element={isManager ? <ManagerDashboard /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/produtos" element={isManager ? <ProductsPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/equipe" element={isManager ? <TeamPage /> : <Navigate to="/funcionario" />} />

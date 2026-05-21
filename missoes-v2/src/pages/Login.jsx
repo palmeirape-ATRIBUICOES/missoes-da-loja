@@ -23,7 +23,9 @@ export default function Login({ mode = 'app' }) {
     try {
       const snap = await getDoc(doc(db, 'stores', STORE_MAP[sk].id, 'config', 'employees'))
       const raw = snap.exists() ? snap.data().list : []
-      const emps = Array.isArray(raw) ? raw.filter(e => e?.name && e?.active).map(e => e.name) : []
+      const emps = Array.isArray(raw)
+        ? raw.filter(e => e?.name && e?.active && (mode !== 'pdv' || e?.canAccessPdv)).map(e => e.name)
+        : []
       const manager = STORE_MAP[sk].managerUser
       setUsers([manager, ...emps.filter(n => n !== manager)])
       setStep('user')

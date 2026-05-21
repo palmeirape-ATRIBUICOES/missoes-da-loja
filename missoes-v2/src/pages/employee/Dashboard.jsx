@@ -6,9 +6,10 @@ import { formatCurrency, normalizeWeekKeyLoose, nowHuman } from '../../utils/con
 
 export default function EmployeeDashboard() {
   const { currentUser, store, logout } = useAuth()
-  const { currentWeekKey, globalsOpen, products, getMonthPoints } = useStore()
+  const { currentWeekKey, globalsOpen, products, getMonthPoints, employees } = useStore()
   const navigate = useNavigate()
 
+  const currentEmp = employees.find(e => e.name === currentUser)
   const points = getMonthPoints(currentUser)
 
   return (
@@ -83,10 +84,20 @@ export default function EmployeeDashboard() {
             <div className="text-2xl mb-2">📋</div>
             <div className="font-semibold text-sm text-gray-900">Minhas Tarefas</div>
           </button>
-          <button onClick={() => navigate('/funcionario/produtos')} className="card p-4 text-center hover:bg-gray-100 active:scale-95 transition-transform">
-            <div className="text-2xl mb-2">📦</div>
-            <div className="font-semibold text-sm text-gray-900">Cadastrar Produto</div>
-          </button>
+          
+          {currentEmp?.canEditPrices && (
+            <button onClick={() => navigate('/funcionario/produtos')} className="card p-4 text-center hover:bg-gray-100 active:scale-95 transition-transform">
+              <div className="text-2xl mb-2">📦</div>
+              <div className="font-semibold text-sm text-gray-900">Cadastrar Produto</div>
+            </button>
+          )}
+
+          {currentEmp?.canAccessPdv && (
+            <button onClick={() => navigate('/pdv')} className="card p-4 text-center hover:bg-gray-100 active:scale-95 transition-transform">
+              <div className="text-2xl mb-2">🖥️</div>
+              <div className="font-semibold text-sm text-gray-900">Abrir PDV</div>
+            </button>
+          )}
         </div>
       </main>
     </div>
