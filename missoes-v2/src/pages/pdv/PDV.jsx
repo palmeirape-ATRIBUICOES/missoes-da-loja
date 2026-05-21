@@ -8,8 +8,8 @@ import ShiftClose from './ShiftClose'
 import CashOps from './CashOps'
 
 export default function PDV() {
-  const { currentUser, store, logout } = useAuth()
-  const { products, savePdvSale, pdvSales } = useStore()
+  const { currentUser, store, logout, isManager } = useAuth()
+  const { products, savePdvSale, pdvSales, employees, saveProduct } = useStore()
 
   const [cart, setCart] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -20,6 +20,70 @@ export default function PDV() {
   const [showMenu, setShowMenu] = useState(false)
   const [lastSale, setLastSale] = useState(null)
   const searchRef = useRef(null)
+
+  // Printer Enable State (Persisted)
+  const [printReceiptEnabled, setPrintReceiptEnabled] = useState(() => {
+    try {
+      const val = localStorage.getItem('mdl_v2_print_enabled')
+      return val !== 'false'
+    } catch { return true }
+  })
+
+  // Quick Product Modal States
+  const [showQuickProduct, setShowQuickProduct] = useState(false)
+  const [qpName, setQpName] = useState('')
+  const [qpPrice, setQpPrice] = useState('')
+  const [qpCode, setQpCode] = useState('')
+  const [qpCategory, setQpCategory] = useState('Geral')
+  const [qpLoading, setQpLoading] = useState(false)
+
+  const currentEmp = employees.find(e => e.name === currentUser)
+  const canCreateProduct = isManager || currentEmp?.canEditPrices
+
+  function togglePrintReceipt() {
+    setPrintReceiptEnabled(prev => {
+      const next = !prev
+      try {
+        localStorage.setItem('mdl_v2_print_enabled', String(next))
+      } catch (e) { console.error(e) }
+      return next
+    })
+  }
+
+  async function handleQuickProductSubmit(e) {
+    e.preventDefault()
+    if (!qpName.trim() || !qpPrice.trim()) {
+      alert('Nome e Preço são obrigatórios!')
+      return
+    }
+
+    const priceNum = parseCurrency(qpPrice)
+    const newProduct = {
+      name: qpName.trim(),
+      price: priceNum,
+      code: qpCode.trim(),
+      category: qpCategory.trim() || 'Geral'
+    }
+
+    try {
+      setQpLoading(true)
+      await saveProduct(newProduct)
+      
+      // Clear form
+      setQpName('')
+      setQpPrice('')
+      setQpCode('')
+      setQpCategory('Geral')
+      setShowQuickProduct(false)
+      
+      alert('Produto cadastrado com sucesso!')
+    } catch (err) {
+      console.error(err)
+      alert('Erro ao cadastrar produto.')
+    } finally {
+      setQpLoading(false)
+    }
+  }
 
   const getParts = (cat) => (cat || '').toUpperCase().split('>').map(s => s.trim()).filter(Boolean)
 
@@ -114,17 +178,19 @@ export default function PDV() {
     setLastSale(saleData)
 
     // Auto-print receipt
-    try {
-      printReceipt({
-        storeName: store.name,
-        cashier: currentUser,
-        items: saleData.items,
-        total: saleData.total,
-        paymentMethod,
-        amountPaid: saleData.amountPaid,
-        change: saleData.change
-      })
-    } catch (e) { console.error('Print error:', e) }
+    if (printReceiptEnabled) {
+      try {
+        printReceipt({
+          storeName: store.name,
+          cashier: currentUser,
+          items: saleData.items,
+          total: saleData.total,
+          paymentMethod,
+          amountPaid: saleData.amountPaid,
+          change: saleData.change
+        })
+      } catch (e) { console.error('Print error:', e) }
+    }
 
     clearCart()
     setShowCheckout(false)
@@ -203,6 +269,14 @@ export default function PDV() {
                 💰 Suprimento / Sangria
               </button>
               <div className="border-t my-1" />
+              <div className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-gray-50 text-sm font-semibold cursor-pointer active:scale-98 transition-all"
+                onClick={togglePrintReceipt}>
+                <span className="flex items-center gap-3">🖨️ Impressora Ativa</span>
+                <div className={`w-10 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${printReceiptEnabled ? 'bg-emerald-500 justify-end' : 'bg-gray-300 justify-start'}`}>
+                  <div className="bg-white w-4 h-4 rounded-full shadow-md transform transition-all duration-300" />
+                </div>
+              </div>
+              <div className="border-t my-1" />
               <button onClick={logout}
                 className="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-sm font-semibold flex items-center gap-3 text-red-600 active:scale-95 transition-all">
                 🚪 Sair do Caixa
@@ -217,8 +291,8 @@ export default function PDV() {
         {/* Left: Products */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Search Bar */}
-          <div className="p-3 bg-white border-b border-gray-200 shrink-0">
-            <div className="relative">
+          <div className="p-3 bg-white border-b border-gray-200 shrink-0 flex gap-2 items-center">
+            <div className="relative flex-1">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">🔍</span>
               <input
                 ref={searchRef}
@@ -231,11 +305,18 @@ export default function PDV() {
               />
               {searchQuery && (
                 <button onClick={() => { setSearchQuery(''); searchRef.current?.focus() }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm active:scale-90">
+                  className="absolute right-[12px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm active:scale-90">
                   ✕
                 </button>
               )}
             </div>
+            
+            {canCreateProduct && (
+              <button onClick={() => setShowQuickProduct(true)}
+                className="btn btn-primary h-[52px] px-4 font-bold text-sm shrink-0 flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-700 text-white shadow-md active:scale-95 transition-all">
+                📦 <span className="hidden sm:inline">+ Novo</span>
+              </button>
+            )}
           </div>
 
           {/* Categories */}
@@ -388,6 +469,80 @@ export default function PDV() {
           </div>
         </div>
       </div>
+      {/* Quick Product Modal */}
+      {showQuickProduct && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-elevated border border-gray-100 max-w-md w-full p-6 space-y-4 animate-slide-up">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">📦 Cadastro Rápido</h3>
+              <button onClick={() => setShowQuickProduct(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 active:scale-90 text-sm">
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={handleQuickProductSubmit} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">Nome do Produto</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Pão de Queijo"
+                  value={qpName}
+                  onChange={e => setQpName(e.target.value)}
+                  className="input text-sm h-11 min-h-0"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase">Preço (R$)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: 5,50"
+                    value={qpPrice}
+                    onChange={e => setQpPrice(e.target.value)}
+                    className="input text-sm h-11 min-h-0"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase">Categoria</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Pães, Bebidas"
+                    value={qpCategory}
+                    onChange={e => setQpCategory(e.target.value)}
+                    className="input text-sm h-11 min-h-0"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 uppercase">Código / Código de Barras</label>
+                <input
+                  type="text"
+                  placeholder="Ex: 789012345"
+                  value={qpCode}
+                  onChange={e => setQpCode(e.target.value)}
+                  className="input text-sm h-11 min-h-0"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowQuickProduct(false)}
+                  className="btn btn-ghost flex-1 text-sm rounded-xl font-bold h-11 min-h-0">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={qpLoading}
+                  className="btn btn-primary flex-1 text-sm rounded-xl font-bold h-11 min-h-0 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-emerald-500/20 shadow-md">
+                  {qpLoading ? 'Cadastrando...' : 'Cadastrar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
