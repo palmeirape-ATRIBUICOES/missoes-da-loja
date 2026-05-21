@@ -301,6 +301,10 @@ export default function LabelsGenerator({ onBack }) {
         <meta charset="UTF-8">
         <title>Etiquetas Personalizadas</title>
         <style>
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           @page {
             margin: 0;
             size: auto;
@@ -352,9 +356,9 @@ export default function LabelsGenerator({ onBack }) {
           .vertical-tick-block::before, .vertical-tick-block::after {
             content: "";
             display: block;
-            width: 1.5px;
+            width: 0;
             height: 100%;
-            background: #000000; /* Solid Black */
+            border-left: 1.5px solid #000000 !important;
           }
 
           /* Horizontal row styles */
@@ -401,8 +405,8 @@ export default function LabelsGenerator({ onBack }) {
             content: "";
             display: block;
             width: 100%;
-            height: 1.5px;
-            background: #000000; /* Solid Black */
+            height: 0;
+            border-top: 1.5px solid #000000 !important;
           }
           .crop-mark-left {
             margin-right: 4mm;
