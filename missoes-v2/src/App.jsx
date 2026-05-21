@@ -13,6 +13,7 @@ import Config from './pages/manager/Config'
 import Feedback from './pages/manager/Feedback'
 import PublicStore from './pages/PublicStore'
 import PermissionsRequest from './components/PermissionsRequest'
+import LabelsGenerator from './pages/manager/LabelsGenerator'
 
 import { useStore } from './hooks/useStore'
 
@@ -40,6 +41,7 @@ function PDVRoute() {
   }
   return <PDV />
 }
+function LabelsPage() { const n = useNavigate(); return <LabelsGenerator onBack={() => n('/gerente')} /> }
 function TeamPage() { const n = useNavigate(); return <Team onBack={() => n('/gerente')} /> }
 function GlobalsPage() { const n = useNavigate(); return <Globals onBack={() => n('/gerente')} /> }
 function TasksPage() { const n = useNavigate(); return <Tasks onBack={() => n('/gerente')} /> }
@@ -85,6 +87,7 @@ function AppRoutes() {
         <Route path="/pdv" element={<PDVRoute />} />
         <Route path="/gerente" element={isManager ? <ManagerDashboard /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/produtos" element={isManager ? <ProductsPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/etiquetas" element={isManager ? <LabelsPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/equipe" element={isManager ? <TeamPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/globais" element={isManager ? <GlobalsPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/tarefas" element={isManager ? <TasksPage /> : <Navigate to="/funcionario" />} />

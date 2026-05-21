@@ -19,6 +19,7 @@ export default function ManagerDashboard() {
     { key: 'tarefas', icon: '📋', label: 'Tarefas', color: 'from-blue-500 to-blue-600', badge: tasksAll.length, action: () => navigate('/gerente/tarefas') },
     { key: 'globais', icon: '🎯', label: 'Globais', color: 'from-purple-500 to-purple-600', badge: globalsOpen.length, action: () => navigate('/gerente/globais') },
     { key: 'produtos', icon: '📦', label: 'Produtos', color: 'from-orange-500 to-orange-600', badge: products.length, action: () => navigate('/gerente/produtos') },
+    { key: 'etiquetas', icon: '🏷️', label: 'Etiquetas', color: 'from-pink-500 to-pink-600', action: () => navigate('/gerente/etiquetas') },
     { key: 'equipe', icon: '👥', label: 'Equipe', color: 'from-cyan-500 to-cyan-600', badge: activeEmployees.length, action: () => navigate('/gerente/equipe') },
     { key: 'feedback', icon: '💬', label: 'Feedback', color: 'from-amber-500 to-amber-600', badge: feedbackAll.filter(f => f.status === 'new').length, action: () => navigate('/gerente/feedback') },
     { key: 'config', icon: '⚙️', label: 'Configurações', color: 'from-gray-500 to-gray-600', action: () => navigate('/gerente/config') },
