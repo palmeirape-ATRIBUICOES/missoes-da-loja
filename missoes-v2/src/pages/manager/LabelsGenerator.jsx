@@ -289,6 +289,11 @@ export default function LabelsGenerator({ onBack }) {
       `
     }).join('')
 
+    // Generate Top vertical ticks
+    const verticalTicksHtml = Array.from({ length: columns }).map(() => `
+      <div class="vertical-tick-block"></div>
+    `).join('')
+
     const printHtml = `
       <!DOCTYPE html>
       <html>
@@ -302,7 +307,7 @@ export default function LabelsGenerator({ onBack }) {
           }
           body {
             margin: 0;
-            padding: 8mm 4mm;
+            padding: 15mm 8mm; /* Enforced top/bottom padding so ticks never get cut off */
             font-family: ${getFontFamilyCSS()};
             background: #fff;
             box-sizing: border-box;
@@ -310,6 +315,49 @@ export default function LabelsGenerator({ onBack }) {
             flex-direction: column;
             align-items: center;
           }
+          
+          /* Top and Bottom boundary rows */
+          .crop-row-top, .crop-row-bottom {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            page-break-inside: avoid;
+          }
+          .crop-row-top {
+            margin-bottom: 3mm;
+          }
+          .crop-row-bottom {
+            margin-top: 3mm;
+          }
+          .crop-mark-corner {
+            width: 8mm;
+            height: 6mm;
+            flex-shrink: 0;
+            visibility: hidden;
+          }
+          .vertical-ticks-container {
+            display: flex;
+            flex-direction: row;
+            gap: ${gapMm}mm;
+          }
+          .vertical-tick-block {
+            width: ${widthMm}mm;
+            height: 6mm;
+            display: flex;
+            justify-content: space-between;
+            box-sizing: border-box;
+            flex-shrink: 0;
+          }
+          .vertical-tick-block::before, .vertical-tick-block::after {
+            content: "";
+            display: block;
+            width: 1.5px;
+            height: 100%;
+            background: #000000; /* Solid Black */
+          }
+
+          /* Horizontal row styles */
           .label-row {
             display: flex;
             flex-direction: row;
@@ -338,6 +386,8 @@ export default function LabelsGenerator({ onBack }) {
             flex-direction: column;
             justify-content: space-between;
           }
+          
+          /* Horizontal guides */
           .crop-mark {
             width: 8mm;
             height: ${heightMm}mm;
@@ -352,7 +402,7 @@ export default function LabelsGenerator({ onBack }) {
             display: block;
             width: 100%;
             height: 1.5px;
-            background: #22c55e; /* vibrant cutting green */
+            background: #000000; /* Solid Black */
           }
           .crop-mark-left {
             margin-right: 4mm;
@@ -519,7 +569,30 @@ export default function LabelsGenerator({ onBack }) {
         </style>
       </head>
       <body>
+        <!-- Top column boundaries ticks -->
+        ${showCropMarks ? `
+          <div class="crop-row-top">
+            <div class="crop-mark-corner"></div>
+            <div class="vertical-ticks-container">
+              ${verticalTicksHtml}
+            </div>
+            <div class="crop-mark-corner"></div>
+          </div>
+        ` : ''}
+
+        <!-- Product Label Rows -->
         ${printableRowsHtml}
+
+        <!-- Bottom column boundaries ticks -->
+        ${showCropMarks ? `
+          <div class="crop-row-bottom">
+            <div class="crop-mark-corner"></div>
+            <div class="vertical-ticks-container">
+              ${verticalTicksHtml}
+            </div>
+            <div class="crop-mark-corner"></div>
+          </div>
+        ` : ''}
         
         <script>
           setTimeout(() => {
@@ -594,22 +667,39 @@ export default function LabelsGenerator({ onBack }) {
             <div className="w-full h-full flex items-center justify-center p-4">
               <div className="overflow-auto max-h-[75vh] p-6 bg-slate-950/40 rounded-3xl border-2 border-dashed border-slate-800 flex items-center justify-center scrollbar-thin shadow-2xl">
                 <div
-                  className="flex flex-col p-6 shadow-2xl rounded-2xl transition-all"
+                  className="flex flex-col p-8 shadow-2xl rounded-2xl transition-all"
                   style={{
                     backgroundColor: '#ffffff',
                     gap: `${gapMm * 3}px`
                   }}
                 >
+                  {/* Top column boundary crop ticks in preview */}
+                  {showCropMarks && (
+                    <div className="flex flex-row items-center justify-center mb-1.5 opacity-90">
+                      <div className="w-[24px] h-[6px] shrink-0" />
+                      <div className="flex flex-row animate-pulse" style={{ gap: `${gapMm * 3}px` }}>
+                        {Array.from({ length: columns }).map((_, i) => (
+                          <div
+                            key={`top-tick-${i}`}
+                            className="flex justify-between shrink-0 border-l-2 border-r-2 border-black"
+                            style={{ width: `${widthMm * 3}px`, height: '8px' }}
+                          />
+                        ))}
+                      </div>
+                      <div className="w-[24px] h-[6px] shrink-0" />
+                    </div>
+                  )}
+
                   {previewRows.map((row, rowIdx) => (
                     <div key={`row-${rowIdx}`} className="flex flex-row items-center justify-center">
-                      {/* Left crop ticks in live preview */}
+                      {/* Left horizontal crop ticks in live preview */}
                       {showCropMarks && (
                         <div
                           className="flex flex-col justify-between shrink-0 mr-3 animate-pulse"
                           style={{ width: '24px', height: `${heightMm * 3}px` }}
                         >
-                          <div className="h-[2px] bg-emerald-500 w-full" />
-                          <div className="h-[2px] bg-emerald-500 w-full" />
+                          <div className="h-[2px] bg-black w-full" />
+                          <div className="h-[2px] bg-black w-full" />
                         </div>
                       )}
 
@@ -789,18 +879,36 @@ export default function LabelsGenerator({ onBack }) {
                         })}
                       </div>
 
-                      {/* Right crop ticks in live preview */}
+                      {/* Right horizontal crop ticks in live preview */}
                       {showCropMarks && (
                         <div
                           className="flex flex-col justify-between shrink-0 ml-3 animate-pulse"
                           style={{ width: '24px', height: `${heightMm * 3}px` }}
                         >
-                          <div className="h-[2px] bg-emerald-500 w-full" />
-                          <div className="h-[2px] bg-emerald-500 w-full" />
+                          <div className="h-[2px] bg-black w-full" />
+                          <div className="h-[2px] bg-black w-full" />
                         </div>
                       )}
                     </div>
                   ))}
+
+                  {/* Bottom column boundary crop ticks in preview */}
+                  {showCropMarks && (
+                    <div className="flex flex-row items-center justify-center mt-1.5 opacity-90">
+                      <div className="w-[24px] h-[6px] shrink-0" />
+                      <div className="flex flex-row animate-pulse" style={{ gap: `${gapMm * 3}px` }}>
+                        {Array.from({ length: columns }).map((_, i) => (
+                          <div
+                            key={`bottom-tick-${i}`}
+                            className="flex justify-between shrink-0 border-l-2 border-r-2 border-black"
+                            style={{ width: `${widthMm * 3}px`, height: '8px' }}
+                          />
+                        ))}
+                      </div>
+                      <div className="w-[24px] h-[6px] shrink-0" />
+                    </div>
+                  )}
+
                 </div>
               </div>
             </div>
@@ -1226,7 +1334,7 @@ export default function LabelsGenerator({ onBack }) {
 
               {/* Checkboxes & Guillotine crop marks */}
               {[
-                { label: 'Marcas de Corte (Guia de Guilhotina Verde)', state: showCropMarks, setState: setShowCropMarks },
+                { label: 'Marcas de Corte (Guias de Guilhotina Pretas)', state: showCropMarks, setState: setShowCropMarks },
                 { label: 'Mostrar Categoria do Produto', state: showCategory, setState: setShowCategory },
                 { label: 'Mostrar Código de Barras mockado', state: showBarcode, setState: setShowBarcode },
                 { label: 'Mostrar Código numérico do produto', state: showCode, setState: setShowCode },
