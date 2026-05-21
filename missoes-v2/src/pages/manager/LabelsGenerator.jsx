@@ -53,6 +53,7 @@ export default function LabelsGenerator({ onBack }) {
   const [showBarcode, setShowBarcode] = useState(true)
   const [showCategory, setShowCategory] = useState(true)
   const [showOldPrice, setShowOldPrice] = useState(true)
+  const [showCropMarks, setShowCropMarks] = useState(true) // GUILLOTINE GUIDE TICKS!
 
   // Filter products by search query
   const filteredProducts = useMemo(() => {
@@ -87,6 +88,24 @@ export default function LabelsGenerator({ onBack }) {
   const selectedProducts = useMemo(() => {
     return products.filter(p => selectedIds.includes(p.id))
   }, [products, selectedIds])
+
+  // Split selected products into row-groups of length 'columns' with padding placeholders
+  const previewRows = useMemo(() => {
+    if (selectedProducts.length === 0) return []
+    const padded = [...selectedProducts]
+    const remainder = selectedProducts.length % columns
+    if (remainder > 0) {
+      const padCount = columns - remainder
+      for (let i = 0; i < padCount; i++) {
+        padded.push({ isPlaceholder: true, id: `pad-preview-${i}` })
+      }
+    }
+    const chunked = []
+    for (let i = 0; i < padded.length; i += columns) {
+      chunked.push(padded.slice(i, i + columns))
+    }
+    return chunked
+  }, [selectedProducts, columns])
 
   // Apply Theme presets
   const applyTheme = (themeName) => {
@@ -161,6 +180,115 @@ export default function LabelsGenerator({ onBack }) {
       return
     }
 
+    // Pad products to make complete aligned rows
+    const paddedForPrint = [...selectedProducts]
+    const remainder = selectedProducts.length % columns
+    if (remainder > 0) {
+      const padCount = columns - remainder
+      for (let i = 0; i < padCount; i++) {
+        paddedForPrint.push({ isPlaceholder: true, id: `pad-print-${i}` })
+      }
+    }
+
+    // Split into row arrays
+    const rowsList = []
+    for (let i = 0; i < paddedForPrint.length; i += columns) {
+      rowsList.push(paddedForPrint.slice(i, i + columns))
+    }
+
+    // Build crop marks HTML rows
+    const printableRowsHtml = rowsList.map(row => {
+      const labelElements = row.map(p => {
+        if (p.isPlaceholder) {
+          // Empty dummy label to keep alignment intact
+          return `<div class="label" style="width: ${widthMm}mm; height: ${heightMm}mm; visibility: hidden; border: none; background: transparent;"></div>`
+        }
+
+        const mainPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
+        const isPromo = p.promoPrice && p.oldPrice
+        
+        // Generate mock barcode bars
+        const barsCount = 28
+        const barElements = []
+        for (let i = 0; i < barsCount; i++) {
+          const isWide = (i * 7) % 3 === 0
+          const isGap = (i * 11) % 4 === 0
+          if (!isGap) {
+            barElements.push(`<div class="barcode-bar" style="width: ${isWide ? '3.5px' : '1.5px'}; height: ${i % 2 === 0 ? '90%' : '100%'}"></div>`)
+          } else {
+            barElements.push(`<div class="barcode-bar" style="background: transparent; width: 2px"></div>`)
+          }
+        }
+
+        // Build contents by Layout Template
+        let contentHtml = ''
+        if (layoutTemplate === 'centered') {
+          contentHtml = `
+            <div style="width:100%; flex: 1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+              ${showCategory && p.category ? `<div class="category">${p.category}</div>` : ''}
+              <div class="name">${p.name}</div>
+            </div>
+            <div class="pricing-block">
+              ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
+              <div class="price">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
+            </div>
+          `
+        } else if (layoutTemplate === 'horizontal_split') {
+          contentHtml = `
+            <div class="content-row">
+              <div class="name-col">
+                ${showCategory && p.category ? `<div class="category">${p.category}</div>` : ''}
+                <div class="name">${p.name}</div>
+              </div>
+              <div class="price-col">
+                ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
+                <div class="price">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
+              </div>
+            </div>
+          `
+        } else if (layoutTemplate === 'price_focus') {
+          contentHtml = `
+            <div class="pricing-block price-focused-block">
+              ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
+              <div class="price" style="font-size: ${priceFontSize * 1.3}px">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
+            </div>
+            <div class="name-focused-row">
+              ${showCategory && p.category ? `${p.category} • ` : ''}${p.name}
+            </div>
+          `
+        }
+
+        return `
+          <div class="label layout-${layoutTemplate}">
+            ${showPromoBadge && isPromo ? `<div class="promo-badge">${customPromoText}</div>` : ''}
+            
+            ${showStoreName ? `<div class="store-name">${storeEmoji ? storeEmoji + ' ' : ''}${customStoreName}</div>` : ''}
+            
+            ${contentHtml}
+            
+            ${showBarcode && p.code ? `
+              <div class="barcode-container">
+                <div class="barcode-mock">
+                  ${barElements.join('')}
+                </div>
+                ${showCode ? `<div class="code-label">${p.code}</div>` : ''}
+              </div>
+            ` : (showCode && p.code ? `<div class="code-label" style="margin-top: 1.5mm;">Cód: ${p.code}</div>` : '')}
+          </div>
+        `
+      }).join('')
+
+      return `
+        <div class="label-row">
+          ${showCropMarks ? `<div class="crop-mark crop-mark-left"></div>` : ''}
+          <div class="labels-container">
+            ${labelElements}
+          </div>
+          ${showCropMarks ? `<div class="crop-mark crop-mark-right"></div>` : ''}
+        </div>
+      `
+    }).join('')
+
     const printHtml = `
       <!DOCTYPE html>
       <html>
@@ -174,13 +302,26 @@ export default function LabelsGenerator({ onBack }) {
           }
           body {
             margin: 0;
-            padding: 5mm;
+            padding: 8mm 4mm;
             font-family: ${getFontFamilyCSS()};
             background: #fff;
-            display: grid;
-            grid-template-columns: repeat(${columns}, ${widthMm}mm);
-            gap: ${gapMm}mm;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+          .label-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: ${gapMm}mm;
+            page-break-inside: avoid;
+          }
+          .labels-container {
+            display: flex;
+            flex-direction: row;
+            gap: ${gapMm}mm;
           }
           .label {
             width: ${widthMm}mm;
@@ -189,7 +330,6 @@ export default function LabelsGenerator({ onBack }) {
             padding: 3mm;
             border: ${showBorder ? `${borderThickness}px ${borderStyle} ${borderColor}` : 'none'};
             border-radius: ${showBorder ? `${borderRadius}mm` : '0'};
-            page-break-inside: avoid;
             background: ${backgroundColor};
             color: ${fontColor};
             overflow: hidden;
@@ -197,6 +337,28 @@ export default function LabelsGenerator({ onBack }) {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+          }
+          .crop-mark {
+            width: 8mm;
+            height: ${heightMm}mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            flex-shrink: 0;
+          }
+          .crop-mark::before, .crop-mark::after {
+            content: "";
+            display: block;
+            width: 100%;
+            height: 1.5px;
+            background: #22c55e; /* vibrant cutting green */
+          }
+          .crop-mark-left {
+            margin-right: 4mm;
+          }
+          .crop-mark-right {
+            margin-left: 4mm;
           }
           .store-name {
             font-size: 8px;
@@ -357,80 +519,7 @@ export default function LabelsGenerator({ onBack }) {
         </style>
       </head>
       <body>
-        ${selectedProducts.map(p => {
-          const mainPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
-          const isPromo = p.promoPrice && p.oldPrice
-          
-          // Generate mock barcode bars
-          const barsCount = 28
-          const barElements = []
-          for (let i = 0; i < barsCount; i++) {
-            const isWide = (i * 7) % 3 === 0
-            const isGap = (i * 11) % 4 === 0
-            if (!isGap) {
-              barElements.push(`<div class="barcode-bar" style="width: ${isWide ? '3.5px' : '1.5px'}; height: ${i % 2 === 0 ? '90%' : '100%'}"></div>`)
-            } else {
-              barElements.push(`<div class="barcode-bar" style="background: transparent; width: 2px"></div>`)
-            }
-          }
-
-          // Build contents by Layout Template
-          let contentHtml = ''
-          if (layoutTemplate === 'centered') {
-            contentHtml = `
-              <div style="width:100%; flex: 1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-                ${showCategory && p.category ? `<div class="category">${p.category}</div>` : ''}
-                <div class="name">${p.name}</div>
-              </div>
-              <div class="pricing-block">
-                ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
-                <div class="price">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
-              </div>
-            `
-          } else if (layoutTemplate === 'horizontal_split') {
-            contentHtml = `
-              <div class="content-row">
-                <div class="name-col">
-                  ${showCategory && p.category ? `<div class="category">${p.category}</div>` : ''}
-                  <div class="name">${p.name}</div>
-                </div>
-                <div class="price-col">
-                  ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
-                  <div class="price">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
-                </div>
-              </div>
-            `
-          } else if (layoutTemplate === 'price_focus') {
-            contentHtml = `
-              <div class="pricing-block price-focused-block">
-                ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
-                <div class="price" style="font-size: ${priceFontSize * 1.3}px">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
-              </div>
-              <div class="name-focused-row">
-                ${showCategory && p.category ? `${p.category} • ` : ''}${p.name}
-              </div>
-            `
-          }
-
-          return `
-            <div class="label layout-${layoutTemplate}">
-              ${showPromoBadge && isPromo ? `<div class="promo-badge">${customPromoText}</div>` : ''}
-              
-              ${showStoreName ? `<div class="store-name">${storeEmoji ? storeEmoji + ' ' : ''}${customStoreName}</div>` : ''}
-              
-              ${contentHtml}
-              
-              ${showBarcode && p.code ? `
-                <div class="barcode-container">
-                  <div class="barcode-mock">
-                    ${barElements.join('')}
-                  </div>
-                  ${showCode ? `<div class="code-label">${p.code}</div>` : ''}
-                </div>
-              ` : (showCode && p.code ? `<div class="code-label" style="margin-top: 1.5mm;">Cód: ${p.code}</div>` : '')}
-            </div>
-          `
-        }).join('')}
+        ${printableRowsHtml}
         
         <script>
           setTimeout(() => {
@@ -505,174 +594,213 @@ export default function LabelsGenerator({ onBack }) {
             <div className="w-full h-full flex items-center justify-center p-4">
               <div className="overflow-auto max-h-[75vh] p-6 bg-slate-950/40 rounded-3xl border-2 border-dashed border-slate-800 flex items-center justify-center scrollbar-thin shadow-2xl">
                 <div
-                  className="grid p-6 shadow-2xl rounded-2xl transition-all"
+                  className="flex flex-col p-6 shadow-2xl rounded-2xl transition-all"
                   style={{
                     backgroundColor: '#ffffff',
-                    gridTemplateColumns: `repeat(${columns}, ${widthMm * 3}px)`,
-                    gap: `${gapMm * 3}px`,
+                    gap: `${gapMm * 3}px`
                   }}
                 >
-                  {selectedProducts.map(p => {
-                    const mainPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
-                    const isPromo = p.promoPrice && p.oldPrice
-                    
-                    return (
-                      <div
-                        key={`preview-${p.id}`}
-                        className="transition-all relative select-none hover:shadow-lg flex flex-col justify-between"
-                        style={{
-                          width: `${widthMm * 3}px`,
-                          height: `${heightMm * 3}px`,
-                          padding: '6px',
-                          border: showBorder ? `${borderThickness}px ${borderStyle} ${borderColor}` : 'none',
-                          borderRadius: showBorder ? `${borderRadius * 3}px` : '0',
-                          backgroundColor: backgroundColor,
-                          color: fontColor,
-                          fontFamily: getFontFamilyCSS(),
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {/* Promo Badge */}
-                        {showPromoBadge && isPromo && (
-                          <div className="absolute top-0.5 right-0.5 bg-red-500 text-white font-bold text-[5px] px-1 py-0.5 rounded leading-none z-10"
-                            style={{ backgroundColor: priceColor, color: backgroundColor === '#ffffff' || backgroundColor.startsWith('rgba') ? '#fff' : backgroundColor }}>
-                            {customPromoText}
-                          </div>
-                        )}
+                  {previewRows.map((row, rowIdx) => (
+                    <div key={`row-${rowIdx}`} className="flex flex-row items-center justify-center">
+                      {/* Left crop ticks in live preview */}
+                      {showCropMarks && (
+                        <div
+                          className="flex flex-col justify-between shrink-0 mr-3 animate-pulse"
+                          style={{ width: '24px', height: `${heightMm * 3}px` }}
+                        >
+                          <div className="h-[2px] bg-emerald-500 w-full" />
+                          <div className="h-[2px] bg-emerald-500 w-full" />
+                        </div>
+                      )}
 
-                        {/* Store Name */}
-                        {showStoreName && (
-                          <div className="text-[6px] font-extrabold uppercase tracking-wider text-center w-full truncate opacity-75">
-                            {storeEmoji ? `${storeEmoji} ` : ''}{customStoreName}
-                          </div>
-                        )}
-
-                        {/* Middle Content Blocks depending on Layout */}
-                        {layoutTemplate === 'centered' && (
-                          <>
-                            <div className="w-full flex-1 flex flex-col items-center justify-center text-center my-0.5">
-                              {showCategory && p.category && (
-                                <div className="text-[5px] uppercase font-bold tracking-tight opacity-50 truncate w-full">
-                                  {p.category}
+                      <div className="flex flex-row" style={{ gap: `${gapMm * 3}px` }}>
+                        {row.map(p => {
+                          if (p.isPlaceholder) {
+                            return (
+                              <div
+                                key={p.id}
+                                style={{
+                                  width: `${widthMm * 3}px`,
+                                  height: `${heightMm * 3}px`,
+                                  visibility: 'hidden'
+                                }}
+                              />
+                            )
+                          }
+                          const mainPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
+                          const isPromo = p.promoPrice && p.oldPrice
+                          
+                          return (
+                            <div
+                              key={`preview-${p.id}`}
+                              className="transition-all relative select-none hover:shadow-lg flex flex-col justify-between"
+                              style={{
+                                width: `${widthMm * 3}px`,
+                                height: `${heightMm * 3}px`,
+                                padding: '6px',
+                                border: showBorder ? `${borderThickness}px ${borderStyle} ${borderColor}` : 'none',
+                                borderRadius: showBorder ? `${borderRadius * 3}px` : '0',
+                                backgroundColor: backgroundColor,
+                                color: fontColor,
+                                fontFamily: getFontFamilyCSS(),
+                                overflow: 'hidden'
+                              }}
+                            >
+                              {/* Promo Badge */}
+                              {showPromoBadge && isPromo && (
+                                <div className="absolute top-0.5 right-0.5 bg-red-500 text-white font-bold text-[5px] px-1 py-0.5 rounded leading-none z-10"
+                                  style={{ backgroundColor: priceColor, color: backgroundColor === '#ffffff' || backgroundColor.startsWith('rgba') ? '#fff' : backgroundColor }}>
+                                  {customPromoText}
                                 </div>
                               )}
-                              <div
-                                className="font-bold uppercase tracking-tight text-center leading-tight overflow-hidden break-words w-full"
-                                style={{
-                                  fontSize: `${Math.max(6, nameFontSize * 0.7)}px`,
-                                  maxHeight: '2.4em',
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: 'vertical'
-                                }}
-                              >
-                                {p.name}
-                              </div>
-                            </div>
 
-                            <div className="w-full flex flex-col items-center justify-center leading-none">
-                              {showOldPrice && isPromo && (
-                                <span className="text-[7px] opacity-60 line-through mb-0.5">
-                                  {formatCurrency(p.oldPrice)}
-                                </span>
-                              )}
-                              <span className="font-black" style={{ fontSize: `${priceFontSize * 0.7}px`, color: priceColor }}>
-                                {formatCurrency(mainPrice)}
-                                <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
-                              </span>
-                            </div>
-                          </>
-                        )}
-
-                        {layoutTemplate === 'horizontal_split' && (
-                          <div className="flex flex-row justify-between items-center w-full flex-1 gap-1.5 my-1">
-                            <div className="flex-1 text-left min-w-0">
-                              {showCategory && p.category && (
-                                <div className="text-[5px] uppercase font-bold tracking-tight opacity-50 truncate w-full">
-                                  {p.category}
+                              {/* Store Name */}
+                              {showStoreName && (
+                                <div className="text-[6px] font-extrabold uppercase tracking-wider text-center w-full truncate opacity-75">
+                                  {storeEmoji ? `${storeEmoji} ` : ''}{customStoreName}
                                 </div>
                               )}
-                              <div
-                                className="font-bold uppercase tracking-tight leading-tight overflow-hidden break-words w-full text-left"
-                                style={{
-                                  fontSize: `${Math.max(6, nameFontSize * 0.65)}px`,
-                                  maxHeight: '2.4em',
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: 'vertical'
-                                }}
-                              >
-                                {p.name}
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end justify-center leading-none shrink-0 text-right">
-                              {showOldPrice && isPromo && (
-                                <span className="text-[6.5px] opacity-60 line-through mb-0.5">
-                                  {formatCurrency(p.oldPrice)}
-                                </span>
-                              )}
-                              <span className="font-black" style={{ fontSize: `${priceFontSize * 0.65}px`, color: priceColor }}>
-                                {formatCurrency(mainPrice)}
-                                <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
-                              </span>
-                            </div>
-                          </div>
-                        )}
 
-                        {layoutTemplate === 'price_focus' && (
-                          <>
-                            <div className="w-full flex-1 flex flex-col items-center justify-center leading-none my-0.5">
-                              {showOldPrice && isPromo && (
-                                <span className="text-[7px] opacity-60 line-through mb-0.5">
-                                  {formatCurrency(p.oldPrice)}
-                                </span>
-                              )}
-                              <span className="font-black" style={{ fontSize: `${priceFontSize * 0.9}px`, color: priceColor }}>
-                                {formatCurrency(mainPrice)}
-                                <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
-                              </span>
-                            </div>
-                            <div className="w-full text-center truncate font-bold text-[5.5px] uppercase opacity-90 tracking-tight">
-                              {showCategory && p.category ? `${p.category} • ` : ''}{p.name}
-                            </div>
-                          </>
-                        )}
+                              {/* Middle Content Blocks depending on Layout */}
+                              {layoutTemplate === 'centered' && (
+                                <>
+                                  <div className="w-full flex-1 flex flex-col items-center justify-center text-center my-0.5">
+                                    {showCategory && p.category && (
+                                      <div className="text-[5px] uppercase font-bold tracking-tight opacity-50 truncate w-full">
+                                        {p.category}
+                                      </div>
+                                    )}
+                                    <div
+                                      className="font-bold uppercase tracking-tight text-center leading-tight overflow-hidden break-words w-full"
+                                      style={{
+                                        fontSize: `${Math.max(6, nameFontSize * 0.7)}px`,
+                                        maxHeight: '2.4em',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical'
+                                      }}
+                                    >
+                                      {p.name}
+                                    </div>
+                                  </div>
 
-                        {/* Barcode Mock */}
-                        {showBarcode && p.code ? (
-                          <div className="w-full flex flex-col items-center mt-0.5 opacity-80 leading-none">
-                            <div className="w-4/5 h-[14px] flex items-end justify-between overflow-hidden">
-                              {previewBars.map((bar, i) => (
-                                !bar.isGap ? (
-                                  <div
-                                    key={i}
-                                    style={{
-                                      background: fontColor,
-                                      width: bar.isWide ? '2px' : '0.8px',
-                                      height: bar.height
-                                    }}
-                                  />
-                                ) : (
-                                  <div key={i} className="bg-transparent w-[1px]" />
+                                  <div className="w-full flex flex-col items-center justify-center leading-none">
+                                    {showOldPrice && isPromo && (
+                                      <span className="text-[7px] opacity-60 line-through mb-0.5">
+                                        {formatCurrency(p.oldPrice)}
+                                      </span>
+                                    )}
+                                    <span className="font-black" style={{ fontSize: `${priceFontSize * 0.7}px`, color: priceColor }}>
+                                      {formatCurrency(mainPrice)}
+                                      <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
+                                    </span>
+                                  </div>
+                                </>
+                              )}
+
+                              {layoutTemplate === 'horizontal_split' && (
+                                <div className="flex flex-row justify-between items-center w-full flex-1 gap-1.5 my-1">
+                                  <div className="flex-1 text-left min-w-0">
+                                    {showCategory && p.category && (
+                                      <div className="text-[5px] uppercase font-bold tracking-tight opacity-50 truncate w-full">
+                                        {p.category}
+                                      </div>
+                                    )}
+                                    <div
+                                      className="font-bold uppercase tracking-tight leading-tight overflow-hidden break-words w-full text-left"
+                                      style={{
+                                        fontSize: `${Math.max(6, nameFontSize * 0.65)}px`,
+                                        maxHeight: '2.4em',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical'
+                                      }}
+                                    >
+                                      {p.name}
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-col items-end justify-center leading-none shrink-0 text-right">
+                                    {showOldPrice && isPromo && (
+                                      <span className="text-[6.5px] opacity-60 line-through mb-0.5">
+                                        {formatCurrency(p.oldPrice)}
+                                      </span>
+                                    )}
+                                    <span className="font-black" style={{ fontSize: `${priceFontSize * 0.65}px`, color: priceColor }}>
+                                      {formatCurrency(mainPrice)}
+                                      <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {layoutTemplate === 'price_focus' && (
+                                <>
+                                  <div className="w-full flex-1 flex flex-col items-center justify-center leading-none my-0.5">
+                                    {showOldPrice && isPromo && (
+                                      <span className="text-[7px] opacity-60 line-through mb-0.5">
+                                        {formatCurrency(p.oldPrice)}
+                                      </span>
+                                    )}
+                                    <span className="font-black" style={{ fontSize: `${priceFontSize * 0.9}px`, color: priceColor }}>
+                                      {formatCurrency(mainPrice)}
+                                      <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
+                                    </span>
+                                  </div>
+                                  <div className="w-full text-center truncate font-bold text-[5.5px] uppercase opacity-90 tracking-tight">
+                                    {showCategory && p.category ? `${p.category} • ` : ''}{p.name}
+                                  </div>
+                                </>
+                              )}
+
+                              {/* Barcode Mock */}
+                              {showBarcode && p.code ? (
+                                <div className="w-full flex flex-col items-center mt-0.5 opacity-80 leading-none">
+                                  <div className="w-4/5 h-[14px] flex items-end justify-between overflow-hidden">
+                                    {previewBars.map((bar, i) => (
+                                      !bar.isGap ? (
+                                        <div
+                                          key={i}
+                                          style={{
+                                            background: fontColor,
+                                            width: bar.isWide ? '2px' : '0.8px',
+                                            height: bar.height
+                                          }}
+                                        />
+                                      ) : (
+                                        <div key={i} className="bg-transparent w-[1px]" />
+                                      )
+                                    ))}
+                                  </div>
+                                  {showCode && (
+                                    <span className="text-[5.5px] font-mono tracking-widest mt-0.5 uppercase">
+                                      {p.code}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                showCode && p.code && (
+                                  <div className="text-[5.5px] font-mono opacity-80 mt-0.5 truncate w-full text-center">
+                                    Cód: {p.code}
+                                  </div>
                                 )
-                              ))}
-                            </div>
-                            {showCode && (
-                              <span className="text-[5.5px] font-mono tracking-widest mt-0.5 uppercase">
-                                {p.code}
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          showCode && p.code && (
-                            <div className="text-[5.5px] font-mono opacity-80 mt-0.5 truncate w-full text-center">
-                              Cód: {p.code}
+                              )}
                             </div>
                           )
-                        )}
+                        })}
                       </div>
-                    )
-                  })}
+
+                      {/* Right crop ticks in live preview */}
+                      {showCropMarks && (
+                        <div
+                          className="flex flex-col justify-between shrink-0 ml-3 animate-pulse"
+                          style={{ width: '24px', height: `${heightMm * 3}px` }}
+                        >
+                          <div className="h-[2px] bg-emerald-500 w-full" />
+                          <div className="h-[2px] bg-emerald-500 w-full" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1096,8 +1224,9 @@ export default function LabelsGenerator({ onBack }) {
                 )}
               </div>
 
-              {/* Checkboxes */}
+              {/* Checkboxes & Guillotine crop marks */}
               {[
+                { label: 'Marcas de Corte (Guia de Guilhotina Verde)', state: showCropMarks, setState: setShowCropMarks },
                 { label: 'Mostrar Categoria do Produto', state: showCategory, setState: setShowCategory },
                 { label: 'Mostrar Código de Barras mockado', state: showBarcode, setState: setShowBarcode },
                 { label: 'Mostrar Código numérico do produto', state: showCode, setState: setShowCode },
