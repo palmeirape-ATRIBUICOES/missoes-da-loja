@@ -26,6 +26,7 @@ export default function Checkout({ cart, total, onFinalize, onBack }) {
     { key: 'pix', icon: '📱', label: 'PIX', color: 'from-cyan-500 to-cyan-600' },
     { key: 'credito', icon: '💳', label: 'Crédito', color: 'from-blue-500 to-blue-600' },
     { key: 'debito', icon: '💳', label: 'Débito', color: 'from-purple-500 to-purple-600' },
+    { key: 'voucher', icon: '🎫', label: 'Voucher', color: 'from-pink-500 to-pink-600' },
   ]
 
   const quickValues = [5, 10, 20, 50, 100, 200]
@@ -54,7 +55,7 @@ export default function Checkout({ cart, total, onFinalize, onBack }) {
           </div>
 
           {/* Payment Method Selection */}
-          <div className="grid grid-cols-2 gap-3 mb-6 max-w-lg mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6 max-w-xl mx-auto">
             {methods.map(m => (
               <button key={m.key}
                 onClick={() => setMethod(m.key)}
@@ -107,13 +108,17 @@ export default function Checkout({ cart, total, onFinalize, onBack }) {
             </div>
           )}
 
-          {/* PIX / Card confirmation */}
-          {(method === 'pix' || method === 'credito' || method === 'debito') && (
+          {/* PIX / Card / Voucher confirmation */}
+          {(method === 'pix' || method === 'credito' || method === 'debito' || method === 'voucher') && (
             <div className="max-w-lg mx-auto text-center animate-slide-up">
               <div className="p-6 rounded-2xl bg-blue-50 border border-blue-200">
-                <div className="text-4xl mb-3">{method === 'pix' ? '📱' : '💳'}</div>
+                <div className="text-4xl mb-3">
+                  {method === 'pix' ? '📱' : (method === 'voucher' ? '🎫' : '💳')}
+                </div>
                 <div className="text-sm font-semibold text-blue-700">
-                  {method === 'pix' ? 'Aguardando confirmação do PIX' : `Passar no ${method === 'credito' ? 'Crédito' : 'Débito'}`}
+                  {method === 'pix' 
+                    ? 'Aguardando confirmação do PIX' 
+                    : (method === 'voucher' ? 'Passar no Voucher / Alimentação' : `Passar no ${method === 'credito' ? 'Crédito' : 'Débito'}`)}
                 </div>
                 <div className="text-2xl font-extrabold text-blue-900 mt-2">{formatCurrency(total)}</div>
               </div>

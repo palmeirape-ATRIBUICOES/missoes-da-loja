@@ -143,7 +143,7 @@ export default function PDV() {
         price,
         qty: 1,
         unit: product.fractioned ? 'kg' : 'un',
-        photo: product.photo
+        photo: product.photo || ''
       }]
     })
   }

@@ -4,7 +4,7 @@ import { formatCurrency } from '../utils/constants'
  * Gera e imprime um cupom de venda para impressora térmica de 80mm
  */
 export function printReceipt({ storeName, cashier, items, total, paymentMethod, amountPaid, change, saleId }) {
-  const methodLabels = { dinheiro: 'Dinheiro', pix: 'PIX', credito: 'Crédito', debito: 'Débito' }
+  const methodLabels = { dinheiro: 'Dinheiro', pix: 'PIX', credito: 'Crédito', debito: 'Débito', voucher: 'Voucher' }
   const now = new Date()
   const dateStr = now.toLocaleDateString('pt-BR')
   const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -89,7 +89,7 @@ export function printReceipt({ storeName, cashier, items, total, paymentMethod, 
  * Imprime relatório de fechamento de turno para 80mm
  */
 export function printShiftReport({ storeName, cashier, date, sales, byMethod, totalSales, totalItems }) {
-  const methodLabels = { dinheiro: '💵 Dinheiro', pix: '📱 PIX', credito: '💳 Crédito', debito: '💳 Débito' }
+  const methodLabels = { dinheiro: '💵 Dinheiro', pix: '📱 PIX', credito: '💳 Crédito', debito: '💳 Débito', voucher: '🎫 Voucher' }
 
   let lines = []
   lines.push(`<div style="font-family:monospace;font-size:12px;width:72mm;margin:0 auto;padding:2mm;">`)
