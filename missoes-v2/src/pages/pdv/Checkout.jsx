@@ -29,7 +29,7 @@ export default function Checkout({ cart, total, onFinalize, onBack }) {
     { key: 'voucher', icon: '🎫', label: 'Voucher', color: 'from-pink-500 to-pink-600' },
   ]
 
-  const quickValues = [5, 10, 20, 50, 100, 200]
+  const quickValues = [2, 5, 10, 20, 50, 100, 200]
 
   return (
     <div className="h-screen flex flex-col bg-gray-100 select-none overflow-hidden">
@@ -74,27 +74,51 @@ export default function Checkout({ cart, total, onFinalize, onBack }) {
           {method === 'dinheiro' && (
             <div className="max-w-lg mx-auto animate-slide-up">
               <label className="text-sm font-semibold text-gray-700 mb-2 block">Valor recebido</label>
-              <input
-                type="number"
-                inputMode="decimal"
-                step="0.01"
-                placeholder="0,00"
-                value={amountPaid}
-                onChange={e => setAmountPaid(e.target.value)}
-                className="input text-center text-3xl font-extrabold h-16"
-                autoFocus
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.01"
+                  placeholder="0,00"
+                  value={amountPaid}
+                  onChange={e => setAmountPaid(e.target.value)}
+                  className="input text-center text-3xl font-extrabold h-16 pr-12"
+                />
+                {amountPaid && (
+                  <button
+                    type="button"
+                    onClick={() => setAmountPaid('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center font-bold transition-all active:scale-90"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              
               {/* Quick amount buttons */}
-              <div className="grid grid-cols-3 gap-2 mt-3">
+              <div className="grid grid-cols-4 gap-2 mt-3">
                 {quickValues.map(v => (
                   <button key={v}
-                    onClick={() => setAmountPaid(String(v))}
+                    type="button"
+                    onClick={() => setAmountPaid(prev => {
+                      const current = Number(prev) || 0
+                      return String(current + v)
+                    })}
                     className="py-3 rounded-xl bg-gray-100 border border-gray-200 font-bold text-gray-700 active:scale-95 transition-all">
-                    R$ {v}
+                    + R$ {v}
                   </button>
                 ))}
-                <button onClick={() => setAmountPaid(String(Math.ceil(total)))}
-                  className="py-3 rounded-xl bg-brand-50 border border-brand-200 font-bold text-brand-700 active:scale-95 transition-all col-span-3">
+                <button
+                  type="button"
+                  onClick={() => setAmountPaid('')}
+                  className="py-3 rounded-xl bg-red-50 border border-red-100 hover:bg-red-100 font-bold text-red-600 active:scale-95 transition-all"
+                >
+                  Limpar
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setAmountPaid(String(Math.ceil(total)))}
+                  className="py-3 rounded-xl bg-brand-50 border border-brand-200 font-bold text-brand-700 active:scale-95 transition-all col-span-4">
                   Valor exato: {formatCurrency(total)}
                 </button>
               </div>

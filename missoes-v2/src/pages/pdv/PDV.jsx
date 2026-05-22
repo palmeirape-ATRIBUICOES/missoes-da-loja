@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useStore } from '../../hooks/useStore'
 import { formatCurrency, parseCurrency, nowHuman } from '../../utils/constants'
@@ -20,6 +20,30 @@ export default function PDV() {
   const [showMenu, setShowMenu] = useState(false)
   const [lastSale, setLastSale] = useState(null)
   const searchRef = useRef(null)
+
+  const stateRef = useRef({ showCheckout, showShift, showCashOps })
+  stateRef.current = { showCheckout, showShift, showCashOps }
+
+  useEffect(() => {
+    window.history.pushState(null, null, window.location.href);
+
+    const handlePopState = (e) => {
+      const { showCheckout, showShift, showCashOps } = stateRef.current
+      if (showCheckout || showShift || showCashOps) {
+        if (showCheckout) setShowCheckout(false)
+        if (showShift) setShowShift(false)
+        if (showCashOps) setShowCashOps(false)
+        window.history.pushState(null, null, window.location.href)
+      } else {
+        window.history.pushState(null, null, window.location.href)
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
 
   // Printer Enable State (Persisted)
   const [printReceiptEnabled, setPrintReceiptEnabled] = useState(() => {
@@ -441,34 +465,49 @@ export default function PDV() {
           </div>
 
           {/* Categories */}
-          <div className="flex gap-2 px-3 py-2 overflow-x-auto scrollbar-thin bg-gray-50 border-b border-gray-200 shrink-0 items-center">
-            <button onClick={() => setCategoryPath([])} 
-              className={`pdv-cat-tab ${categoryPath.length === 0 ? 'active' : ''}`}>
-              TODOS
-            </button>
-            
-            {categoryPath.map((pathPart, idx) => (
-              <div key={`path-${idx}`} className="flex items-center gap-2">
-                <span className="text-gray-400 text-sm font-bold">›</span>
-                <button 
-                  onClick={() => setCategoryPath(categoryPath.slice(0, idx + 1))}
-                  className={`pdv-cat-tab ${idx === categoryPath.length - 1 && subcategories.length === 0 ? 'active' : 'bg-brand-50 text-brand-700 border-brand-200'}`}>
-                  {pathPart}
-                </button>
-              </div>
-            ))}
-
-            {subcategories.length > 0 && categoryPath.length > 0 && (
-               <span className="text-gray-400 text-sm font-bold ml-1 mr-1">›</span>
-            )}
-
-            {subcategories.map(cat => (
-              <button key={`sub-${cat}`}
-                onClick={() => setCategoryPath(prev => [...prev, cat])}
-                className="pdv-cat-tab">
-                {cat}
+          <div className="flex flex-col bg-gray-50 border-b border-gray-200 shrink-0">
+            {/* Parent Categories */}
+            <div className="flex gap-2 px-3 py-2 overflow-x-auto scrollbar-thin items-center">
+              <button onClick={() => setCategoryPath([])} 
+                className={`pdv-cat-tab ${categoryPath.length === 0 ? 'active' : ''}`}>
+                TODOS
               </button>
-            ))}
+              
+              {parentCategories.map(cat => {
+                const isActive = categoryPath[0]?.toUpperCase() === cat.toUpperCase()
+                return (
+                  <button key={`parent-${cat}`}
+                    onClick={() => setCategoryPath([cat])}
+                    className={`pdv-cat-tab ${isActive ? 'active' : ''}`}>
+                    {cat}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Subcategories (if any exist for the selected parent) */}
+            {categoryPath.length > 0 && subcategoriesForParent(categoryPath[0]).length > 0 && (
+              <div className="flex gap-2 px-3 py-1.5 overflow-x-auto scrollbar-thin items-center border-t border-gray-100 bg-white">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0 ml-1">Subcategorias:</span>
+                <button 
+                  onClick={() => setCategoryPath([categoryPath[0]])}
+                  className={`pdv-cat-tab text-xs py-1 px-3 min-h-[30px] flex items-center justify-center ${categoryPath.length === 1 ? 'active' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}
+                >
+                  TODAS
+                </button>
+                {subcategoriesForParent(categoryPath[0]).map(sub => {
+                  const isActive = categoryPath[1]?.toUpperCase() === sub.toUpperCase()
+                  return (
+                    <button key={`sub-${sub}`}
+                      onClick={() => setCategoryPath([categoryPath[0], sub])}
+                      className={`pdv-cat-tab text-xs py-1 px-3 min-h-[30px] flex items-center justify-center ${isActive ? 'active' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}
+                    >
+                      {sub}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           {/* Product Grid */}
@@ -485,9 +524,16 @@ export default function PDV() {
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
                 {filteredProducts.map(p => {
                   const price = parseCurrency(p.promoPrice || p.price || p.oldPrice)
+                  const cartItem = cart.find(item => item.productId === p.id)
+                  const qtyInCart = cartItem ? cartItem.qty : 0
                   return (
                     <button key={p.id} onClick={() => addToCart(p)}
-                      className="pdv-product-btn" style={{ minHeight: p.photo ? '120px' : '80px', justifyContent: p.photo ? 'space-between' : 'center' }}>
+                      className="pdv-product-btn relative animate-fade-in" style={{ minHeight: p.photo ? '120px' : '80px', justifyContent: p.photo ? 'space-between' : 'center' }}>
+                      {qtyInCart > 0 && (
+                        <div className="absolute top-1 right-1 bg-emerald-500 text-white text-[11px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-fade-in z-10">
+                          {qtyInCart}
+                        </div>
+                      )}
                       {p.photo && (
                         <div className="w-full h-14 flex items-center justify-center shrink-0 mb-1">
                           <img src={p.photo} alt={p.name} className="max-h-full max-w-full object-contain rounded-md" />
