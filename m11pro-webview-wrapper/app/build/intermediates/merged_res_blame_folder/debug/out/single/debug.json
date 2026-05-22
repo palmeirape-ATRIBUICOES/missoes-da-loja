@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.palmeirape.missoesloja.app-merged_res-31:/layout_activity_main.xml.flat",
+        "source": "com.palmeirape.missoesloja.app-main-33:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.palmeirape.missoesloja.app-merged_res-31:/drawable_app_icon.png.flat",
+        "source": "com.palmeirape.missoesloja.app-main-33:/drawable/app_icon.png"
+    }
+]
