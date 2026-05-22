@@ -48,19 +48,46 @@ export default function PermissionsRequest() {
     try {
       localStorage.setItem('permissions_asked', 'true')
       
-      // 1. Request Notification
+      // Safe iOS/iPhone detection
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+      
+      // 1. Request Notification safely
       if ('Notification' in window && Notification.permission === 'default') {
-        await Notification.requestPermission()
+        try {
+          // iOS Safari compatibility: support both promise-based and callback-based requestPermission
+          const requestPromise = Notification.requestPermission()
+          if (requestPromise && typeof requestPromise.then === 'function') {
+            await requestPromise
+          } else {
+            await new Promise((resolve) => {
+              Notification.requestPermission((res) => resolve(res))
+            })
+          }
+        } catch (err) {
+          console.warn('Erro ao solicitar permissão de notificação no iOS/Safari:', err)
+        }
       }
       
-      // 2. Request Camera
+      // 2. Crucial iOS delay to prevent WebKit UI deadlock between Notification and Camera system dialogs
+      if (isIOS) {
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+      }
+      
+      // 3. Request Camera safely
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        // Immediately stop tracks since we just wanted the permission
-        stream.getTracks().forEach(track => track.stop())
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+          // Immediately stop tracks since we only wanted the permission
+          if (stream) {
+            stream.getTracks().forEach(track => track.stop())
+          }
+        } catch (err) {
+          console.warn('Erro ao solicitar permissão de câmera:', err)
+        }
       }
     } catch (e) {
-      console.warn('Permissão negada ou erro:', e)
+      console.warn('Erro geral ao solicitar permissões:', e)
     } finally {
       setShow(false)
     }
