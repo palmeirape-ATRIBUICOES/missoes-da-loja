@@ -34,8 +34,63 @@ export default function PDV() {
   const [qpName, setQpName] = useState('')
   const [qpPrice, setQpPrice] = useState('')
   const [qpCode, setQpCode] = useState('')
-  const [qpCategory, setQpCategory] = useState('Geral')
+  const [qpParentCategory, setQpParentCategory] = useState('')
+  const [qpSubCategory, setQpSubCategory] = useState('')
+  const [qpIsNewParent, setQpIsNewParent] = useState(false)
+  const [qpIsNewSub, setQpIsNewSub] = useState(false)
   const [qpLoading, setQpLoading] = useState(false)
+
+  // Extract unique parent categories
+  const parentCategories = useMemo(() => {
+    const set = new Set()
+    products.forEach(p => {
+      const parts = (p.category || '').split('>').map(s => s.trim()).filter(Boolean)
+      if (parts[0]) set.add(parts[0])
+    })
+    return Array.from(set).sort()
+  }, [products])
+
+  // Get subcategories for a given parent
+  const subcategoriesForParent = (parentName) => {
+    if (!parentName) return []
+    const set = new Set()
+    products.forEach(p => {
+      const parts = (p.category || '').split('>').map(s => s.trim()).filter(Boolean)
+      if (parts[0]?.toUpperCase() === parentName.toUpperCase() && parts[1]) {
+        set.add(parts[1])
+      }
+    })
+    return Array.from(set).sort()
+  }
+
+  // Pre-fill categories when opening
+  const handleOpenQuickProduct = () => {
+    setQpName('')
+    setQpPrice('')
+    setQpCode('')
+    
+    if (categoryPath[0]) {
+      const matchedParent = parentCategories.find(p => p.toUpperCase() === categoryPath[0].toUpperCase()) || categoryPath[0]
+      setQpParentCategory(matchedParent)
+      setQpIsNewParent(false)
+      
+      if (categoryPath[1]) {
+        const subs = subcategoriesForParent(matchedParent)
+        const matchedSub = subs.find(s => s.toUpperCase() === categoryPath[1].toUpperCase()) || categoryPath[1]
+        setQpSubCategory(matchedSub)
+        setQpIsNewSub(false)
+      } else {
+        setQpSubCategory('')
+        setQpIsNewSub(false)
+      }
+    } else {
+      setQpParentCategory('')
+      setQpSubCategory('')
+      setQpIsNewParent(false)
+      setQpIsNewSub(false)
+    }
+    setShowQuickProduct(true)
+  }
 
   const currentEmp = employees.find(e => e.name === currentUser)
   const canCreateProduct = isManager || currentEmp?.canEditPrices
@@ -58,11 +113,13 @@ export default function PDV() {
     }
 
     const priceNum = parseCurrency(qpPrice)
+    const finalCategory = [qpParentCategory.trim(), qpSubCategory.trim()].filter(Boolean).join(' > ')
+
     const newProduct = {
       name: qpName.trim(),
       price: priceNum,
       code: qpCode.trim(),
-      category: qpCategory.trim() || 'Geral'
+      category: finalCategory || 'Geral'
     }
 
     try {
@@ -73,7 +130,10 @@ export default function PDV() {
       setQpName('')
       setQpPrice('')
       setQpCode('')
-      setQpCategory('Geral')
+      setQpParentCategory('')
+      setQpSubCategory('')
+      setQpIsNewParent(false)
+      setQpIsNewSub(false)
       setShowQuickProduct(false)
       
       alert('Produto cadastrado com sucesso!')
@@ -312,7 +372,7 @@ export default function PDV() {
             </div>
             
             {canCreateProduct && (
-              <button onClick={() => setShowQuickProduct(true)}
+              <button onClick={handleOpenQuickProduct}
                 className="btn btn-primary h-[52px] px-4 font-bold text-sm shrink-0 flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-700 text-white shadow-md active:scale-95 transition-all">
                 📦 <span className="hidden sm:inline">+ Novo</span>
               </button>
@@ -507,26 +567,104 @@ export default function PDV() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-gray-500 uppercase">Categoria</label>
+                  <label className="text-xs font-bold text-gray-500 uppercase">Código / Barras</label>
                   <input
                     type="text"
-                    placeholder="Ex: Pães, Bebidas"
-                    value={qpCategory}
-                    onChange={e => setQpCategory(e.target.value)}
+                    placeholder="Ex: 789012345"
+                    value={qpCode}
+                    onChange={e => setQpCode(e.target.value)}
                     className="input text-sm h-11 min-h-0"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-500 uppercase">Código / Código de Barras</label>
-                <input
-                  type="text"
-                  placeholder="Ex: 789012345"
-                  value={qpCode}
-                  onChange={e => setQpCode(e.target.value)}
-                  className="input text-sm h-11 min-h-0"
-                />
+              {/* Nested Subcategories Selector/Creator */}
+              <div className="space-y-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">📂 Categorização do Produto</span>
+                
+                {/* Parent Category Row */}
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase">Categoria Principal</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQpIsNewParent(!qpIsNewParent)
+                        setQpParentCategory('')
+                        setQpSubCategory('')
+                      }}
+                      className="text-[10px] text-brand-600 font-bold hover:underline"
+                    >
+                      {qpIsNewParent ? '📂 Escolher Existente' : '➕ Nova Categoria'}
+                    </button>
+                  </div>
+                  
+                  {qpIsNewParent ? (
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: Biscoitos, Bebidas"
+                      value={qpParentCategory}
+                      onChange={e => setQpParentCategory(e.target.value)}
+                      className="input text-sm h-10 min-h-0 bg-white"
+                    />
+                  ) : (
+                    <select
+                      value={qpParentCategory}
+                      onChange={e => {
+                        setQpParentCategory(e.target.value)
+                        setQpSubCategory('')
+                      }}
+                      className="input text-sm h-10 min-h-0 bg-white"
+                    >
+                      <option value="">-- Sem Categoria (Geral) --</option>
+                      {parentCategories.map(p => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                {/* Subcategory Row (Enabled if parent is selected or being typed) */}
+                {qpParentCategory && (
+                  <div className="space-y-1 animate-slide-up">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Subcategoria (Dentro de {qpParentCategory})</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQpIsNewSub(!qpIsNewSub)
+                          setQpSubCategory('')
+                        }}
+                        className="text-[10px] text-brand-600 font-bold hover:underline"
+                      >
+                        {qpIsNewSub ? '📂 Escolher Existente' : '➕ Nova Subcategoria'}
+                      </button>
+                    </div>
+
+                    {qpIsNewSub ? (
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ex: Piraquê, Bauducco"
+                        value={qpSubCategory}
+                        onChange={e => setQpSubCategory(e.target.value)}
+                        className="input text-sm h-10 min-h-0 bg-white"
+                      />
+                    ) : (
+                      <select
+                        value={qpSubCategory}
+                        onChange={e => setQpSubCategory(e.target.value)}
+                        className="input text-sm h-10 min-h-0 bg-white"
+                      >
+                        <option value="">-- Sem Subcategoria --</option>
+                        {subcategoriesForParent(qpParentCategory).map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-2">

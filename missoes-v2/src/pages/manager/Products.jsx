@@ -12,13 +12,41 @@ export default function Products({ onBack }) {
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '', photo: '' })
   const [showForm, setShowForm] = useState(false)
-  
+  const [parentCategory, setParentCategory] = useState('')
+  const [subCategory, setSubCategory] = useState('')
+  const [isNewParent, setIsNewParent] = useState(false)
+  const [isNewSub, setIsNewSub] = useState(false)
+
   // Barcode & Labels state
   const [loadingBarcode, setLoadingBarcode] = useState(false)
   const [showPrintModal, setShowPrintModal] = useState(false)
   const [selectedForPrint, setSelectedForPrint] = useState([])
   const [printConfig, setPrintConfig] = useState({ widthMm: 40, heightMm: 25, fontSizePx: 20 })
   const [showScanner, setShowScanner] = useState(false)
+
+  // Extract unique parent categories
+  const parentCategories = useMemo(() => {
+    const set = new Set()
+    products.forEach(p => {
+      const parts = (p.category || '').split('>').map(s => s.trim()).filter(Boolean)
+      if (parts[0]) set.add(parts[0])
+    })
+    return Array.from(set).sort()
+  }, [products])
+
+  // Get subcategories for a given parent
+  const subcategoriesForParent = (parentName) => {
+    if (!parentName) return []
+    const set = new Set()
+    products.forEach(p => {
+      const parts = (p.category || '').split('>').map(s => s.trim()).filter(Boolean)
+      if (parts[0]?.toUpperCase() === parentName.toUpperCase() && parts[1]) {
+        set.add(parts[1])
+      }
+    })
+    return Array.from(set).sort()
+  }
+
   // Removed unstable image search state
 
   const filtered = useMemo(() => {
@@ -72,12 +100,20 @@ export default function Products({ onBack }) {
 
   function resetForm() {
     setForm({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '', photo: '' })
+    setParentCategory('')
+    setSubCategory('')
+    setIsNewParent(false)
+    setIsNewSub(false)
     setEditing(null)
     setShowForm(false)
     setShowScanner(false)
   }
 
   function startEdit(product) {
+    const parts = (product.category || '').split('>').map(s => s.trim()).filter(Boolean)
+    const parent = parts[0] || ''
+    const sub = parts[1] || ''
+
     setForm({
       name: product.name || '',
       description: product.description || '',
@@ -88,12 +124,17 @@ export default function Products({ onBack }) {
       code: product.code || '',
       photo: product.photo || ''
     })
+    setParentCategory(parent)
+    setSubCategory(sub)
+    setIsNewParent(false)
+    setIsNewSub(false)
     setEditing(product.id)
     setShowForm(true)
   }
 
   async function handleSave() {
     if (!form.name.trim()) return
+    const finalCategory = [parentCategory.trim(), subCategory.trim()].filter(Boolean).join(' > ')
     const product = {
       ...(editing ? { id: editing } : {}),
       name: form.name.trim(),
@@ -101,7 +142,7 @@ export default function Products({ onBack }) {
       price: form.price,
       oldPrice: form.oldPrice,
       promoPrice: form.promoPrice,
-      category: form.category.trim(),
+      category: finalCategory || 'Geral',
       code: form.code.trim(),
       photo: form.photo || ''
     }
@@ -125,13 +166,19 @@ export default function Products({ onBack }) {
         let rawName = data.product.product_name_pt || data.product.product_name || ''
         rawName = rawName.toUpperCase().substring(0, 30) // Nome simplificado
         
+        const rawCat = data.product.categories?.split(',')[0] || ''
+        const parts = rawCat.split('>').map(s => s.trim()).filter(Boolean)
+        const parent = parts[0] || ''
+        const sub = parts[1] || ''
+
         setForm(f => ({
           ...f,
           code: code,
           name: f.name || rawName || f.name,
-          category: f.category || (data.product.categories?.split(',')[0]) || f.category,
           photo: f.photo || data.product.image_front_url || data.product.image_url || ''
         }))
+        setParentCategory(p => p || parent)
+        setSubCategory(s => s || sub)
       } else {
         alert('Produto não encontrado no banco de dados público gratuito.')
       }
@@ -232,20 +279,94 @@ export default function Products({ onBack }) {
                 {/* Automatic suggestions removed for stability. Use the direct upload/link option below. */}
               </div>
 
-              <div className="relative">
-                <input className="input w-full" list="categorias" placeholder="Categoria (ex: Bebidas)" value={form.category}
-                  onChange={e => setForm(f => ({ ...f, category: e.target.value }))} />
-                <datalist id="categorias">
-                  <option value="Bebidas" />
-                  <option value="Doces" />
-                  <option value="Mercearia" />
-                  <option value="Higiene" />
-                  <option value="Limpeza" />
-                  <option value="Frios" />
-                  {Array.from(new Set(products.map(p => p.category).filter(Boolean))).map(c => (
-                    <option key={c} value={c} />
-                  ))}
-                </datalist>
+              <div className="col-span-1 md:col-span-2 space-y-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">📂 Categorização do Produto</span>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Parent Category Row */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">Categoria Principal</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsNewParent(!isNewParent)
+                          setParentCategory('')
+                          setSubCategory('')
+                        }}
+                        className="text-[10px] text-brand-600 font-bold hover:underline"
+                      >
+                        {isNewParent ? '📂 Escolher Existente' : '➕ Nova Categoria'}
+                      </button>
+                    </div>
+                    
+                    {isNewParent ? (
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ex: Biscoitos, Bebidas"
+                        value={parentCategory}
+                        onChange={e => setParentCategory(e.target.value)}
+                        className="input text-sm h-10 min-h-0 bg-white"
+                      />
+                    ) : (
+                      <select
+                        value={parentCategory}
+                        onChange={e => {
+                          setParentCategory(e.target.value)
+                          setSubCategory('')
+                        }}
+                        className="input text-sm h-10 min-h-0 bg-white"
+                      >
+                        <option value="">-- Sem Categoria (Geral) --</option>
+                        {parentCategories.map(p => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Subcategory Row */}
+                  {parentCategory && (
+                    <div className="space-y-1 animate-slide-up">
+                      <div className="flex justify-between items-center">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase">Subcategoria</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsNewSub(!isNewSub)
+                            setSubCategory('')
+                          }}
+                          className="text-[10px] text-brand-600 font-bold hover:underline"
+                        >
+                          {isNewSub ? '📂 Escolher Existente' : '➕ Nova Subcategoria'}
+                        </button>
+                      </div>
+
+                      {isNewSub ? (
+                        <input
+                          type="text"
+                          required
+                          placeholder="Ex: Piraquê, Bauducco"
+                          value={subCategory}
+                          onChange={e => setSubCategory(e.target.value)}
+                          className="input text-sm h-10 min-h-0 bg-white"
+                        />
+                      ) : (
+                        <select
+                          value={subCategory}
+                          onChange={e => setSubCategory(e.target.value)}
+                          className="input text-sm h-10 min-h-0 bg-white"
+                        >
+                          <option value="">-- Sem Subcategoria --</option>
+                          {subcategoriesForParent(parentCategory).map(s => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
               <input className="input" placeholder="Descrição (opcional)" value={form.description}
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
