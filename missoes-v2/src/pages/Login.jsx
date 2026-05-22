@@ -142,7 +142,7 @@ export default function Login({ mode = 'app' }) {
             <div>
               <input
                 type="password"
-                inputMode="numeric"
+                inputMode="none"
                 maxLength={6}
                 placeholder="Digite seu PIN"
                 value={pin}
