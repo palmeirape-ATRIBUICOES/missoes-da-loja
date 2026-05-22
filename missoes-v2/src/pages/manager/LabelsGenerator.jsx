@@ -1092,6 +1092,21 @@ export default function LabelsGenerator({ onBack }) {
               </div>
 
               <div>
+                <div className="flex justify-between text-[11px] font-semibold text-gray-600 mb-1">
+                  <span>Espaçamento / Distância (mm)</span>
+                  <span className="font-bold text-pink-600">{gapMm}mm</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={15}
+                  value={gapMm}
+                  onChange={e => { setGapMm(Number(e.target.value)); setLabelTheme('custom') }}
+                  className="w-full accent-pink-500 cursor-pointer"
+                />
+              </div>
+
+              <div>
                 <label className="text-[10px] font-bold text-gray-500 mb-1 block uppercase">Tipografia (Família da Fonte)</label>
                 <select
                   value={fontFamily}
