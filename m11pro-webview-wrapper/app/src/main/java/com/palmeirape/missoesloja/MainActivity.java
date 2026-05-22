@@ -1,9 +1,14 @@
 package com.palmeirape.missoesloja;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintManager;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -51,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
         // Force high-speed GPU Hardware rendering
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
+        // Native Android Print Bridge registration
+        webView.addJavascriptInterface(new WebAppInterface(this), "AndroidPrinter");
+
         // Keep inside local frame instead of opening system default browser
         webView.setWebViewClient(new WebViewClient() {
             @Override
@@ -66,6 +74,56 @@ public class MainActivity extends AppCompatActivity {
 
         // Load the live remote production URL
         webView.loadUrl("https://palmeirape-atribuicoes.github.io/missoes-da-loja/");
+    }
+
+    /**
+     * Interface JavaScript para a WebView se comunicar com os recursos nativos do tablet
+     */
+    public class WebAppInterface {
+        Context mContext;
+
+        WebAppInterface(Context c) {
+            mContext = c;
+        }
+
+        @JavascriptInterface
+        public void printHtml(final String html) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // Instancia uma WebView em segundo plano temporária para carregar o cupom
+                    WebView tempWebView = new WebView(mContext);
+                    tempWebView.getSettings().setJavaScriptEnabled(true);
+                    tempWebView.setWebViewClient(new WebViewClient() {
+                        @Override
+                        public void onPageFinished(WebView view, String url) {
+                            // Assim que carregar o cupom em HTML, dispara o Job de impressão do Android
+                            createWebPrintJob(view);
+                        }
+                    });
+                    
+                    // Carrega o HTML cru da nota
+                    tempWebView.loadDataWithBaseURL(null, html, "text/html", "utf-8", null);
+                }
+            });
+        }
+    }
+
+    /**
+     * Dispara o fluxo de impressão oficial do Android
+     */
+    private void createWebPrintJob(WebView webViewToPrint) {
+        PrintManager printManager = (PrintManager) this.getSystemService(Context.PRINT_SERVICE);
+        PrintDocumentAdapter printAdapter = webViewToPrint.createPrintDocumentAdapter("Cupom Venda");
+        String jobName = getString(R.string.app_name) + " - Cupom";
+        
+        PrintAttributes.Builder builder = new PrintAttributes.Builder();
+        // Otimização de margem e layout para bobinas térmicas contínuas de 80mm/58mm
+        builder.setMinMargins(PrintAttributes.Margins.NO_MARGINS);
+        
+        if (printManager != null) {
+            printManager.print(jobName, printAdapter, builder.build());
+        }
     }
 
     // Handles hardware back buttons on M11Pro device to navigate back inside WebView history

@@ -5,7 +5,17 @@ import { formatCurrency } from '../utils/constants'
  * Evita o uso de window.open que redireciona a tela principal e trava o WebView no Android.
  */
 function printHtmlSafely(htmlContent) {
-  // Remove iframe de impressão anterior se ele ainda existir
+  // 1. Tenta usar a ponte de impressão nativa do Android (se disponível no wrapper nativo)
+  if (window.AndroidPrinter && typeof window.AndroidPrinter.printHtml === 'function') {
+    try {
+      window.AndroidPrinter.printHtml(htmlContent)
+      return
+    } catch (e) {
+      console.warn('Falha ao usar a ponte AndroidPrinter nativa, tentando fallback de iframe:', e)
+    }
+  }
+
+  // 2. Fallback de Iframe oculto para navegadores web tradicionais (Desktop, iOS/iPads)
   const oldIframe = document.getElementById('print-iframe')
   if (oldIframe) {
     oldIframe.parentNode.removeChild(oldIframe)
