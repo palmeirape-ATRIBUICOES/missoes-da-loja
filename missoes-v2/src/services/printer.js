@@ -1,6 +1,50 @@
 import { formatCurrency } from '../utils/constants'
 
 /**
+ * Helper para imprimir HTML de forma segura usando um iframe oculto.
+ * Evita o uso de window.open que redireciona a tela principal e trava o WebView no Android.
+ */
+function printHtmlSafely(htmlContent) {
+  // Remove iframe de impressão anterior se ele ainda existir
+  const oldIframe = document.getElementById('print-iframe')
+  if (oldIframe) {
+    oldIframe.parentNode.removeChild(oldIframe)
+  }
+
+  // Cria um iframe invisível
+  const iframe = document.createElement('iframe')
+  iframe.id = 'print-iframe'
+  iframe.style.position = 'absolute'
+  iframe.style.width = '0px'
+  iframe.style.height = '0px'
+  iframe.style.border = 'none'
+  iframe.style.visibility = 'hidden'
+
+  document.body.appendChild(iframe)
+
+  const doc = iframe.contentWindow.document || iframe.contentDocument
+  doc.open()
+  doc.write(htmlContent)
+  doc.close()
+
+  // Dispara a impressão de forma assíncrona para garantir o carregamento do conteúdo
+  setTimeout(() => {
+    try {
+      iframe.contentWindow.focus()
+      iframe.contentWindow.print()
+    } catch (e) {
+      console.warn('Impressão direta não suportada no ambiente atual:', e)
+    }
+    // Remove o iframe do DOM após a conclusão/fechamento da impressão
+    setTimeout(() => {
+      if (iframe.parentNode) {
+        iframe.parentNode.removeChild(iframe)
+      }
+    }, 1500)
+  }, 500)
+}
+
+/**
  * Gera e imprime um cupom de venda para impressora térmica de 80mm
  */
 export function printReceipt({ storeName, cashier, items, total, paymentMethod, amountPaid, change, saleId }) {
@@ -8,7 +52,6 @@ export function printReceipt({ storeName, cashier, items, total, paymentMethod, 
   const now = new Date()
   const dateStr = now.toLocaleDateString('pt-BR')
   const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-  const divider = '─'.repeat(48)
 
   let lines = []
   lines.push(`<div style="font-family:monospace;font-size:12px;width:72mm;margin:0 auto;padding:2mm;">`)
@@ -60,11 +103,7 @@ export function printReceipt({ storeName, cashier, items, total, paymentMethod, 
 
   lines.push(`</div>`)
 
-  // Open print window
-  const printWindow = window.open('', '_blank', 'width=320,height=600')
-  if (!printWindow) return false
-
-  printWindow.document.write(`
+  const htmlContent = `
     <!DOCTYPE html>
     <html><head>
       <meta charset="UTF-8">
@@ -76,12 +115,10 @@ export function printReceipt({ storeName, cashier, items, total, paymentMethod, 
       </style>
     </head><body>
       ${lines.join('\n')}
-      <script>
-        setTimeout(() => { window.print(); setTimeout(() => window.close(), 500); }, 300);
-      </script>
     </body></html>
-  `)
-  printWindow.document.close()
+  `
+
+  printHtmlSafely(htmlContent)
   return true
 }
 
@@ -124,10 +161,7 @@ export function printShiftReport({ storeName, cashier, date, sales, byMethod, to
   lines.push(`<div style="text-align:center;font-size:10px;color:#666;">Impresso em ${new Date().toLocaleString('pt-BR')}</div>`)
   lines.push(`</div>`)
 
-  const printWindow = window.open('', '_blank', 'width=320,height=600')
-  if (!printWindow) return false
-
-  printWindow.document.write(`
+  const htmlContent = `
     <!DOCTYPE html>
     <html><head>
       <meta charset="UTF-8">
@@ -139,12 +173,10 @@ export function printShiftReport({ storeName, cashier, date, sales, byMethod, to
       </style>
     </head><body>
       ${lines.join('\n')}
-      <script>
-        setTimeout(() => { window.print(); setTimeout(() => window.close(), 500); }, 300);
-      </script>
     </body></html>
-  `)
-  printWindow.document.close()
+  `
+
+  printHtmlSafely(htmlContent)
   return true
 }
 
@@ -188,14 +220,9 @@ export function printLabels(products, widthMm, heightMm, fontSizePx) {
           ${p.code ? `<div class="code">${p.code}</div>` : ''}
         </div>
       `).join('')}
-      <script>
-        setTimeout(() => { window.print(); setTimeout(() => window.close(), 500); }, 300);
-      </script>
     </body></html>
   `
-  const printWindow = window.open('', '_blank')
-  if (!printWindow) return false
-  printWindow.document.write(html)
-  printWindow.document.close()
+
+  printHtmlSafely(html)
   return true
 }
