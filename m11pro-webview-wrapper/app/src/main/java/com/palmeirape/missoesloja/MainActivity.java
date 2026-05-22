@@ -43,6 +43,11 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setBuiltInZoomControls(false);
         webSettings.setDisplayZoomControls(false);
         
+        // High performance WebView Caching and File/Content Access policies
+        webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        webSettings.setAllowFileAccess(true);
+        webSettings.setAllowContentAccess(true);
+        
         // Force high-speed GPU Hardware rendering
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
