@@ -47,7 +47,64 @@ export default function Products({ onBack }) {
     return Array.from(set).sort()
   }
 
-  // Removed unstable image search state
+  // Resilient Multi-Proxy Google Image Search (DuckDuckGo Backend)
+  const [searchingImages, setSearchingImages] = useState(false)
+  const [imageResults, setImageResults] = useState([])
+  const [showImageSearchModal, setShowImageSearchModal] = useState(false)
+  const [imageSearchQuery, setImageSearchQuery] = useState('')
+
+  async function handleSearchProductImage(query) {
+    if (!query || !query.trim()) return
+    setImageSearchQuery(query.trim())
+    setShowImageSearchModal(true)
+    await searchGoogleImages(query.trim())
+  }
+
+  async function searchGoogleImages(queryText) {
+    const fullQuery = encodeURIComponent(queryText + " png fundo branco")
+    const searchUrl = `https://duckduckgo.com/?q=${fullQuery}`
+    
+    const proxies = [
+      url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+    ]
+
+    setSearchingImages(true)
+    setImageResults([])
+
+    for (let proxyFn of proxies) {
+      try {
+        const htmlRes = await fetch(proxyFn(searchUrl))
+        if (!htmlRes.ok) continue
+        const html = await htmlRes.text()
+
+        const vqdRegex = /vqd=['"]([^'"]+)['"]/
+        const match = html.match(vqdRegex)
+        if (!match) continue
+        const vqd = match[1]
+
+        const apiUrl = `https://duckduckgo.com/i.js?q=${fullQuery}&vqd=${vqd}&o=json`
+        const apiRes = await fetch(proxyFn(apiUrl))
+        if (!apiRes.ok) continue
+        const data = await apiRes.json()
+
+        if (data.results && data.results.length > 0) {
+          const results = data.results.slice(0, 15).map(item => ({
+            url: item.image,
+            thumbnail: item.thumbnail,
+            title: item.title
+          }))
+          setImageResults(results)
+          setSearchingImages(false)
+          return
+        }
+      } catch (e) {
+        console.error("Proxy query failed, trying next fallback...", e)
+      }
+    }
+
+    setSearchingImages(false)
+  }
 
   const filtered = useMemo(() => {
     if (!search.trim()) return products
@@ -380,7 +437,18 @@ export default function Products({ onBack }) {
 
             {/* Upload de Foto Premium */}
             <div className="mb-4">
-              <label className="text-xs font-semibold text-gray-500 mb-2 block">Foto do Produto</label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-xs font-bold text-gray-500 uppercase">Foto do Produto</label>
+                {form.name && (
+                  <button
+                    type="button"
+                    onClick={() => handleSearchProductImage(form.name)}
+                    className="text-xs text-brand-600 font-extrabold hover:underline flex items-center gap-1 active:scale-95 transition-all"
+                  >
+                    🔍 Buscar no Google
+                  </button>
+                )}
+              </div>
               {form.photo ? (
                 <div className="relative rounded-2xl border-2 border-dashed border-green-200 bg-green-50/20 p-4 flex flex-col items-center justify-center gap-2 group transition-all">
                   <button 
@@ -457,6 +525,85 @@ export default function Products({ onBack }) {
                   printLabels(selectedForPrint, printConfig.widthMm, printConfig.heightMm, printConfig.fontSizePx)
                   setShowPrintModal(false)
                 }} className="btn btn-primary flex-1">Imprimir Agora</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Google Image Search Modal */}
+        {showImageSearchModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-elevated border border-gray-100 max-w-lg w-full p-6 space-y-4 animate-slide-up flex flex-col max-h-[90vh]">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3 shrink-0">
+                <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">🔍 Imagens do Google (PNG sem Fundo)</h3>
+                <button onClick={() => setShowImageSearchModal(false)}
+                  className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 active:scale-90 text-sm">
+                  ✕
+                </button>
+              </div>
+
+              {/* Search input field to refine query */}
+              <div className="flex gap-2 shrink-0">
+                <input
+                  type="text"
+                  placeholder="Nome do produto para buscar..."
+                  value={imageSearchQuery}
+                  onChange={e => setImageSearchQuery(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && searchGoogleImages(imageSearchQuery)}
+                  className="input flex-1 text-sm h-11 min-h-0"
+                />
+                <button
+                  type="button"
+                  onClick={() => searchGoogleImages(imageSearchQuery)}
+                  disabled={searchingImages || !imageSearchQuery.trim()}
+                  className="btn btn-primary px-4 font-bold text-sm h-11 min-h-0"
+                >
+                  {searchingImages ? '⏳' : 'Buscar'}
+                </button>
+              </div>
+
+              {/* Results area */}
+              <div className="flex-1 overflow-y-auto min-h-[250px] p-1">
+                {searchingImages ? (
+                  <div className="flex flex-col items-center justify-center h-full py-12 text-gray-400 gap-3">
+                    <div className="animate-spin text-3xl">⏳</div>
+                    <div className="text-sm font-semibold animate-pulse text-brand-600">Buscando imagens PNG com fundo branco...</div>
+                  </div>
+                ) : imageResults.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full py-12 text-gray-400">
+                    <span className="text-3xl mb-1">🖼️</span>
+                    <span className="text-sm">Nenhuma imagem encontrada.</span>
+                    <span className="text-xs text-gray-400 mt-1">Experimente alterar a palavra de busca acima.</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-3">
+                    {imageResults.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setForm(f => ({ ...f, photo: item.url }))
+                          setShowImageSearchModal(false)
+                        }}
+                        className="group relative border border-gray-200 hover:border-brand-500 rounded-xl overflow-hidden bg-white p-1 hover:shadow-md transition-all active:scale-95 flex flex-col items-center justify-center gap-1 aspect-square"
+                      >
+                        <img
+                          src={item.thumbnail || item.url}
+                          alt=""
+                          className="max-h-full max-w-full object-contain bg-white rounded-lg p-0.5"
+                          onError={(e) => { e.target.src = 'https://placehold.co/100?text=Indispon%C3%ADvel' }}
+                        />
+                        <div className="absolute inset-0 bg-brand-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="bg-brand-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-md">✓ Selecionar</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="text-[10px] text-gray-400 text-center shrink-0 border-t pt-2">
+                As buscas são focadas em arquivos PNG de alta definição com fundo branco para garantir um visual limpo em suas etiquetas e PDV.
               </div>
             </div>
           </div>
