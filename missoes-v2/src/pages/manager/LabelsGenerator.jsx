@@ -107,6 +107,20 @@ export default function LabelsGenerator({ onBack }) {
     return chunked
   }, [selectedProducts, columns])
 
+  // Chunk rows by pages dynamically depending on spacing parameters
+  const previewPages = useMemo(() => {
+    if (previewRows.length === 0) return []
+    // Available printable sheet height is 297mm (A4) - 30mm (margins) - 18mm (crop rows) = 249mm
+    const maxRows = Math.floor((249 + gapMm) / (heightMm + gapMm))
+    const rowsPerPage = Math.max(1, maxRows)
+    
+    const chunked = []
+    for (let i = 0; i < previewRows.length; i += rowsPerPage) {
+      chunked.push(previewRows.slice(i, i + rowsPerPage))
+    }
+    return chunked
+  }, [previewRows, gapMm, heightMm])
+
   // Apply Theme presets
   const applyTheme = (themeName) => {
     setLabelTheme(themeName)
@@ -196,103 +210,144 @@ export default function LabelsGenerator({ onBack }) {
       rowsList.push(paddedForPrint.slice(i, i + columns))
     }
 
-    // Build crop marks HTML rows
-    const printableRowsHtml = rowsList.map(row => {
-      const labelElements = row.map(p => {
-        if (p.isPlaceholder) {
-          // Empty dummy label to keep alignment intact
-          return `<div class="label" style="width: ${widthMm}mm; height: ${heightMm}mm; visibility: hidden; border: none; background: transparent;"></div>`
-        }
+    // Dynamic A4 pagination calculations
+    const maxRows = Math.floor((249 + gapMm) / (heightMm + gapMm))
+    const rowsPerPage = Math.max(1, maxRows)
 
-        const mainPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
-        const isPromo = p.promoPrice && p.oldPrice
-        
-        // Generate mock barcode bars
-        const barsCount = 28
-        const barElements = []
-        for (let i = 0; i < barsCount; i++) {
-          const isWide = (i * 7) % 3 === 0
-          const isGap = (i * 11) % 4 === 0
-          if (!isGap) {
-            barElements.push(`<div class="barcode-bar" style="width: ${isWide ? '3.5px' : '1.5px'}; height: ${i % 2 === 0 ? '90%' : '100%'}"></div>`)
-          } else {
-            barElements.push(`<div class="barcode-bar" style="background: transparent; width: 2px"></div>`)
-          }
-        }
-
-        // Build contents by Layout Template
-        let contentHtml = ''
-        if (layoutTemplate === 'centered') {
-          contentHtml = `
-            <div style="width:100%; flex: 1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-              ${showCategory && p.category ? `<div class="category">${p.category}</div>` : ''}
-              <div class="name">${p.name}</div>
-            </div>
-            <div class="pricing-block">
-              ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
-              <div class="price">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
-            </div>
-          `
-        } else if (layoutTemplate === 'horizontal_split') {
-          contentHtml = `
-            <div class="content-row">
-              <div class="name-col">
-                ${showCategory && p.category ? `<div class="category">${p.category}</div>` : ''}
-                <div class="name">${p.name}</div>
-              </div>
-              <div class="price-col">
-                ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
-                <div class="price">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
-              </div>
-            </div>
-          `
-        } else if (layoutTemplate === 'price_focus') {
-          contentHtml = `
-            <div class="pricing-block price-focused-block">
-              ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
-              <div class="price" style="font-size: ${priceFontSize * 1.3}px">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
-            </div>
-            <div class="name-focused-row">
-              ${showCategory && p.category ? `${p.category} • ` : ''}${p.name}
-            </div>
-          `
-        }
-
-        return `
-          <div class="label layout-${layoutTemplate}">
-            ${showPromoBadge && isPromo ? `<div class="promo-badge">${customPromoText}</div>` : ''}
-            
-            ${showStoreName ? `<div class="store-name">${storeEmoji ? storeEmoji + ' ' : ''}${customStoreName}</div>` : ''}
-            
-            ${contentHtml}
-            
-            ${showBarcode && p.code ? `
-              <div class="barcode-container">
-                <div class="barcode-mock">
-                  ${barElements.join('')}
-                </div>
-                ${showCode ? `<div class="code-label">${p.code}</div>` : ''}
-              </div>
-            ` : (showCode && p.code ? `<div class="code-label" style="margin-top: 1.5mm;">Cód: ${p.code}</div>` : '')}
-          </div>
-        `
-      }).join('')
-
-      return `
-        <div class="label-row">
-          ${showCropMarks ? `<div class="crop-mark crop-mark-left"></div>` : ''}
-          <div class="labels-container">
-            ${labelElements}
-          </div>
-          ${showCropMarks ? `<div class="crop-mark crop-mark-right"></div>` : ''}
-        </div>
-      `
-    }).join('')
+    // Split rows into distinct A4 sheet containers
+    const printPages = []
+    for (let i = 0; i < rowsList.length; i += rowsPerPage) {
+      printPages.push(rowsList.slice(i, i + rowsPerPage))
+    }
 
     // Generate Top vertical ticks
     const verticalTicksHtml = Array.from({ length: columns }).map(() => `
       <div class="vertical-tick-block"></div>
     `).join('')
+
+    // Build print page sheets HTML
+    const printablePagesHtml = printPages.map((pageRows, pageIdx) => {
+      const pageRowsHtml = pageRows.map(row => {
+        const labelElements = row.map(p => {
+          if (p.isPlaceholder) {
+            // Empty dummy label to keep alignment intact
+            return `<div class="label" style="width: ${widthMm}mm; height: ${heightMm}mm; visibility: hidden; border: none; background: transparent;"></div>`
+          }
+
+          const mainPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
+          const isPromo = p.promoPrice && p.oldPrice
+          
+          // Generate mock barcode bars
+          const barsCount = 28
+          const barElements = []
+          for (let i = 0; i < barsCount; i++) {
+            const isWide = (i * 7) % 3 === 0
+            const isGap = (i * 11) % 4 === 0
+            if (!isGap) {
+              barElements.push(`<div class="barcode-bar" style="width: ${isWide ? '3.5px' : '1.5px'}; height: ${i % 2 === 0 ? '90%' : '100%'}"></div>`)
+            } else {
+              barElements.push(`<div class="barcode-bar" style="background: transparent; width: 2px"></div>`)
+            }
+          }
+
+          // Build contents by Layout Template
+          let contentHtml = ''
+          if (layoutTemplate === 'centered') {
+            contentHtml = `
+              <div style="width:100%; flex: 1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                ${showCategory && p.category ? `<div class="category">${p.category}</div>` : ''}
+                <div class="name">${p.name}</div>
+              </div>
+              <div class="pricing-block">
+                ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
+                <div class="price">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
+              </div>
+            `
+          } else if (layoutTemplate === 'horizontal_split') {
+            contentHtml = `
+              <div class="content-row">
+                <div class="name-col">
+                  ${showCategory && p.category ? `<div class="category">${p.category}</div>` : ''}
+                  <div class="name">${p.name}</div>
+                </div>
+                <div class="price-col">
+                  ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
+                  <div class="price">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
+                </div>
+              </div>
+            `
+          } else if (layoutTemplate === 'price_focus') {
+            contentHtml = `
+              <div class="pricing-block price-focused-block">
+                ${showOldPrice && isPromo ? `<div class="old-price">${formatCurrency(p.oldPrice)}</div>` : ''}
+                <div class="price" style="font-size: ${priceFontSize * 1.3}px">${formatCurrency(mainPrice)}<span class="suffix">${getSuffix(p)}</span></div>
+              </div>
+              <div class="name-focused-row">
+                ${showCategory && p.category ? `${p.category} • ` : ''}${p.name}
+              </div>
+            `
+          }
+
+          return `
+            <div class="label layout-${layoutTemplate}">
+              ${showPromoBadge && isPromo ? `<div class="promo-badge">${customPromoText}</div>` : ''}
+              
+              ${showStoreName ? `<div class="store-name">${storeEmoji ? storeEmoji + ' ' : ''}${customStoreName}</div>` : ''}
+              
+              ${contentHtml}
+              
+              ${showBarcode && p.code ? `
+                <div class="barcode-container">
+                  <div class="barcode-mock">
+                    ${barElements.join('')}
+                  </div>
+                  ${showCode ? `<div class="code-label">${p.code}</div>` : ''}
+                </div>
+              ` : (showCode && p.code ? `<div class="code-label" style="margin-top: 1.5mm;">Cód: ${p.code}</div>` : '')}
+            </div>
+          `
+        }).join('')
+
+        return `
+          <div class="label-row">
+            ${showCropMarks ? `<div class="crop-mark crop-mark-left"></div>` : ''}
+            <div class="labels-container">
+              ${labelElements}
+            </div>
+            ${showCropMarks ? `<div class="crop-mark crop-mark-right"></div>` : ''}
+          </div>
+        `
+      }).join('')
+
+      return `
+        <div class="print-page">
+          <!-- Top column boundaries ticks -->
+          ${showCropMarks ? `
+            <div class="crop-row-top">
+              <div class="crop-mark-corner"></div>
+              <div class="vertical-ticks-container">
+                ${verticalTicksHtml}
+              </div>
+              <div class="crop-mark-corner"></div>
+            </div>
+          ` : ''}
+
+          <!-- Product Label Rows -->
+          ${pageRowsHtml}
+
+          <!-- Bottom column boundaries ticks -->
+          ${showCropMarks ? `
+            <div class="crop-row-bottom">
+              <div class="crop-mark-corner"></div>
+              <div class="vertical-ticks-container">
+                ${verticalTicksHtml}
+              </div>
+              <div class="crop-mark-corner"></div>
+            </div>
+          ` : ''}
+        </div>
+      `
+    }).join('')
 
     const printHtml = `
       <!DOCTYPE html>
@@ -311,13 +366,28 @@ export default function LabelsGenerator({ onBack }) {
           }
           body {
             margin: 0;
-            padding: 15mm 8mm; /* Enforced top/bottom padding so ticks never get cut off */
+            padding: 0;
             font-family: ${getFontFamilyCSS()};
             background: #fff;
             box-sizing: border-box;
+          }
+          
+          /* Self-contained pages to avoid multi-page browser page break clipping */
+          .print-page {
+            width: 100%;
+            height: 297mm; /* Exact A4 dimensions */
+            box-sizing: border-box;
+            padding: 15mm 8mm; /* Uniform safe print margins */
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: flex-start;
+            page-break-after: always;
+            page-break-inside: avoid;
+            background: #fff;
+          }
+          .print-page:last-child {
+            page-break-after: avoid;
           }
           
           /* Top and Bottom boundary rows */
@@ -573,30 +643,7 @@ export default function LabelsGenerator({ onBack }) {
         </style>
       </head>
       <body>
-        <!-- Top column boundaries ticks -->
-        ${showCropMarks ? `
-          <div class="crop-row-top">
-            <div class="crop-mark-corner"></div>
-            <div class="vertical-ticks-container">
-              ${verticalTicksHtml}
-            </div>
-            <div class="crop-mark-corner"></div>
-          </div>
-        ` : ''}
-
-        <!-- Product Label Rows -->
-        ${printableRowsHtml}
-
-        <!-- Bottom column boundaries ticks -->
-        ${showCropMarks ? `
-          <div class="crop-row-bottom">
-            <div class="crop-mark-corner"></div>
-            <div class="vertical-ticks-container">
-              ${verticalTicksHtml}
-            </div>
-            <div class="crop-mark-corner"></div>
-          </div>
-        ` : ''}
+        ${printablePagesHtml}
         
         <script>
           setTimeout(() => {
@@ -654,13 +701,13 @@ export default function LabelsGenerator({ onBack }) {
       {/* Main Container */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left: Dynamic Live Print Preview Canvas */}
-        <div className="flex-1 bg-slate-900 overflow-auto p-8 flex flex-col items-center justify-center border-r border-slate-800 relative">
-          <div className="absolute top-4 left-4 text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-800/80 backdrop-blur px-3 py-1.5 rounded-full border border-slate-700/50">
-            👁️ Estúdio de Design e Visualização de Folha
+        <div className="flex-1 bg-slate-900 overflow-auto p-8 flex flex-col items-center justify-start border-r border-slate-800 relative scrollbar-thin">
+          <div className="absolute top-4 left-4 text-xs font-bold text-slate-400 uppercase tracking-widest bg-slate-800/80 backdrop-blur px-3 py-1.5 rounded-full border border-slate-700/50 z-20">
+            👁️ Estúdio de Design e Visualização de Folha A4
           </div>
 
           {selectedProducts.length === 0 ? (
-            <div className="text-center p-8 max-w-sm text-slate-400 animate-pulse">
+            <div className="w-full h-full flex flex-col items-center justify-center text-center p-8 max-w-sm text-slate-400 animate-pulse">
               <div className="text-6xl mb-4">🏷️</div>
               <div className="font-extrabold text-white text-lg">Nenhum Produto Selecionado</div>
               <div className="text-sm mt-2 text-slate-400 leading-relaxed">
@@ -668,253 +715,260 @@ export default function LabelsGenerator({ onBack }) {
               </div>
             </div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center p-4">
-              <div className="overflow-auto max-h-[75vh] p-6 bg-slate-950/40 rounded-3xl border-2 border-dashed border-slate-800 flex items-center justify-center scrollbar-thin shadow-2xl">
-                <div
-                  className="flex flex-col p-8 shadow-2xl rounded-2xl transition-all"
-                  style={{
-                    backgroundColor: '#ffffff',
-                    gap: `${gapMm * 3}px`
-                  }}
-                >
-                  {/* Top column boundary crop ticks in preview */}
-                  {showCropMarks && (
-                    <div className="flex flex-row items-center justify-center mb-1.5 opacity-90">
-                      <div className="w-[24px] h-[6px] shrink-0" />
-                      <div className="flex flex-row animate-pulse" style={{ gap: `${gapMm * 3}px` }}>
-                        {Array.from({ length: columns }).map((_, i) => (
-                          <div
-                            key={`top-tick-${i}`}
-                            className="flex justify-between shrink-0 border-l-2 border-r-2 border-black"
-                            style={{ width: `${widthMm * 3}px`, height: '8px' }}
-                          />
-                        ))}
-                      </div>
-                      <div className="w-[24px] h-[6px] shrink-0" />
-                    </div>
-                  )}
-
-                  {previewRows.map((row, rowIdx) => (
-                    <div key={`row-${rowIdx}`} className="flex flex-row items-center justify-center">
-                      {/* Left horizontal crop ticks in live preview */}
-                      {showCropMarks && (
-                        <div
-                          className="flex flex-col justify-between shrink-0 mr-3 animate-pulse"
-                          style={{ width: '24px', height: `${heightMm * 3}px` }}
-                        >
-                          <div className="h-[2px] bg-black w-full" />
-                          <div className="h-[2px] bg-black w-full" />
+            <div className="w-full pt-12 pb-8 flex flex-col items-center gap-8">
+              {previewPages.map((pageRows, pageIdx) => (
+                <div key={`preview-page-${pageIdx}`} className="flex flex-col items-center">
+                  {/* Page Indicator tag */}
+                  <div className="text-xs font-extrabold text-slate-400 mb-2 uppercase tracking-wider">
+                    Página {pageIdx + 1} de {previewPages.length}
+                  </div>
+                  
+                  <div
+                    className="flex flex-col p-8 shadow-2xl rounded-2xl bg-white border border-slate-200/50 shrink-0 relative transition-all"
+                    style={{
+                      width: 'fit-content',
+                      gap: `${gapMm * 3}px`
+                    }}
+                  >
+                    {/* Top column boundary crop ticks in preview */}
+                    {showCropMarks && (
+                      <div className="flex flex-row items-center justify-center mb-1.5 opacity-90">
+                        <div className="w-[24px] h-[6px] shrink-0" />
+                        <div className="flex flex-row animate-pulse" style={{ gap: `${gapMm * 3}px` }}>
+                          {Array.from({ length: columns }).map((_, i) => (
+                            <div
+                              key={`top-tick-${i}`}
+                              className="flex justify-between shrink-0 border-l-2 border-r-2 border-black"
+                              style={{ width: `${widthMm * 3}px`, height: '8px' }}
+                            />
+                          ))}
                         </div>
-                      )}
+                        <div className="w-[24px] h-[6px] shrink-0" />
+                      </div>
+                    )}
 
-                      <div className="flex flex-row" style={{ gap: `${gapMm * 3}px` }}>
-                        {row.map(p => {
-                          if (p.isPlaceholder) {
+                    {pageRows.map((row, rowIdx) => (
+                      <div key={`row-${rowIdx}`} className="flex flex-row items-center justify-center">
+                        {/* Left horizontal crop ticks in live preview */}
+                        {showCropMarks && (
+                          <div
+                            className="flex flex-col justify-between shrink-0 mr-3 animate-pulse"
+                            style={{ width: '24px', height: `${heightMm * 3}px` }}
+                          >
+                            <div className="h-[2px] bg-black w-full" />
+                            <div className="h-[2px] bg-black w-full" />
+                          </div>
+                        )}
+
+                        <div className="flex flex-row" style={{ gap: `${gapMm * 3}px` }}>
+                          {row.map(p => {
+                            if (p.isPlaceholder) {
+                              return (
+                                <div
+                                  key={p.id}
+                                  style={{
+                                    width: `${widthMm * 3}px`,
+                                    height: `${heightMm * 3}px`,
+                                    visibility: 'hidden'
+                                  }}
+                                />
+                              )
+                            }
+                            const mainPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
+                            const isPromo = p.promoPrice && p.oldPrice
+                            
                             return (
                               <div
-                                key={p.id}
+                                key={`preview-${p.id}`}
+                                className="transition-all relative select-none hover:shadow-lg flex flex-col justify-between"
                                 style={{
                                   width: `${widthMm * 3}px`,
                                   height: `${heightMm * 3}px`,
-                                  visibility: 'hidden'
+                                  padding: '6px',
+                                  border: showBorder ? `${borderThickness}px ${borderStyle} ${borderColor}` : 'none',
+                                  borderRadius: showBorder ? `${borderRadius * 3}px` : '0',
+                                  backgroundColor: backgroundColor,
+                                  color: fontColor,
+                                  fontFamily: getFontFamilyCSS(),
+                                  overflow: 'hidden'
                                 }}
-                              />
+                              >
+                                {/* Promo Badge */}
+                                {showPromoBadge && isPromo && (
+                                  <div className="absolute top-0.5 right-0.5 bg-red-500 text-white font-bold text-[5px] px-1 py-0.5 rounded leading-none z-10"
+                                    style={{ backgroundColor: priceColor, color: backgroundColor === '#ffffff' || backgroundColor.startsWith('rgba') ? '#fff' : backgroundColor }}>
+                                    {customPromoText}
+                                  </div>
+                                )}
+
+                                {/* Store Name */}
+                                {showStoreName && (
+                                  <div className="text-[6px] font-extrabold uppercase tracking-wider text-center w-full truncate opacity-75">
+                                    {storeEmoji ? `${storeEmoji} ` : ''}{customStoreName}
+                                  </div>
+                                )}
+
+                                {/* Middle Content Blocks depending on Layout */}
+                                {layoutTemplate === 'centered' && (
+                                  <>
+                                    <div className="w-full flex-1 flex flex-col items-center justify-center text-center my-0.5">
+                                      {showCategory && p.category && (
+                                        <div className="text-[5px] uppercase font-bold tracking-tight opacity-50 truncate w-full">
+                                          {p.category}
+                                        </div>
+                                      )}
+                                      <div
+                                        className="font-bold uppercase tracking-tight text-center leading-tight overflow-hidden break-words w-full"
+                                        style={{
+                                          fontSize: `${Math.max(6, nameFontSize * 0.7)}px`,
+                                          maxHeight: '2.4em',
+                                          display: '-webkit-box',
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: 'vertical'
+                                        }}
+                                      >
+                                        {p.name}
+                                      </div>
+                                    </div>
+
+                                    <div className="w-full flex flex-col items-center justify-center leading-none">
+                                      {showOldPrice && isPromo && (
+                                        <span className="text-[7px] opacity-60 line-through mb-0.5">
+                                          {formatCurrency(p.oldPrice)}
+                                        </span>
+                                      )}
+                                      <span className="font-black" style={{ fontSize: `${priceFontSize * 0.7}px`, color: priceColor }}>
+                                        {formatCurrency(mainPrice)}
+                                        <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
+                                      </span>
+                                    </div>
+                                  </>
+                                )}
+
+                                {layoutTemplate === 'horizontal_split' && (
+                                  <div className="flex flex-row justify-between items-center w-full flex-1 gap-1.5 my-1">
+                                    <div className="flex-1 text-left min-w-0">
+                                      {showCategory && p.category && (
+                                        <div className="text-[5px] uppercase font-bold tracking-tight opacity-50 truncate w-full">
+                                          {p.category}
+                                        </div>
+                                      )}
+                                      <div
+                                        className="font-bold uppercase tracking-tight leading-tight overflow-hidden break-words w-full text-left"
+                                        style={{
+                                          fontSize: `${Math.max(6, nameFontSize * 0.65)}px`,
+                                          maxHeight: '2.4em',
+                                          display: '-webkit-box',
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: 'vertical'
+                                        }}
+                                      >
+                                        {p.name}
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-col items-end justify-center leading-none shrink-0 text-right">
+                                      {showOldPrice && isPromo && (
+                                        <span className="text-[6.5px] opacity-60 line-through mb-0.5">
+                                          {formatCurrency(p.oldPrice)}
+                                        </span>
+                                      )}
+                                      <span className="font-black" style={{ fontSize: `${priceFontSize * 0.65}px`, color: priceColor }}>
+                                        {formatCurrency(mainPrice)}
+                                        <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {layoutTemplate === 'price_focus' && (
+                                  <>
+                                    <div className="w-full flex-1 flex flex-col items-center justify-center leading-none my-0.5">
+                                      {showOldPrice && isPromo && (
+                                        <span className="text-[7px] opacity-60 line-through mb-0.5">
+                                          {formatCurrency(p.oldPrice)}
+                                        </span>
+                                      )}
+                                      <span className="font-black" style={{ fontSize: `${priceFontSize * 0.9}px`, color: priceColor }}>
+                                        {formatCurrency(mainPrice)}
+                                        <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
+                                      </span>
+                                    </div>
+                                    <div className="w-full text-center truncate font-bold text-[5.5px] uppercase opacity-90 tracking-tight">
+                                      {showCategory && p.category ? `${p.category} • ` : ''}{p.name}
+                                    </div>
+                                  </>
+                                )}
+
+                                {/* Barcode Mock */}
+                                {showBarcode && p.code ? (
+                                  <div className="w-full flex flex-col items-center mt-0.5 opacity-80 leading-none">
+                                    <div className="w-4/5 h-[14px] flex items-end justify-between overflow-hidden">
+                                      {previewBars.map((bar, i) => (
+                                        !bar.isGap ? (
+                                          <div
+                                            key={i}
+                                            style={{
+                                              background: fontColor,
+                                              width: bar.isWide ? '2px' : '0.8px',
+                                              height: bar.height
+                                            }}
+                                          />
+                                        ) : (
+                                          <div key={i} className="bg-transparent w-[1px]" />
+                                        )
+                                      ))}
+                                    </div>
+                                    {showCode && (
+                                      <span className="text-[5.5px] font-mono tracking-widest mt-0.5 uppercase">
+                                        {p.code}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  showCode && p.code && (
+                                    <div className="text-[5.5px] font-mono opacity-80 mt-0.5 truncate w-full text-center">
+                                      Cód: {p.code}
+                                    </div>
+                                  )
+                                )}
+                              </div>
                             )
-                          }
-                          const mainPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
-                          const isPromo = p.promoPrice && p.oldPrice
-                          
-                          return (
-                            <div
-                              key={`preview-${p.id}`}
-                              className="transition-all relative select-none hover:shadow-lg flex flex-col justify-between"
-                              style={{
-                                width: `${widthMm * 3}px`,
-                                height: `${heightMm * 3}px`,
-                                padding: '6px',
-                                border: showBorder ? `${borderThickness}px ${borderStyle} ${borderColor}` : 'none',
-                                borderRadius: showBorder ? `${borderRadius * 3}px` : '0',
-                                backgroundColor: backgroundColor,
-                                color: fontColor,
-                                fontFamily: getFontFamilyCSS(),
-                                overflow: 'hidden'
-                              }}
-                            >
-                              {/* Promo Badge */}
-                              {showPromoBadge && isPromo && (
-                                <div className="absolute top-0.5 right-0.5 bg-red-500 text-white font-bold text-[5px] px-1 py-0.5 rounded leading-none z-10"
-                                  style={{ backgroundColor: priceColor, color: backgroundColor === '#ffffff' || backgroundColor.startsWith('rgba') ? '#fff' : backgroundColor }}>
-                                  {customPromoText}
-                                </div>
-                              )}
-
-                              {/* Store Name */}
-                              {showStoreName && (
-                                <div className="text-[6px] font-extrabold uppercase tracking-wider text-center w-full truncate opacity-75">
-                                  {storeEmoji ? `${storeEmoji} ` : ''}{customStoreName}
-                                </div>
-                              )}
-
-                              {/* Middle Content Blocks depending on Layout */}
-                              {layoutTemplate === 'centered' && (
-                                <>
-                                  <div className="w-full flex-1 flex flex-col items-center justify-center text-center my-0.5">
-                                    {showCategory && p.category && (
-                                      <div className="text-[5px] uppercase font-bold tracking-tight opacity-50 truncate w-full">
-                                        {p.category}
-                                      </div>
-                                    )}
-                                    <div
-                                      className="font-bold uppercase tracking-tight text-center leading-tight overflow-hidden break-words w-full"
-                                      style={{
-                                        fontSize: `${Math.max(6, nameFontSize * 0.7)}px`,
-                                        maxHeight: '2.4em',
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: 'vertical'
-                                      }}
-                                    >
-                                      {p.name}
-                                    </div>
-                                  </div>
-
-                                  <div className="w-full flex flex-col items-center justify-center leading-none">
-                                    {showOldPrice && isPromo && (
-                                      <span className="text-[7px] opacity-60 line-through mb-0.5">
-                                        {formatCurrency(p.oldPrice)}
-                                      </span>
-                                    )}
-                                    <span className="font-black" style={{ fontSize: `${priceFontSize * 0.7}px`, color: priceColor }}>
-                                      {formatCurrency(mainPrice)}
-                                      <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
-                                    </span>
-                                  </div>
-                                </>
-                              )}
-
-                              {layoutTemplate === 'horizontal_split' && (
-                                <div className="flex flex-row justify-between items-center w-full flex-1 gap-1.5 my-1">
-                                  <div className="flex-1 text-left min-w-0">
-                                    {showCategory && p.category && (
-                                      <div className="text-[5px] uppercase font-bold tracking-tight opacity-50 truncate w-full">
-                                        {p.category}
-                                      </div>
-                                    )}
-                                    <div
-                                      className="font-bold uppercase tracking-tight leading-tight overflow-hidden break-words w-full text-left"
-                                      style={{
-                                        fontSize: `${Math.max(6, nameFontSize * 0.65)}px`,
-                                        maxHeight: '2.4em',
-                                        display: '-webkit-box',
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: 'vertical'
-                                      }}
-                                    >
-                                      {p.name}
-                                    </div>
-                                  </div>
-                                  <div className="flex flex-col items-end justify-center leading-none shrink-0 text-right">
-                                    {showOldPrice && isPromo && (
-                                      <span className="text-[6.5px] opacity-60 line-through mb-0.5">
-                                        {formatCurrency(p.oldPrice)}
-                                      </span>
-                                    )}
-                                    <span className="font-black" style={{ fontSize: `${priceFontSize * 0.65}px`, color: priceColor }}>
-                                      {formatCurrency(mainPrice)}
-                                      <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
-
-                              {layoutTemplate === 'price_focus' && (
-                                <>
-                                  <div className="w-full flex-1 flex flex-col items-center justify-center leading-none my-0.5">
-                                    {showOldPrice && isPromo && (
-                                      <span className="text-[7px] opacity-60 line-through mb-0.5">
-                                        {formatCurrency(p.oldPrice)}
-                                      </span>
-                                    )}
-                                    <span className="font-black" style={{ fontSize: `${priceFontSize * 0.9}px`, color: priceColor }}>
-                                      {formatCurrency(mainPrice)}
-                                      <span className="text-[50%] font-semibold opacity-75">{getSuffix(p)}</span>
-                                    </span>
-                                  </div>
-                                  <div className="w-full text-center truncate font-bold text-[5.5px] uppercase opacity-90 tracking-tight">
-                                    {showCategory && p.category ? `${p.category} • ` : ''}{p.name}
-                                  </div>
-                                </>
-                              )}
-
-                              {/* Barcode Mock */}
-                              {showBarcode && p.code ? (
-                                <div className="w-full flex flex-col items-center mt-0.5 opacity-80 leading-none">
-                                  <div className="w-4/5 h-[14px] flex items-end justify-between overflow-hidden">
-                                    {previewBars.map((bar, i) => (
-                                      !bar.isGap ? (
-                                        <div
-                                          key={i}
-                                          style={{
-                                            background: fontColor,
-                                            width: bar.isWide ? '2px' : '0.8px',
-                                            height: bar.height
-                                          }}
-                                        />
-                                      ) : (
-                                        <div key={i} className="bg-transparent w-[1px]" />
-                                      )
-                                    ))}
-                                  </div>
-                                  {showCode && (
-                                    <span className="text-[5.5px] font-mono tracking-widest mt-0.5 uppercase">
-                                      {p.code}
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                showCode && p.code && (
-                                  <div className="text-[5.5px] font-mono opacity-80 mt-0.5 truncate w-full text-center">
-                                    Cód: {p.code}
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-
-                      {/* Right horizontal crop ticks in live preview */}
-                      {showCropMarks && (
-                        <div
-                          className="flex flex-col justify-between shrink-0 ml-3 animate-pulse"
-                          style={{ width: '24px', height: `${heightMm * 3}px` }}
-                        >
-                          <div className="h-[2px] bg-black w-full" />
-                          <div className="h-[2px] bg-black w-full" />
+                          })}
                         </div>
-                      )}
-                    </div>
-                  ))}
 
-                  {/* Bottom column boundary crop ticks in preview */}
-                  {showCropMarks && (
-                    <div className="flex flex-row items-center justify-center mt-1.5 opacity-90">
-                      <div className="w-[24px] h-[6px] shrink-0" />
-                      <div className="flex flex-row animate-pulse" style={{ gap: `${gapMm * 3}px` }}>
-                        {Array.from({ length: columns }).map((_, i) => (
+                        {/* Right horizontal crop ticks in live preview */}
+                        {showCropMarks && (
                           <div
-                            key={`bottom-tick-${i}`}
-                            className="flex justify-between shrink-0 border-l-2 border-r-2 border-black"
-                            style={{ width: `${widthMm * 3}px`, height: '8px' }}
-                          />
-                        ))}
+                            className="flex flex-col justify-between shrink-0 ml-3 animate-pulse"
+                            style={{ width: '24px', height: `${heightMm * 3}px` }}
+                          >
+                            <div className="h-[2px] bg-black w-full" />
+                            <div className="h-[2px] bg-black w-full" />
+                          </div>
+                        )}
                       </div>
-                      <div className="w-[24px] h-[6px] shrink-0" />
-                    </div>
-                  )}
+                    ))}
 
+                    {/* Bottom column boundary crop ticks in preview */}
+                    {showCropMarks && (
+                      <div className="flex flex-row items-center justify-center mt-1.5 opacity-90">
+                        <div className="w-[24px] h-[6px] shrink-0" />
+                        <div className="flex flex-row animate-pulse" style={{ gap: `${gapMm * 3}px` }}>
+                          {Array.from({ length: columns }).map((_, i) => (
+                            <div
+                              key={`bottom-tick-${i}`}
+                              className="flex justify-between shrink-0 border-l-2 border-r-2 border-black"
+                              style={{ width: `${widthMm * 3}px`, height: '8px' }}
+                            />
+                          ))}
+                        </div>
+                        <div className="w-[24px] h-[6px] shrink-0" />
+                      </div>
+                    )}
+
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           )}
         </div>
