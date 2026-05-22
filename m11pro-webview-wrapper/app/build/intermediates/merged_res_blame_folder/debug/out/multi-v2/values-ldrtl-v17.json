@@ -4,7 +4,7 @@
             "outputFile": "com.palmeirape.missoesloja.app-mergeDebugResources-29:/values-ldrtl-v17/values-ldrtl-v17.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\thiag\\.gradle\\caches\\9.0.0\\transforms\\e25d91a4b29beea44580bd05856894cf\\transformed\\material-1.11.0\\res\\values-ldrtl-v17\\values-ldrtl-v17.xml",
+                    "source": "C:\\Users\\thiag\\.gradle\\caches\\transforms-3\\2b09c2cd4192fe4b7b686a651ae8eff3\\transformed\\material-1.11.0\\res\\values-ldrtl-v17\\values-ldrtl-v17.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",
