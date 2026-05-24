@@ -163,7 +163,7 @@ export default function Config({ onBack }) {
     storeId === 'loja_bogados' ? 'Queremos Te Ouvir! 💬' : 'Queremos Te Ouvir! 🍞👑'
   )
   const [posterSubtitle, setPosterSubtitle] = useState(
-    'Deixe suas dúvidas, sugestões ou elogios, ou mande seu currículo e trabalhe conosco.'
+    'Deixe aqui suas dúvidas, sugestões ou elogios.\nSua opinião é muito importante para nós!\n\nTrabalhe conosco: Envie seu currículo e faça parte da nossa equipe.'
   )
   const [step1, setStep1] = useState('Abra a câmera do seu celular')
   const [step2, setStep2] = useState('Aponte para o QR Code ao lado')
@@ -224,7 +224,7 @@ export default function Config({ onBack }) {
       setFooterNote('Padaria Maná de Deus • Agradecemos a preferência! ❤️')
     }
     
-    setPosterSubtitle('Deixe suas dúvidas, sugestões ou elogios, ou mande seu currículo e trabalhe conosco.')
+    setPosterSubtitle('Deixe aqui suas dúvidas, sugestões ou elogios.\nSua opinião é muito importante para nós!\n\nTrabalhe conosco: Envie seu currículo e faça parte da nossa equipe.')
     setStep1('Abra a câmera do seu celular')
     setStep2('Aponte para o QR Code ao lado')
     setStep3('Acesse o link para enviar')
@@ -328,6 +328,7 @@ export default function Config({ onBack }) {
             line-height: 1.5;
             margin: 0 auto 16mm auto;
             max-width: 155mm;
+            white-space: pre-wrap;
           }
 
           /* Visual Layout: Side-by-Side QR & Steps */
@@ -661,24 +662,35 @@ export default function Config({ onBack }) {
       ctx.fillStyle = textColor
       ctx.font = '500 32px system-ui, -apple-system, sans-serif'
 
-      // Text wrapping function helper
+      // Text wrapping function helper with multi-line/newline (\n) support
       const wrapText = (context, text, x, y, maxWidth, lineHeight) => {
-        const words = text.split(' ')
-        let line = ''
+        const paragraphs = String(text || '').split('\n')
         let currentY = y
-        for (let n = 0; n < words.length; n++) {
-          let testLine = line + words[n] + ' '
-          let metrics = context.measureText(testLine)
-          let testWidth = metrics.width
-          if (testWidth > maxWidth && n > 0) {
-            context.fillText(line, x, currentY)
-            line = words[n] + ' '
+        for (let i = 0; i < paragraphs.length; i++) {
+          // If a paragraph is empty, add a small blank line spacing
+          if (paragraphs[i].trim() === '') {
+            currentY += lineHeight * 0.7
+            continue
+          }
+          const words = paragraphs[i].split(' ')
+          let line = ''
+          for (let n = 0; n < words.length; n++) {
+            let testLine = line + words[n] + ' '
+            let metrics = context.measureText(testLine)
+            let testWidth = metrics.width
+            if (testWidth > maxWidth && n > 0) {
+              context.fillText(line, x, currentY)
+              line = words[n] + ' '
+              currentY += lineHeight
+            } else {
+              line = testLine
+            }
+          }
+          context.fillText(line, x, currentY)
+          if (i < paragraphs.length - 1) {
             currentY += lineHeight
-          } else {
-            line = testLine
           }
         }
-        context.fillText(line, x, currentY)
         return currentY
       }
 
@@ -948,8 +960,8 @@ export default function Config({ onBack }) {
                     onChange={(e) => setPosterSubtitle(e.target.value)}
                     placeholder="Descrição..."
                     rows={4}
-                    className="input w-full px-3 py-2 text-xs resize-none leading-relaxed"
-                    maxLength={160}
+                    className="input w-full px-3 py-2 text-xs resize-y leading-relaxed min-h-[100px]"
+                    maxLength={350}
                   />
                 </div>
 
@@ -1070,7 +1082,7 @@ export default function Config({ onBack }) {
                     </h2>
 
                     {/* Subtitle */}
-                    <p className={`text-xs px-2 leading-relaxed mb-6 font-medium max-w-[400px]
+                    <p className={`text-xs px-2 leading-relaxed mb-6 font-medium max-w-[400px] whitespace-pre-wrap
                       ${templateConfig.textColor}`}
                     >
                       {posterSubtitle}
