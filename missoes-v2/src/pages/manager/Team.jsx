@@ -4,6 +4,12 @@ import { useAuth } from '../../hooks/useAuth'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 
+async function sha256(str) {
+  const enc = new TextEncoder().encode(str)
+  const buf = await crypto.subtle.digest("SHA-256", enc)
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
 export default function Team({ onBack }) {
   const { employees, activeEmployees, saveEmployees, getMonthPoints } = useStore()
   const { storeId, store } = useAuth()
@@ -44,7 +50,12 @@ export default function Team({ onBack }) {
 
   async function savePin(name) {
     if (!pinValue.trim()) return
-    await setDoc(doc(db, 'stores', storeId, 'users', name), { pin: pinValue.trim() }, { merge: true })
+    const p = pinValue.trim()
+    const hashed = await sha256(p)
+    await setDoc(doc(db, 'stores', storeId, 'users', name), {
+      pin: p,
+      pinHash: hashed
+    }, { merge: true })
     setEditingPin(null)
     setPinValue('')
   }

@@ -4,6 +4,12 @@ import { STORE_MAP } from '../../utils/constants'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 
+async function sha256(str) {
+  const enc = new TextEncoder().encode(str)
+  const buf = await crypto.subtle.digest("SHA-256", enc)
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
 const TEMPLATES = {
   modern_purple: {
     id: 'modern_purple',
@@ -200,10 +206,23 @@ export default function Config({ onBack }) {
     if (newPin.length < 4) return alert('O PIN deve ter pelo menos 4 dígitos')
     setLoading(true)
     try {
+      // 1. Save to stores/{storeId}
       await setDoc(doc(db, 'stores', storeId), { managerPin: newPin }, { merge: true })
+
+      // 2. Also save to stores/{storeId}/users/{managerUser} for legacy and dual-compatibility
+      const managerUser = store.managerUser
+      const hashed = await sha256(newPin)
+      await setDoc(doc(db, 'stores', storeId, 'users', managerUser), {
+        user: managerUser,
+        role: 'manager',
+        pin: newPin,
+        pinHash: hashed
+      }, { merge: true })
+
       alert('PIN Mestre atualizado com sucesso! 🔐')
       setNewPin('')
     } catch (e) {
+      console.error(e)
       alert('Erro ao atualizar PIN')
     }
     setLoading(false)

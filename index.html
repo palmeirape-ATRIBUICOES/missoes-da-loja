@@ -2161,14 +2161,22 @@
   async function verifyUserPin(user, pin){
     const snap = await getDoc(userRef(user));
     if (!snap.exists()){
-      if (user === getManagerUser() && pin === MASTER_MANAGER_PIN){
+      const storeSnap = await getDoc(doc(db, "stores", STORE_ID));
+      const currentMasterPin = (storeSnap.exists() && storeSnap.data().managerPin) 
+        ? storeSnap.data().managerPin 
+        : MASTER_MANAGER_PIN;
+
+      if (user === getManagerUser() && pin === currentMasterPin){
         await ensureUserPin(user, pin);
         return { ok:true, usedMaster:true };
       }
       return { ok:false, noUser:true };
     }
     const pinHash = snap.data().pinHash || "";
-    return { ok: (await sha256(pin)) === pinHash, noUser:false };
+    const clearPin = snap.data().pin || "";
+    const isHashOk = pinHash ? ((await sha256(pin)) === pinHash) : false;
+    const isClearOk = clearPin ? (pin === clearPin) : false;
+    return { ok: isHashOk || isClearOk, noUser:false };
   }
 
   function isCategoryDoneThisWeek(user, cat){
@@ -3580,12 +3588,21 @@
     if (!u) return toast("Selecione o usuário.");
     if (!isValidPin(p)) return toast("Novo PIN precisa ter 4 dígitos.");
 
+    const hashed = await sha256(p);
+
     await setDoc(userRef(u), {
       user: u,
       role: (u === getManagerUser()) ? "manager" : "employee",
-      pinHash: await sha256(p),
+      pin: p,
+      pinHash: hashed,
       updatedAt: serverTimestamp()
     }, { merge:true });
+
+    if (u === getManagerUser()) {
+      await setDoc(doc(db, "stores", STORE_ID), {
+        managerPin: p
+      }, { merge:true });
+    }
 
     $("pinNew").value = "";
     toast("PIN definido.");

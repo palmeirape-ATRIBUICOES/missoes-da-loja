@@ -4,6 +4,12 @@ import { STORE_MAP } from '../utils/constants'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
+async function sha256(str) {
+  const enc = new TextEncoder().encode(str)
+  const buf = await crypto.subtle.digest("SHA-256", enc)
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
 export default function Login({ mode = 'app' }) {
   const { login } = useAuth()
   const [storeKey, setStoreKey] = useState('loja_principal')
@@ -43,10 +49,31 @@ export default function Login({ mode = 'app' }) {
     setError('')
 
     try {
-      const pinDoc = await getDoc(doc(db, 'stores', store.id, 'users', selectedUser))
-      const savedPin = pinDoc.exists() ? pinDoc.data().pin : store.managerPin
+      // 1. Fetch store document to get the up-to-date managerPin dynamically
+      const storeDoc = await getDoc(doc(db, 'stores', store.id))
+      const currentManagerPin = (storeDoc.exists() && storeDoc.data().managerPin) 
+        ? storeDoc.data().managerPin 
+        : store.managerPin
 
-      if (pin !== savedPin && pin !== store.managerPin) {
+      // 2. Fetch the user's specific PIN
+      const pinDoc = await getDoc(doc(db, 'stores', store.id, 'users', selectedUser))
+      
+      let savedPin = ''
+      let savedPinHash = ''
+      if (pinDoc.exists()) {
+        savedPin = pinDoc.data().pin || ''
+        savedPinHash = pinDoc.data().pinHash || ''
+      } else if (selectedUser === store.managerUser) {
+        savedPin = currentManagerPin
+      }
+
+      // Check validation: match either cleartext, hash, or manager bypass override
+      const hashedEnteredPin = await sha256(pin)
+      const isMatch = (pin === savedPin) || 
+                      (savedPinHash && hashedEnteredPin === savedPinHash) ||
+                      (pin === currentManagerPin)
+
+      if (!isMatch) {
         setError('PIN incorreto.')
         setLoading(false)
         return
