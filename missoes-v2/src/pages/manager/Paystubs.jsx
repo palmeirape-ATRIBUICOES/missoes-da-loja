@@ -51,6 +51,8 @@ export default function Paystubs({ onBack }) {
   const [newEmpCpf, setNewEmpCpf] = useState('')
   const [newEmpRole, setNewEmpRole] = useState('')
 
+  const [editingId, setEditingId] = useState(null)
+
   async function handleAddEmployeeDirectly() {
     if (!newEmpName.trim()) {
       alert('Por favor, informe o nome do funcionário.')
@@ -184,6 +186,7 @@ export default function Paystubs({ onBack }) {
   }
 
   function clearForm() {
+    setEditingId(null)
     setEmployee('')
     setEmployeeManual('')
     setIsManualEmployee(false)
@@ -202,6 +205,36 @@ export default function Paystubs({ onBack }) {
     setAbsences('')
     setOtherDeductions('')
     setCadernoPhoto('')
+  }
+
+  function handleStartEdit(cc) {
+    setEditingId(cc.id)
+    const found = contrachequeEmployees.some(emp => emp.name === cc.employee)
+    if (found) {
+      setEmployee(cc.employee)
+      setIsManualEmployee(false)
+      setEmployeeManual('')
+    } else {
+      setEmployee('')
+      setIsManualEmployee(true)
+      setEmployeeManual(cc.employee)
+    }
+    setCpf(cc.cpf || '')
+    setRefMonth(cc.referenceMonth || '')
+    setPaymentDate(cc.paymentDate || '')
+    setRole(cc.role || '')
+    setType(cc.type || 'mensal')
+    setObservation(cc.observation || '')
+    setSalaryBase(cc.salaryBase ? String(cc.salaryBase) : '')
+    setExtraHours(cc.extraHours ? String(cc.extraHours) : '')
+    setCommissions(cc.commissions ? String(cc.commissions) : '')
+    setOtherEarnings(cc.otherEarnings ? String(cc.otherEarnings) : '')
+    setInss(cc.inss ? String(cc.inss) : '')
+    setAdvancePay(cc.advancePay ? String(cc.advancePay) : '')
+    setAbsences(cc.absences ? String(cc.absences) : '')
+    setOtherDeductions(cc.otherDeductions ? String(cc.otherDeductions) : '')
+    setCadernoPhoto(cc.cadernoPhoto || '')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function handleSave() {
@@ -256,14 +289,21 @@ export default function Paystubs({ onBack }) {
         observation: observation.trim(),
         status: 'pendente',
         cadernoPhoto,
-        createdAt: new Date()
+      }
+
+      if (editingId) {
+        payload.id = editingId
+      } else {
+        payload.createdAt = new Date()
       }
 
       await saveContrachequeDoc(payload)
-      alert('Contracheque gerado e salvo com sucesso!')
+      alert(editingId ? 'Contracheque atualizado com sucesso!' : 'Contracheque gerado e salvo com sucesso!')
       
-      // Prepare for next month sequence
-      if (refMonth) {
+      setEditingId(null)
+
+      // Prepare for next month sequence only if NOT editing
+      if (!editingId && refMonth) {
         const [year, month] = refMonth.split('-').map(Number)
         let nextMonth = month + 1
         let nextYear = year
@@ -819,6 +859,14 @@ export default function Paystubs({ onBack }) {
       <main className="max-w-6xl mx-auto p-4 space-y-6">
         {activeTab === 'recibos' ? (
           <>
+            {editingId && (
+              <div className="bg-amber-50 border-l-4 border-amber-500 text-amber-900 p-3.5 rounded-r-xl text-xs flex justify-between items-center shadow-sm mb-4">
+                <div>
+                  <strong>✏️ Modo Edição Ativo:</strong> Você está editando o recibo de <strong>{employee || employeeManual}</strong> para o mês de referência <strong>{formatRefMonth(refMonth)}</strong>.
+                </div>
+                <button onClick={clearForm} className="text-amber-950 font-bold underline hover:text-amber-700 active:scale-95 transition">Cancelar Edição</button>
+              </div>
+            )}
             <div className="card p-5 grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* Formulário: Colunas 1 e 2 */}
@@ -1001,10 +1049,15 @@ export default function Paystubs({ onBack }) {
 
                 <div className="space-y-2 mt-6 lg:mt-0">
                   <button onClick={handleSave} className="w-full btn btn-primary py-2.5 font-bold flex items-center justify-center gap-1.5 shadow-md">
-                    💾 Salvar e Gerar Recibo
+                    💾 {editingId ? 'Atualizar Recibo' : 'Salvar e Gerar Recibo'}
                   </button>
+                  {editingId && (
+                    <button onClick={clearForm} className="w-full btn btn-ghost text-xs text-red-600 font-bold hover:bg-red-50 py-1.5 rounded border border-red-200 transition active:scale-95">
+                      ❌ Cancelar Edição
+                    </button>
+                  )}
                   <button onClick={clearForm} className="w-full btn btn-ghost text-xs">
-                    Limpar Campos
+                    {editingId ? 'Limpar e Cancelar' : 'Limpar Campos'}
                   </button>
                 </div>
               </div>
@@ -1083,6 +1136,7 @@ export default function Paystubs({ onBack }) {
                               <button onClick={() => setActivePhotoUrl(cc.cadernoPhoto)} className="btn btn-ghost text-xs text-purple-600 font-bold">📷 Caderno</button>
                             )}
                             <button onClick={() => handlePrint(cc)} className="btn btn-ghost text-xs text-blue-600">🖨️ Imprimir</button>
+                            <button onClick={() => handleStartEdit(cc)} className="btn btn-ghost text-xs text-amber-600 font-bold">Editar</button>
                             <button onClick={() => handleDelete(cc)} className="btn btn-ghost text-xs text-red-600">Excluir</button>
                           </td>
                         </tr>
