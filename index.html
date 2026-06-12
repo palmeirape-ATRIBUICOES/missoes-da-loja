@@ -504,8 +504,8 @@
     <button class="ger-tab" data-tab="equipe">👥 Equipe</button>
     <button class="ger-tab" data-tab="listas">📝 Listas</button>
     <button class="ger-tab" data-tab="feedback">💬 Feedback</button>
+    <button class="ger-tab" data-tab="contracheques">💵 Contracheques</button>
     <button class="ger-tab" data-tab="config">⚙️ Config</button>
-
   </div>
 
   <!-- PANEL: PRODUTOS -->
@@ -881,8 +881,194 @@
     <div id="feedbackList" class="mt-4 space-y-3">
       <div class="text-gray-500">Carregando...</div>
     </div>
-  </div>
   </div> <!-- /panel feedback -->
+
+  <!-- PANEL: CONTRACHEQUES -->
+  <div class="ger-panel" data-panel="contracheques">
+    <div class="bg-white p-4 rounded-xl shadow mb-4">
+      <div class="flex items-center justify-between gap-2 border-b pb-3 mb-4">
+        <div>
+          <h3 class="font-semibold text-lg text-gray-800">💵 Gestão de Contracheques / Recibos</h3>
+          <p class="text-xs text-gray-500">Gere, liste e imprima comprovantes de pagamento para resguardo jurídico.</p>
+        </div>
+      </div>
+      
+      <!-- Seção: Gerar Contracheque -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Coluna 1 e 2: Formulário -->
+        <div class="lg:col-span-2 border-r pr-0 lg:pr-6 border-gray-100">
+          <h4 class="font-semibold text-sm text-gray-700 mb-3 flex items-center gap-1">
+            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">1</span> Dados do Contracheque
+          </h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div>
+              <label class="text-xs font-bold text-gray-600 block mb-1">Funcionário *</label>
+              <select id="ccEmployeeSelect" class="w-full border rounded p-2 text-sm bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500">
+                <!-- Populado dinamicamente -->
+              </select>
+              <input id="ccEmployeeManual" type="text" class="w-full border rounded p-2 text-sm mt-1 hidden" placeholder="Digite o nome completo do funcionário" />
+              <button id="btnToggleEmployeeMode" class="text-xs text-blue-600 mt-1 hover:underline">Digitar nome manualmente</button>
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-600 block mb-1">CPF (Recomendado)</label>
+              <input id="ccCpf" type="text" class="w-full border rounded p-2 text-sm focus:ring-1 focus:ring-blue-500" placeholder="000.000.000-00" />
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-600 block mb-1">Mês de Referência *</label>
+              <input id="ccRefMonth" type="month" class="w-full border rounded p-2 text-sm focus:ring-1 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-600 block mb-1">Data de Pagamento *</label>
+              <input id="ccPaymentDate" type="date" class="w-full border rounded p-2 text-sm focus:ring-1 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-600 block mb-1">Cargo / Função</label>
+              <input id="ccRole" type="text" class="w-full border rounded p-2 text-sm focus:ring-1 focus:ring-blue-500" placeholder="Ex: Atendente, Auxiliar de Cozinha" />
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-600 block mb-1">Tipo de Contracheque *</label>
+              <select id="ccType" class="w-full border rounded p-2 text-sm bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500">
+                <option value="mensal">Mensal (Daqui em diante)</option>
+                <option value="retroativo">Retroativo (Já pago, sem assinatura)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <!-- Proventos -->
+            <div class="bg-emerald-50/50 p-3 rounded-lg border border-emerald-100/60">
+              <h5 class="text-xs font-bold text-emerald-800 mb-2 uppercase tracking-wider">🟢 Proventos (Vencimentos)</h5>
+              <div class="space-y-2">
+                <div>
+                  <label class="text-[11px] font-semibold text-gray-600 block">Salário Base (R$) *</label>
+                  <input id="ccValSalary" type="number" step="0.01" class="w-full border rounded p-1.5 text-sm" value="0.00" />
+                </div>
+                <div>
+                  <label class="text-[11px] font-semibold text-gray-600 block">Horas Extras (R$)</label>
+                  <input id="ccValExtra" type="number" step="0.01" class="w-full border rounded p-1.5 text-sm" value="0.00" />
+                </div>
+                <div>
+                  <label class="text-[11px] font-semibold text-gray-600 block">Comissões / Prêmios (R$)</label>
+                  <input id="ccValComm" type="number" step="0.01" class="w-full border rounded p-1.5 text-sm" value="0.00" />
+                </div>
+                <div>
+                  <label class="text-[11px] font-semibold text-gray-600 block">Outros Proventos (R$)</label>
+                  <input id="ccValOtherE" type="number" step="0.01" class="w-full border rounded p-1.5 text-sm" value="0.00" />
+                </div>
+              </div>
+            </div>
+            
+            <!-- Descontos -->
+            <div class="bg-red-50/50 p-3 rounded-lg border border-red-100/60">
+              <h5 class="text-xs font-bold text-red-800 mb-2 uppercase tracking-wider">🔴 Descontos</h5>
+              <div class="space-y-2">
+                <div>
+                  <label class="text-[11px] font-semibold text-gray-600 block">INSS / Previdência (R$)</label>
+                  <input id="ccValInss" type="number" step="0.01" class="w-full border rounded p-1.5 text-sm" value="0.00" />
+                </div>
+                <div>
+                  <label class="text-[11px] font-semibold text-gray-600 block">Adiantamento / Vale (R$)</label>
+                  <input id="ccValAdvance" type="number" step="0.01" class="w-full border rounded p-1.5 text-sm" value="0.00" />
+                </div>
+                <div>
+                  <label class="text-[11px] font-semibold text-gray-600 block">Faltas / Atrasos (R$)</label>
+                  <input id="ccValAbsences" type="number" step="0.01" class="w-full border rounded p-1.5 text-sm" value="0.00" />
+                </div>
+                <div>
+                  <label class="text-[11px] font-semibold text-gray-600 block">Outros Descontos (R$)</label>
+                  <input id="ccValOtherD" type="number" step="0.01" class="w-full border rounded p-1.5 text-sm" value="0.00" />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-4">
+            <label class="text-xs font-bold text-gray-600 block mb-1">Observações no Recibo</label>
+            <textarea id="ccObservation" rows="2" class="w-full border rounded p-2 text-sm focus:ring-1 focus:ring-blue-500" placeholder="Ex: Pagamento referente a serviços prestados de forma eventual/mensal..."></textarea>
+          </div>
+        </div>
+        
+        <!-- Coluna 3: Resumo e Ação -->
+        <div class="flex flex-col justify-between">
+          <div>
+            <h4 class="font-semibold text-sm text-gray-700 mb-3 flex items-center gap-1">
+              <span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">2</span> Resumo dos Valores
+            </h4>
+            
+            <div class="bg-gray-50 p-4 rounded-xl space-y-3 border">
+              <div class="flex justify-between text-sm text-gray-600">
+                <span>Total de Proventos:</span>
+                <span id="ccSummaryEarnings" class="font-semibold text-emerald-700">R$ 0,00</span>
+              </div>
+              <div class="flex justify-between text-sm text-gray-600">
+                <span>Total de Descontos:</span>
+                <span id="ccSummaryDeductions" class="font-semibold text-red-700">R$ 0,00</span>
+              </div>
+              <div class="border-t pt-3 flex justify-between items-center">
+                <span class="font-bold text-gray-800">Valor Líquido:</span>
+                <span id="ccSummaryNet" class="text-xl font-extrabold text-blue-700">R$ 0,00</span>
+              </div>
+            </div>
+            
+            <div class="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200 text-xs text-yellow-800 leading-relaxed">
+              💡 <b>Dica de Resguardo Jurídico:</b> Para funcionários sem registro em carteira (informais ou autônomos), preencher o <b>CPF</b> e recolher a <b>assinatura física</b> no recibo impresso é fundamental. O tipo retroativo gera comprovantes de meses passados para regularizar o arquivo de assinaturas.
+            </div>
+          </div>
+          
+          <div class="mt-6 space-y-2">
+            <button id="btnSaveCc" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl transition duration-150 flex items-center justify-center gap-2 shadow">
+              💾 Salvar e Gerar Contracheque
+            </button>
+            <button id="btnClearCc" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl text-sm transition">
+              Limpar Campos
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Seção: Lista de Contracheques Gerados -->
+    <div class="bg-white p-4 rounded-xl shadow mt-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-3 mb-4">
+        <div>
+          <h3 class="font-semibold text-base text-gray-800">📋 Histórico de Contracheques Gerados</h3>
+          <p class="text-xs text-gray-500">Filtre, visualize, imprima ou exclua os recibos salvos.</p>
+        </div>
+        
+        <!-- Filtros -->
+        <div class="flex gap-2 flex-wrap">
+          <select id="ccFilterEmployee" class="border rounded p-1.5 text-xs bg-gray-50">
+            <option value="">Todos os funcionários</option>
+          </select>
+          <input id="ccFilterMonth" type="month" class="border rounded p-1.5 text-xs bg-gray-50" />
+          <button id="btnCcClearFilters" class="text-xs text-gray-500 hover:text-gray-700">Limpar</button>
+        </div>
+      </div>
+      
+      <!-- Tabela / Lista -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-100 text-gray-600 font-bold uppercase tracking-wider">
+              <th class="p-3">Funcionário</th>
+              <th class="p-3">Ref.</th>
+              <th class="p-3">Pagamento</th>
+              <th class="p-3">Tipo</th>
+              <th class="p-3 text-right">Líquido</th>
+              <th class="p-3 text-center">Assinatura</th>
+              <th class="p-3 text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="ccTableBody" class="divide-y divide-gray-100 text-gray-700">
+            <tr>
+              <td colspan="7" class="p-4 text-center text-gray-400">Carregando contracheques...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <!-- PANEL: CONFIG -->
   <div class="ger-panel" data-panel="config">
@@ -1815,6 +2001,10 @@
   let products = [];
   let productsIndex = new Map();
 
+  // Contracheques
+  let contrachequesAll = [];
+  let unsubscribeCc = null;
+
   let escalaLocalEmployee = null;
   let escalaLocalGer = null;
 
@@ -1827,6 +2017,7 @@
   const scoresRef  = () => doc(db,"stores",STORE_ID,"state","scores");
   const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
+  const colContracheques = () => collection(db, "stores", STORE_ID, "state", "contracheques", "items");
   const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
 
   // collections
@@ -2051,6 +2242,14 @@
       pinUser.innerHTML = "";
       pinUser.appendChild(new Option(managerUser, managerUser));
       namesAll.forEach(n => pinUser.appendChild(new Option(n,n)));
+    }
+
+    const ccEmpSel = $("ccEmployeeSelect");
+    if (ccEmpSel) {
+      ccEmpSel.innerHTML = "";
+      ccEmpSel.appendChild(new Option("Selecione o funcionário", ""));
+      activeNames().forEach(n => ccEmpSel.appendChild(new Option(n, n)));
+      ccEmpSel.appendChild(new Option("➕ Digitar outro nome...", "MANUAL"));
     }
 
     renderEmployeeTable();
@@ -4089,6 +4288,17 @@
         renderNewProdsList();
       });
 
+      // ✅ CONTRACHEQUES Snapshot Listener
+      if (unsubscribeCc) {
+        unsubscribeCc();
+        unsubscribeCc = null;
+      }
+      unsubscribeCc = onSnapshot(query(colContracheques(), orderBy("createdAt", "desc")), (qs)=>{
+        contrachequesAll = qs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderContrachequeFilters();
+        renderContrachequesUI();
+      });
+
       // setup tabs
       setupGerTabs();
 
@@ -4439,7 +4649,767 @@ function printProductLabels() {
   win.focus();
 }
 
-$("btnPrintPrices")?.addEventListener("click", printProductLabels);
+  // ===== CONTRACHEQUES LOGIC =====
+  
+  const ccInputs = [
+    "ccValSalary", "ccValExtra", "ccValComm", "ccValOtherE",
+    "ccValInss", "ccValAdvance", "ccValAbsences", "ccValOtherD"
+  ];
+  
+  function calculateCcNetPay() {
+    const valOf = (id) => {
+      const el = $(id);
+      if (!el) return 0;
+      const v = parseFloat(el.value);
+      return isNaN(v) ? 0 : Math.max(0, v);
+    };
+    
+    const salary = valOf("ccValSalary");
+    const extra = valOf("ccValExtra");
+    const comm = valOf("ccValComm");
+    const otherE = valOf("ccValOtherE");
+    
+    const inss = valOf("ccValInss");
+    const advance = valOf("ccValAdvance");
+    const absences = valOf("ccValAbsences");
+    const otherD = valOf("ccValOtherD");
+    
+    const totalEarnings = salary + extra + comm + otherE;
+    const totalDeductions = inss + advance + absences + otherD;
+    const netPay = totalEarnings - totalDeductions;
+    
+    const fmt = (v) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    
+    if ($("ccSummaryEarnings")) $("ccSummaryEarnings").innerText = fmt(totalEarnings);
+    if ($("ccSummaryDeductions")) $("ccSummaryDeductions").innerText = fmt(totalDeductions);
+    if ($("ccSummaryNet")) $("ccSummaryNet").innerText = fmt(netPay);
+    
+    return { totalEarnings, totalDeductions, netPay };
+  }
+  
+  function clearCcForm() {
+    if ($("ccEmployeeSelect")) $("ccEmployeeSelect").value = "";
+    if ($("ccEmployeeManual")) {
+      $("ccEmployeeManual").value = "";
+      $("ccEmployeeManual").classList.add("hidden");
+    }
+    if ($("ccCpf")) $("ccCpf").value = "";
+    if ($("ccRefMonth")) $("ccRefMonth").value = "";
+    if ($("ccPaymentDate")) $("ccPaymentDate").value = "";
+    if ($("ccRole")) $("ccRole").value = "";
+    if ($("ccType")) $("ccType").value = "mensal";
+    if ($("ccObservation")) $("ccObservation").value = "";
+    
+    ccInputs.forEach(id => {
+      const el = $(id);
+      if (el) el.value = "0.00";
+    });
+    
+    calculateCcNetPay();
+  }
+  
+  async function saveContracheque() {
+    if (!isManager()) return toast("Apenas o gerente.");
+    
+    const empSel = $("ccEmployeeSelect")?.value || "";
+    let employeeName = empSel;
+    if (empSel === "MANUAL") {
+      employeeName = $("ccEmployeeManual")?.value.trim() || "";
+    }
+    
+    if (!employeeName) {
+      toast("Por favor, selecione ou digite o nome do funcionário.");
+      return;
+    }
+    
+    const refMonth = $("ccRefMonth")?.value || "";
+    if (!refMonth) {
+      toast("Por favor, informe o mês de referência.");
+      return;
+    }
+    
+    const paymentDate = $("ccPaymentDate")?.value || "";
+    if (!paymentDate) {
+      toast("Por favor, informe a data de pagamento.");
+      return;
+    }
+    
+    const type = $("ccType")?.value || "mensal";
+    const cpf = $("ccCpf")?.value.trim() || "";
+    const role = $("ccRole")?.value.trim() || "";
+    const obs = $("ccObservation")?.value.trim() || "";
+    
+    const valOf = (id) => {
+      const el = $(id);
+      if (!el) return 0;
+      const v = parseFloat(el.value);
+      return isNaN(v) ? 0 : Math.max(0, v);
+    };
+    
+    const salaryBase = valOf("ccValSalary");
+    const extraHours = valOf("ccValExtra");
+    const commissions = valOf("ccValComm");
+    const otherEarnings = valOf("ccValOtherE");
+    const inss = valOf("ccValInss");
+    const advancePay = valOf("ccValAdvance");
+    const absences = valOf("ccValAbsences");
+    const otherDeductions = valOf("ccValOtherD");
+    
+    const { totalEarnings, totalDeductions, netPay } = calculateCcNetPay();
+    
+    if (salaryBase <= 0 && totalEarnings <= 0) {
+      toast("O salário base ou os proventos devem ser maiores que zero.");
+      return;
+    }
+    
+    try {
+      const status = "pendente"; // all start pending physical signature
+      
+      const payload = {
+        employee: employeeName,
+        cpf,
+        referenceMonth: refMonth,
+        paymentDate,
+        type,
+        role,
+        salaryBase,
+        extraHours,
+        commissions,
+        otherEarnings,
+        inss,
+        advancePay,
+        absences,
+        otherDeductions,
+        totalEarnings,
+        totalDeductions,
+        netPay,
+        observation: obs,
+        status,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      await addDoc(colContracheques(), payload);
+      toast("Contracheque gerado e salvo com sucesso!");
+      clearCcForm();
+      
+    } catch(e) {
+      console.error("Erro ao salvar contracheque:", e);
+      toast("Erro ao salvar contracheque.");
+    }
+  }
+  
+  function renderContrachequeFilters() {
+    const filterSel = $("ccFilterEmployee");
+    if (!filterSel) return;
+    
+    const curVal = filterSel.value;
+    filterSel.innerHTML = "";
+    filterSel.appendChild(new Option("Todos os funcionários", ""));
+    
+    const names = new Set();
+    allNames().forEach(n => names.add(n));
+    contrachequesAll.forEach(cc => {
+      if (cc.employee) names.add(cc.employee);
+    });
+    
+    const sorted = Array.from(names).sort((a,b)=>a.localeCompare(b));
+    sorted.forEach(n => {
+      filterSel.appendChild(new Option(n, n));
+    });
+    
+    if (Array.from(filterSel.options).some(o => o.value === curVal)) {
+      filterSel.value = curVal;
+    }
+  }
+  
+  function renderContrachequesUI() {
+    const tbody = $("ccTableBody");
+    if (!tbody) return;
+    
+    const filterEmp = $("ccFilterEmployee")?.value || "";
+    const filterMonth = $("ccFilterMonth")?.value || "";
+    
+    const filtered = contrachequesAll.filter(cc => {
+      if (filterEmp && cc.employee !== filterEmp) return false;
+      if (filterMonth && cc.referenceMonth !== filterMonth) return false;
+      return true;
+    });
+    
+    if (filtered.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="p-8 text-center text-gray-400">
+            Nenhum contracheque encontrado para os filtros selecionados.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+    
+    const fmt = (v) => Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtMonth = (m) => {
+      if (!m) return "-";
+      const parts = m.split("-");
+      if (parts.length === 2) return `${parts[1]}/${parts[0]}`;
+      return m;
+    };
+    const fmtDate = (d) => {
+      if (!d) return "-";
+      const parts = d.split("-");
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return d;
+    };
+    
+    tbody.innerHTML = "";
+    filtered.forEach(cc => {
+      const tr = document.createElement("tr");
+      tr.className = "border-b border-gray-50 hover:bg-gray-50/50 transition";
+      
+      const typeBadge = cc.type === "retroativo" 
+        ? `<span class="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded font-semibold">Retroativo</span>`
+        : `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded font-semibold">Mensal</span>`;
+        
+      const statusBtnClass = cc.status === "assinado"
+        ? "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
+        : "bg-red-100 text-red-800 border-red-200 hover:bg-red-200";
+      const statusText = cc.status === "assinado" ? "✍️ Assinado" : "⏳ Pendente";
+      
+      tr.innerHTML = `
+        <td class="p-3 font-semibold text-gray-800">
+          <div>${cc.employee}</div>
+          ${cc.cpf ? `<div class="text-[10px] text-gray-400 font-normal">CPF: ${cc.cpf}</div>` : ""}
+        </td>
+        <td class="p-3 whitespace-nowrap">${fmtMonth(cc.referenceMonth)}</td>
+        <td class="p-3 whitespace-nowrap">${fmtDate(cc.paymentDate)}</td>
+        <td class="p-3 whitespace-nowrap">${typeBadge}</td>
+        <td class="p-3 text-right font-bold text-gray-900">R$ ${fmt(cc.netPay)}</td>
+        <td class="p-3 text-center whitespace-nowrap">
+          <button class="status-toggle-btn border text-[10px] px-2 py-1 rounded-full font-bold transition ${statusBtnClass}">
+            ${statusText}
+          </button>
+        </td>
+        <td class="p-3 text-right space-x-1 whitespace-nowrap">
+          <button class="print-btn bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded text-[11px] font-semibold transition">
+            🖨️ Imprimir
+          </button>
+          <button class="del-btn bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 px-2.5 py-1 rounded text-[11px] font-semibold transition">
+            Excluir
+          </button>
+        </td>
+      `;
+      
+      tr.querySelector(".status-toggle-btn")?.addEventListener("click", async () => {
+        const nextStatus = cc.status === "assinado" ? "pendente" : "assinado";
+        try {
+          await updateDoc(doc(db, "stores", STORE_ID, "state", "contracheques", "items", cc.id), {
+            status: nextStatus,
+            updatedAt: serverTimestamp()
+          });
+          toast("Status de assinatura atualizado!");
+        } catch(e) {
+          console.error(e);
+          toast("Erro ao atualizar status.");
+        }
+      });
+      
+      tr.querySelector(".print-btn")?.addEventListener("click", () => {
+        printContracheque(cc);
+      });
+      
+      tr.querySelector(".del-btn")?.addEventListener("click", async () => {
+        if (!confirm(`Tem certeza que deseja excluir o contracheque de ${cc.employee} (${fmtMonth(cc.referenceMonth)})?`)) return;
+        try {
+          await deleteDoc(doc(db, "stores", STORE_ID, "state", "contracheques", "items", cc.id));
+          toast("Contracheque excluído.");
+        } catch(e) {
+          console.error(e);
+          toast("Erro ao excluir.");
+        }
+      });
+      
+      tbody.appendChild(tr);
+    });
+  }
+  
+  function printContracheque(cc) {
+    const storeName = (storeKey === "loja_bogados") ? "Bogados" : "Padaria MANÁ DE DEUS";
+    const fmt = (v) => Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtDate = (d) => {
+      if (!d) return "-";
+      const parts = d.split("-");
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return d;
+    };
+    const fmtMonth = (m) => {
+      if (!m) return "-";
+      const parts = m.split("-");
+      if (parts.length === 2) return `${parts[1]}/${parts[0]}`;
+      return m;
+    };
+    
+    const win = window.open("", "_blank");
+    if (!win) return toast("Bloqueador de popups ativado. Permita a abertura de novas janelas.");
+    
+    const earnings = [
+      { code: "001", name: "Salário Base", val: cc.salaryBase },
+      { code: "002", name: "Horas Extras", val: cc.extraHours },
+      { code: "003", name: "Comissões / Prêmios", val: cc.commissions },
+      { code: "004", name: "Outros Proventos", val: cc.otherEarnings }
+    ].filter(x => x.val > 0 || x.code === "001");
+    
+    const deductions = [
+      { code: "101", name: "INSS / Previdência", val: cc.inss },
+      { code: "102", name: "Adiantamento / Vale", val: cc.advancePay },
+      { code: "103", name: "Faltas / Atrasos", val: cc.absences },
+      { code: "104", name: "Outros Descontos", val: cc.otherDeductions }
+    ].filter(x => x.val > 0);
+    
+    const rowHtml = [...earnings.map(e => `
+      <tr>
+        <td>${e.code}</td>
+        <td>${e.name}</td>
+        <td>-</td>
+        <td class="text-right">R$ ${fmt(e.val)}</td>
+        <td class="text-right">-</td>
+      </tr>
+    `), ...deductions.map(d => `
+      <tr>
+        <td>${d.code}</td>
+        <td>${d.name}</td>
+        <td>-</td>
+        <td class="text-right">-</td>
+        <td class="text-right">R$ ${fmt(d.val)}</td>
+      </tr>
+    `)].join("");
+
+    const receiptContent = `
+      <div class="receipt-card">
+        <div class="header-box">
+          <div class="company-info">
+            <div class="company-name">${storeName}</div>
+            <div class="company-sub">Recibo de Pagamento de Salário</div>
+          </div>
+          <div class="ref-info">
+            <div class="ref-label">Mês de Referência</div>
+            <div class="ref-value">${fmtMonth(cc.referenceMonth)}</div>
+          </div>
+        </div>
+        
+        <div class="worker-box">
+          <div class="w-row">
+            <div class="w-col">
+              <strong>Funcionário:</strong> ${cc.employee}
+            </div>
+            <div class="w-col text-right">
+              <strong>CPF:</strong> ${cc.cpf || "Não informado"}
+            </div>
+          </div>
+          <div class="w-row mt-1">
+            <div class="w-col">
+              <strong>Cargo:</strong> ${cc.role || "Funcionário"}
+            </div>
+            <div class="w-col text-right">
+              <strong>Tipo:</strong> ${cc.type === "retroativo" ? "Retroativo" : "Regular"}
+            </div>
+          </div>
+        </div>
+        
+        <table class="receipt-table">
+          <thead>
+            <tr>
+              <th width="8%">Cód.</th>
+              <th width="52%">Descrição</th>
+              <th width="10%">Ref.</th>
+              <th width="15%" class="text-right">Proventos</th>
+              <th width="15%" class="text-right">Descontos</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowHtml}
+            ${Array(Math.max(0, 6 - (earnings.length + deductions.length))).fill(0).map(() => `
+              <tr class="empty-row">
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+        
+        <div class="totals-box">
+          <div class="tot-col">
+            <div class="tot-label">Total de Proventos</div>
+            <div class="tot-value">R$ ${fmt(cc.totalEarnings)}</div>
+          </div>
+          <div class="tot-col">
+            <div class="tot-label">Total de Descontos</div>
+            <div class="tot-value">R$ ${fmt(cc.totalDeductions)}</div>
+          </div>
+          <div class="tot-col net-col">
+            <div class="tot-label">Valor Líquido</div>
+            <div class="tot-value text-blue">R$ ${fmt(cc.netPay)}</div>
+          </div>
+        </div>
+        
+        ${cc.observation ? `
+          <div class="obs-box">
+            <strong>Observações:</strong> ${cc.observation}
+          </div>
+        ` : ""}
+        
+        <div class="declaration-box">
+          <p>
+            Declaro ter recebido a importância líquida discriminada neste recibo, da qual dou plena, geral e irrevogável quitação.
+          </p>
+          <div class="date-row">
+            Data de Pagamento: <strong>${fmtDate(cc.paymentDate)}</strong>
+          </div>
+          
+          <div class="signature-row">
+            <div class="sig-col">
+              <div class="sig-line"></div>
+              <div class="sig-label">Assinatura do Empregador</div>
+            </div>
+            <div class="sig-col">
+              <div class="sig-line"></div>
+              <div class="sig-label">Assinatura do Empregado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const htmlContent = `
+      <html>
+      <head>
+        <title>Recibo - ${cc.employee} - ${fmtMonth(cc.referenceMonth)}</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 10mm;
+          }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            padding: 20px;
+            font-size: 10pt;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .no-print {
+            max-width: 800px;
+            margin: 0 auto 20px;
+            padding: 12px;
+            text-align: center;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+          }
+          .no-print button {
+            padding: 8px 20px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+          }
+          .no-print button:hover {
+            background: #1d4ed8;
+          }
+          .print-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+          }
+          .receipt-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            page-break-inside: avoid;
+            position: relative;
+          }
+          .via-tag {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 7pt;
+            font-weight: bold;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .header-box {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+          }
+          .company-name {
+            font-size: 14pt;
+            font-weight: 800;
+            color: #0f172a;
+          }
+          .company-sub {
+            font-size: 9pt;
+            color: #64748b;
+            font-weight: 600;
+          }
+          .ref-info {
+            text-align: right;
+          }
+          .ref-label {
+            font-size: 8pt;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+          }
+          .ref-value {
+            font-size: 13pt;
+            font-weight: 800;
+            color: #0f172a;
+          }
+          .worker-box {
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+          }
+          .w-row {
+            display: flex;
+            justify-content: space-between;
+          }
+          .w-col {
+            flex: 1;
+          }
+          .mt-1 { margin-top: 4px; }
+          .text-right { text-align: right; }
+          .receipt-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+          }
+          .receipt-table th {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 700;
+            font-size: 8pt;
+            text-transform: uppercase;
+            padding: 6px 8px;
+            text-align: left;
+            border-bottom: 1px solid #cbd5e1;
+          }
+          .receipt-table td {
+            padding: 5px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 9pt;
+          }
+          .receipt-table th.text-right, .receipt-table td.p-val {
+            text-align: right;
+          }
+          .empty-row td {
+            border-bottom: none;
+            color: transparent;
+          }
+          .totals-box {
+            display: flex;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 10px;
+          }
+          .tot-col {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border-right: 1px solid #cbd5e1;
+            background: #f8fafc;
+          }
+          .tot-col:last-child {
+            border-right: none;
+          }
+          .tot-col.net-col {
+            background: #eff6ff;
+          }
+          .tot-label {
+            font-size: 8pt;
+            color: #64748b;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+          }
+          .tot-value {
+            font-size: 11pt;
+            font-weight: 800;
+            color: #1e293b;
+          }
+          .tot-value.text-blue {
+            color: #1d4ed8;
+            font-size: 13pt;
+          }
+          .obs-box {
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 8.5pt;
+            color: #475569;
+            margin-bottom: 10px;
+            background: #fcfcfc;
+          }
+          .declaration-box {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+            margin-top: 10px;
+          }
+          .declaration-box p {
+            font-size: 8.5pt;
+            color: #475569;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            text-align: justify;
+          }
+          .date-row {
+            font-size: 9pt;
+            margin-bottom: 20px;
+          }
+          .signature-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            gap: 40px;
+          }
+          .sig-col {
+            flex: 1;
+            text-align: center;
+          }
+          .sig-line {
+            border-bottom: 1px solid #94a3b8;
+            width: 100%;
+            margin-bottom: 4px;
+          }
+          .sig-label {
+            font-size: 8pt;
+            color: #64748b;
+            font-weight: 600;
+          }
+          .scissors-line {
+            border-top: 1px dashed #94a3b8;
+            text-align: center;
+            margin: 15px 0;
+            position: relative;
+          }
+          .scissors-label {
+            background: #f8fafc;
+            padding: 2px 10px;
+            font-size: 8pt;
+            color: #64748b;
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+          }
+          @media print {
+            .no-print { display: none !important; }
+            body { background: #fff; padding: 0; }
+            .receipt-card { border: 1px solid #000; box-shadow: none; }
+            .scissors-label { background: #fff; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print">
+          <button onclick="window.print()">🖨️ Imprimir Recibo</button>
+          <div style="margin-top: 8px; font-size: 12px; color: #475569;">
+            <label>
+              <input type="checkbox" id="chkTwoVias" onchange="toggleVias(this.checked)" checked> 
+              Imprimir 2 vias na mesma folha (Empregador e Empregado)
+            </label>
+          </div>
+        </div>
+        
+        <div class="print-container">
+          <div id="viaEmpregador" class="receipt-card">
+            <div class="via-tag">Via do Empregador</div>
+            ${receiptContent}
+          </div>
+          
+          <div id="scissorsSeparator" class="scissors-line">
+            <span class="scissors-label">✂️ Cortar aqui</span>
+          </div>
+          
+          <div id="viaEmpregado" class="receipt-card">
+            <div class="via-tag">Via do Empregado</div>
+            ${receiptContent}
+          </div>
+        </div>
+        
+        <script>
+          function toggleVias(showBoth) {
+            document.getElementById("scissorsSeparator").style.display = showBoth ? "block" : "none";
+            document.getElementById("viaEmpregado").style.display = showBoth ? "block" : "none";
+          }
+        <\/script>
+      </body>
+      </html>
+    `;
+    
+    win.document.write(htmlContent);
+    win.document.close();
+  }
+  
+  function setupContrachequeListeners() {
+    ccInputs.forEach(id => {
+      $(id)?.addEventListener("input", calculateCcNetPay);
+    });
+    
+    $("btnSaveCc")?.addEventListener("click", saveContracheque);
+    $("btnClearCc")?.addEventListener("click", clearCcForm);
+    
+    $("ccEmployeeSelect")?.addEventListener("change", (e) => {
+      const val = e.target.value;
+      if (val === "MANUAL") {
+        $("ccEmployeeManual")?.classList.remove("hidden");
+        $("ccEmployeeManual")?.focus();
+      } else {
+        $("ccEmployeeManual")?.classList.add("hidden");
+        if ($("ccEmployeeManual")) $("ccEmployeeManual").value = "";
+      }
+    });
+    
+    $("btnToggleEmployeeMode")?.addEventListener("click", () => {
+      if ($("ccEmployeeSelect")) $("ccEmployeeSelect").value = "MANUAL";
+      $("ccEmployeeManual")?.classList.remove("hidden");
+      $("ccEmployeeManual")?.focus();
+    });
+    
+    $("ccFilterEmployee")?.addEventListener("change", renderContrachequesUI);
+    $("ccFilterMonth")?.addEventListener("change", renderContrachequesUI);
+    $("btnCcClearFilters")?.addEventListener("click", () => {
+      if ($("ccFilterEmployee")) $("ccFilterEmployee").value = "";
+      if ($("ccFilterMonth")) $("ccFilterMonth").value = "";
+      renderContrachequesUI();
+    });
+  }
+
+  // Initialize listeners
+  setupContrachequeListeners();
+
+  $("btnPrintPrices")?.addEventListener("click", printProductLabels);
   
 </script>
 
