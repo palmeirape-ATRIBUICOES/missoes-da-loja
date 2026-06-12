@@ -138,7 +138,7 @@ export default function Paystubs({ onBack }) {
     setAdvancePay('420.00')
     setAbsences('')
     setOtherDeductions('')
-    setObservation('Pagamento de saldo de salário referente ao mês de referência, deduzido o adiantamento salarial.')
+    setObservation('Pagamento de saldo de salário referente ao mês de referência, deduzido o adiantamento salarial e outros descontos aos quais comprei na loja e anotei no caderno.')
   }
 
   function clearForm() {
@@ -333,7 +333,7 @@ export default function Paystubs({ onBack }) {
           </thead>
           <tbody>
             ${rowHtml}
-            ${Array(Math.max(0, 6 - (earnings.length + deductions.length))).fill(0).map(() => `
+            ${Array(Math.max(0, 3 - (earnings.length + deductions.length))).fill(0).map(() => `
               <tr class="empty-row">
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
@@ -403,7 +403,7 @@ export default function Paystubs({ onBack }) {
             background: #f8fafc;
             color: #1e293b;
             padding: 20px;
-            font-size: 10pt;
+            font-size: 9pt;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
@@ -442,14 +442,14 @@ export default function Paystubs({ onBack }) {
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px 16px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             page-break-inside: avoid;
             position: relative;
           }
           .via-tag {
             position: absolute;
-            top: 10px;
+            top: 8px;
             right: 15px;
             font-size: 7pt;
             font-weight: bold;
@@ -461,16 +461,16 @@ export default function Paystubs({ onBack }) {
             display: flex;
             justify-content: space-between;
             border-bottom: 2px solid #334155;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
           }
           .company-name {
-            font-size: 14pt;
+            font-size: 12pt;
             font-weight: 800;
             color: #0f172a;
           }
           .company-sub {
-            font-size: 9pt;
+            font-size: 8.5pt;
             color: #64748b;
             font-weight: 600;
           }
@@ -478,13 +478,13 @@ export default function Paystubs({ onBack }) {
             text-align: right;
           }
           .ref-label {
-            font-size: 8pt;
+            font-size: 7.5pt;
             color: #64748b;
             text-transform: uppercase;
             font-weight: 700;
           }
           .ref-value {
-            font-size: 13pt;
+            font-size: 11pt;
             font-weight: 800;
             color: #0f172a;
           }
@@ -492,8 +492,8 @@ export default function Paystubs({ onBack }) {
             border: 1px solid #e2e8f0;
             background: #f8fafc;
             border-radius: 6px;
-            padding: 8px 12px;
-            margin-bottom: 10px;
+            padding: 6px 10px;
+            margin-bottom: 8px;
           }
           .w-row {
             display: flex;
@@ -502,27 +502,27 @@ export default function Paystubs({ onBack }) {
           .w-col {
             flex: 1;
           }
-          .mt-1 { margin-top: 4px; }
+          .mt-1 { margin-top: 2px; }
           .text-right { text-align: right; }
           .receipt-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
           }
           .receipt-table th {
             background: #f1f5f9;
             color: #475569;
             font-weight: 700;
-            font-size: 8pt;
+            font-size: 7.5pt;
             text-transform: uppercase;
-            padding: 6px 8px;
+            padding: 4px 6px;
             text-align: left;
             border-bottom: 1px solid #cbd5e1;
           }
           .receipt-table td {
-            padding: 5px 8px;
+            padding: 4px 6px;
             border-bottom: 1px solid #f1f5f9;
-            font-size: 9pt;
+            font-size: 8.5pt;
           }
           .receipt-table th.text-right, .receipt-table td.p-val {
             text-align: right;
@@ -536,11 +536,11 @@ export default function Paystubs({ onBack }) {
             border: 1px solid #cbd5e1;
             border-radius: 6px;
             overflow: hidden;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
           }
           .tot-col {
             flex: 1;
-            padding: 8px;
+            padding: 5px;
             text-align: center;
             border-right: 1px solid #cbd5e1;
             background: #f8fafc;
@@ -552,50 +552,50 @@ export default function Paystubs({ onBack }) {
             background: #eff6ff;
           }
           .tot-label {
-            font-size: 8pt;
+            font-size: 7.5pt;
             color: #64748b;
             font-weight: bold;
             text-transform: uppercase;
             margin-bottom: 2px;
           }
           .tot-value {
-            font-size: 11pt;
+            font-size: 10pt;
             font-weight: 800;
             color: #1e293b;
           }
           .tot-value.text-blue {
             color: #1d4ed8;
-            font-size: 13pt;
+            font-size: 11.5pt;
           }
           .obs-box {
             border: 1px dashed #cbd5e1;
             border-radius: 6px;
-            padding: 8px 12px;
-            font-size: 8.5pt;
+            padding: 6px 10px;
+            font-size: 8pt;
             color: #475569;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             background: #fcfcfc;
           }
           .declaration-box {
             border-top: 1px solid #e2e8f0;
-            padding-top: 10px;
-            margin-top: 10px;
+            padding-top: 6px;
+            margin-top: 6px;
           }
           .declaration-box p {
-            font-size: 8.5pt;
+            font-size: 8pt;
             color: #475569;
-            line-height: 1.4;
-            margin-bottom: 8px;
+            line-height: 1.3;
+            margin-bottom: 5px;
             text-align: justify;
           }
           .date-row {
-            font-size: 9pt;
-            margin-bottom: 20px;
+            font-size: 8.5pt;
+            margin-bottom: 12px;
           }
           .signature-row {
             display: flex;
             justify-content: space-between;
-            margin-top: 25px;
+            margin-top: 10px;
             gap: 40px;
           }
           .sig-col {
@@ -615,7 +615,7 @@ export default function Paystubs({ onBack }) {
           .scissors-line {
             border-top: 1px dashed #94a3b8;
             text-align: center;
-            margin: 15px 0;
+            margin: 10px 0;
             position: relative;
           }
           .scissors-label {
@@ -631,8 +631,27 @@ export default function Paystubs({ onBack }) {
           }
           @media print {
             .no-print { display: none !important; }
-            body { background: #fff; padding: 0; }
-            .receipt-card { border: 1px solid #000; box-shadow: none; }
+            body {
+              background: #fff;
+              padding: 0 !important;
+              margin: 0 !important;
+            }
+            .print-container {
+              gap: 8mm;
+            }
+            .receipt-card {
+              border: 1px solid #000;
+              box-shadow: none;
+              height: 132mm;
+              max-height: 132mm;
+              padding: 10px 15px;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+            }
+            .scissors-line {
+              margin: 2px 0;
+            }
             .scissors-label { background: #fff; }
           }
         </style>
