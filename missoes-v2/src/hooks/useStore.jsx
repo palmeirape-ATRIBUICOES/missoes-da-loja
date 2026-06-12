@@ -24,6 +24,7 @@ export function StoreProvider({ children }) {
   const [pdvSales, setPdvSales] = useState([])
   const [labelConfig, setLabelConfig] = useState({})
   const [contrachequesAll, setContrachequesAll] = useState([])
+  const [contrachequeEmployees, setContrachequeEmployees] = useState([])
   const [loading, setLoading] = useState(true)
 
   // Refs
@@ -101,6 +102,12 @@ export function StoreProvider({ children }) {
     const ccQ = query(colRef('state/contracheques/items'), orderBy('createdAt', 'desc'))
     unsubs.push(onSnapshot(ccQ, (qs) => {
       setContrachequesAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
+    }))
+
+    // Contracheque Employees
+    const ccEmpQ = query(colRef('state/contracheque_employees/items'), orderBy('name', 'asc'))
+    unsubs.push(onSnapshot(ccEmpQ, (qs) => {
+      setContrachequeEmployees(qs.docs.map(d => ({ id: d.id, ...d.data() })))
     }))
 
     setLoading(false)
@@ -212,6 +219,18 @@ export function StoreProvider({ children }) {
     await deleteDoc(doc(db, 'stores', storeId, 'state/contracheques/items', id))
   }
 
+  async function saveContrachequeEmployee(emp) {
+    const ref = emp.id ? doc(db, 'stores', storeId, 'state/contracheque_employees/items', emp.id) : doc(colRef('state/contracheque_employees/items'))
+    await setDoc(ref, {
+      ...emp,
+      updatedAt: serverTimestamp()
+    }, { merge: true })
+  }
+
+  async function deleteContrachequeEmployee(id) {
+    await deleteDoc(doc(db, 'stores', storeId, 'state/contracheque_employees/items', id))
+  }
+
   return (
     <StoreContext.Provider value={{
       currentWeekKey, setCurrentWeekKey,
@@ -219,12 +238,13 @@ export function StoreProvider({ children }) {
       globalsAll, globalsWeek, globalsOpen, globalsReview, globalTemplates,
       tasksAll, scoresDoc, listsAll, feedbackAll,
       pdvSales, labelConfig, loading,
-      contrachequesAll,
+      contrachequesAll, contrachequeEmployees,
       getMonthPoints,
       saveProduct, deleteProduct, savePdvSale,
       updateGlobal, deleteGlobalDoc, publishGlobal,
       saveEmployees, saveLabelConfig,
       saveContrachequeDoc, deleteContrachequeDoc,
+      saveContrachequeEmployee, deleteContrachequeEmployee,
       cfgRef, stateRef, colRef
     }}>
       {children}

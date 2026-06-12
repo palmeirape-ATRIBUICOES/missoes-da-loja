@@ -5,7 +5,17 @@ import { formatCurrency } from '../../utils/constants'
 
 export default function Paystubs({ onBack }) {
   const { store } = useAuth()
-  const { activeEmployees, contrachequesAll, saveContrachequeDoc, deleteContrachequeDoc } = useStore()
+  const { 
+    contrachequesAll, 
+    saveContrachequeDoc, 
+    deleteContrachequeDoc, 
+    contrachequeEmployees = [],
+    saveContrachequeEmployee,
+    deleteContrachequeEmployee 
+  } = useStore()
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState('recibos')
 
   // Form states
   const [employee, setEmployee] = useState('')
@@ -36,6 +46,38 @@ export default function Paystubs({ onBack }) {
   const [cadernoPhoto, setCadernoPhoto] = useState('')
   const [activePhotoUrl, setActivePhotoUrl] = useState(null)
 
+  // Direct registration states
+  const [newEmpName, setNewEmpName] = useState('')
+  const [newEmpCpf, setNewEmpCpf] = useState('')
+  const [newEmpRole, setNewEmpRole] = useState('')
+
+  async function handleAddEmployeeDirectly() {
+    if (!newEmpName.trim()) {
+      alert('Por favor, informe o nome do funcionário.')
+      return
+    }
+    const exists = contrachequeEmployees.some(emp => emp.name.toLowerCase() === newEmpName.trim().toLowerCase())
+    if (exists) {
+      alert('Um funcionário com este nome já existe.')
+      return
+    }
+    try {
+      await saveContrachequeEmployee({
+        name: newEmpName.trim(),
+        cpf: newEmpCpf.trim(),
+        role: newEmpRole.trim(),
+        createdAt: new Date()
+      })
+      alert('Funcionário cadastrado com sucesso!')
+      setNewEmpName('')
+      setNewEmpCpf('')
+      setNewEmpRole('')
+    } catch (e) {
+      console.error(e)
+      alert('Erro ao cadastrar funcionário.')
+    }
+  }
+
   // Computed values for current form
   const num = (val) => {
     const n = parseFloat(val)
@@ -65,7 +107,7 @@ export default function Paystubs({ onBack }) {
 
   // List of unique employee names for filter
   const uniqueEmployeeNames = Array.from(new Set([
-    ...activeEmployees.map(e => e.name),
+    ...contrachequeEmployees.map(e => e.name),
     ...(contrachequesAll || []).map(c => c.employee)
   ])).sort((a, b) => a.localeCompare(b))
 
@@ -182,6 +224,17 @@ export default function Paystubs({ onBack }) {
     }
 
     try {
+      // Auto-save manual employee to the separate list if they don't exist
+      const exists = contrachequeEmployees.some(emp => emp.name.toLowerCase() === finalName.trim().toLowerCase())
+      if (!exists) {
+        await saveContrachequeEmployee({
+          name: finalName.trim(),
+          cpf: cpf.trim(),
+          role: role.trim(),
+          createdAt: new Date()
+        })
+      }
+
       const payload = {
         employee: finalName,
         cpf: cpf.trim(),
@@ -714,268 +767,400 @@ export default function Paystubs({ onBack }) {
         </div>
       </header>
 
+      {/* Tabs */}
+      <div className="bg-white border-b border-gray-200 px-4">
+        <div className="max-w-6xl mx-auto flex gap-4">
+          <button
+            onClick={() => setActiveTab('recibos')}
+            className={`py-3 px-1 border-b-2 font-bold text-sm transition-all ${
+              activeTab === 'recibos'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            💵 Recibos de Pagamento
+          </button>
+          <button
+            onClick={() => setActiveTab('funcionarios')}
+            className={`py-3 px-1 border-b-2 font-bold text-sm transition-all flex items-center gap-1.5 ${
+              activeTab === 'funcionarios'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            👥 Funcionários do Contracheque
+            {contrachequeEmployees.length > 0 && (
+              <span className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full font-semibold">
+                {contrachequeEmployees.length}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
       <main className="max-w-6xl mx-auto p-4 space-y-6">
-        <div className="card p-5 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Formulário: Colunas 1 e 2 */}
-          <div className="lg:col-span-2 space-y-4 lg:border-r lg:pr-6 border-gray-100">
-            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <span className="bg-brand-100 text-brand-700 text-xs w-5 h-5 rounded-full flex items-center justify-center">1</span>
-              Dados de Pagamento
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-gray-600 block mb-1">Funcionário *</label>
-                {!isManualEmployee ? (
-                  <div className="flex gap-1.5">
-                    <select className="select flex-1" value={employee} onChange={e => setEmployee(e.target.value)}>
-                      <option value="">Selecione...</option>
-                      {activeEmployees.map(e => (
-                        <option key={e.name} value={e.name}>{e.name}</option>
-                      ))}
-                    </select>
-                    <button type="button" onClick={() => { setIsManualEmployee(true); setEmployee('') }} className="btn btn-ghost text-xs whitespace-nowrap">➕ Digitar</button>
-                  </div>
-                ) : (
-                  <div className="flex gap-1.5">
-                    <input className="input flex-1" placeholder="Nome completo" value={employeeManual} onChange={e => setEmployeeManual(e.target.value)} />
-                    <button type="button" onClick={() => { setIsManualEmployee(false); setEmployeeManual('') }} className="btn btn-ghost text-xs whitespace-nowrap">❌ Lista</button>
-                  </div>
-                )}
-              </div>
+        {activeTab === 'recibos' ? (
+          <>
+            <div className="card p-5 grid grid-cols-1 lg:grid-cols-3 gap-6">
               
-              <div>
-                <label className="text-xs font-bold text-gray-600 block mb-1">CPF (Recomendado)</label>
-                <input className="input" placeholder="000.000.000-00" value={cpf} onChange={e => setCpf(e.target.value)} />
-              </div>
+              {/* Formulário: Colunas 1 e 2 */}
+              <div className="lg:col-span-2 space-y-4 lg:border-r lg:pr-6 border-gray-100">
+                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <span className="bg-brand-100 text-brand-700 text-xs w-5 h-5 rounded-full flex items-center justify-center">1</span>
+                  Dados de Pagamento
+                </h3>
 
-              <div>
-                <label className="text-xs font-bold text-gray-600 block mb-1">Mês de Referência *</label>
-                <input type="month" className="input" value={refMonth} onChange={e => setRefMonth(e.target.value)} />
-              </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-gray-600 block mb-1">Funcionário *</label>
+                    {!isManualEmployee ? (
+                      <div className="flex gap-1.5">
+                        <select 
+                          className="select flex-1" 
+                          value={employee} 
+                          onChange={e => {
+                            const val = e.target.value
+                            setEmployee(val)
+                            const found = contrachequeEmployees.find(emp => emp.name === val)
+                            if (found) {
+                              setCpf(found.cpf || '')
+                              setRole(found.role || '')
+                            }
+                          }}
+                        >
+                          <option value="">Selecione...</option>
+                          {contrachequeEmployees.map(e => (
+                            <option key={e.name} value={e.name}>{e.name}</option>
+                          ))}
+                        </select>
+                        <button type="button" onClick={() => { setIsManualEmployee(true); setEmployee('') }} className="btn btn-ghost text-xs whitespace-nowrap">➕ Digitar</button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-1.5">
+                        <input className="input flex-1" placeholder="Nome completo" value={employeeManual} onChange={e => setEmployeeManual(e.target.value)} />
+                        <button type="button" onClick={() => { setIsManualEmployee(false); setEmployeeManual('') }} className="btn btn-ghost text-xs whitespace-nowrap">❌ Lista</button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs font-bold text-gray-600 block mb-1">CPF (Recomendado)</label>
+                    <input className="input" placeholder="000.000.000-00" value={cpf} onChange={e => setCpf(e.target.value)} />
+                  </div>
 
-              <div>
-                <label className="text-xs font-bold text-gray-600 block mb-1">Data de Pagamento *</label>
-                <input type="date" className="input" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} />
-              </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-600 block mb-1">Mês de Referência *</label>
+                    <input type="month" className="input" value={refMonth} onChange={e => setRefMonth(e.target.value)} />
+                  </div>
 
-              <div>
-                <label className="text-xs font-bold text-gray-600 block mb-1">Cargo / Função</label>
-                <input className="input" placeholder="Ex: Atendente, Caixa" value={role} onChange={e => setRole(e.target.value)} />
-              </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-600 block mb-1">Data de Pagamento *</label>
+                    <input type="date" className="input" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} />
+                  </div>
 
-              <div>
-                <label className="text-xs font-bold text-gray-600 block mb-1">Tipo de Recibo *</label>
-                <select className="select" value={type} onChange={e => setType(e.target.value)}>
-                  <option value="mensal">Mensal (Futuro/Corrente)</option>
-                  <option value="retroativo">Retroativo (Já pago, sem assinatura)</option>
-                </select>
-              </div>
-            </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-600 block mb-1">Cargo / Função</label>
+                    <input className="input" placeholder="Ex: Atendente, Caixa" value={role} onChange={e => setRole(e.target.value)} />
+                  </div>
 
-            {/* Presets Rápidos */}
-            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-              <span className="font-semibold text-blue-800">⚡ Preenchimento Rápido (Histórico desde 10/2022):</span>
-              <div className="flex gap-2">
-                <button type="button" onClick={applyAdiantamentoPreset} className="px-2.5 py-1 bg-white hover:bg-blue-100 text-blue-700 rounded border border-blue-200 font-bold transition active:scale-95">
-                  Adiantamento (Dia 20) — R$ 420
-                </button>
-                <button type="button" onClick={applySalarioPreset} className="px-2.5 py-1 bg-white hover:bg-blue-100 text-blue-700 rounded border border-blue-200 font-bold transition active:scale-95">
-                  Salário (Dia 05) — R$ 1.000
-                </button>
-              </div>
-            </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-600 block mb-1">Tipo de Recibo *</label>
+                    <select className="select" value={type} onChange={e => setType(e.target.value)}>
+                      <option value="mensal">Mensal (Futuro/Corrente)</option>
+                      <option value="retroativo">Retroativo (Já pago, sem assinatura)</option>
+                    </select>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3">
-              {/* Proventos */}
-              <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3">
-                <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-wider">🟢 Proventos (Vencimentos)</h4>
+                {/* Presets Rápidos */}
+                <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <span className="font-semibold text-blue-800">⚡ Preenchimento Rápido (Histórico desde 10/2022):</span>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={applyAdiantamentoPreset} className="px-2.5 py-1 bg-white hover:bg-blue-100 text-blue-700 rounded border border-blue-200 font-bold transition active:scale-95">
+                      Adiantamento (Dia 20) — R$ 420
+                    </button>
+                    <button type="button" onClick={applySalarioPreset} className="px-2.5 py-1 bg-white hover:bg-blue-100 text-blue-700 rounded border border-blue-200 font-bold transition active:scale-95">
+                      Salário (Dia 05) — R$ 1.000
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3">
+                  {/* Proventos */}
+                  <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3">
+                    <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-wider">🟢 Proventos (Vencimentos)</h4>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-600 block mb-1">Salário Base (R$) *</label>
+                      <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={salaryBase} onChange={e => setSalaryBase(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-600 block mb-1">Horas Extras (R$)</label>
+                      <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={extraHours} onChange={e => setExtraHours(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-600 block mb-1">Comissões (R$)</label>
+                      <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={commissions} onChange={e => setCommissions(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-600 block mb-1">Outros Proventos (R$)</label>
+                      <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={otherEarnings} onChange={e => setOtherEarnings(e.target.value)} />
+                    </div>
+                  </div>
+
+                  {/* Descontos */}
+                  <div className="bg-red-50/50 p-4 rounded-xl border border-red-100 space-y-3">
+                    <h4 className="text-xs font-bold text-red-800 uppercase tracking-wider">🔴 Descontos</h4>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-600 block mb-1">INSS / Previdência (R$)</label>
+                      <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={inss} onChange={e => setInss(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-600 block mb-1">Adiantamento / Vale (R$)</label>
+                      <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={advancePay} onChange={e => setAdvancePay(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-600 block mb-1">Faltas / Atrasos (R$)</label>
+                      <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={absences} onChange={e => setAbsences(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-600 block mb-1">Outros Descontos (R$)</label>
+                      <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={otherDeductions} onChange={e => setOtherDeductions(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+
                 <div>
-                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">Salário Base (R$) *</label>
-                  <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={salaryBase} onChange={e => setSalaryBase(e.target.value)} />
+                  <label className="text-xs font-bold text-gray-600 block mb-1">Observações no Recibo</label>
+                  <textarea className="textarea bg-white" rows={2} placeholder="Ex: Pagamento referente a serviços de Diarista/Autônomo..." value={observation} onChange={e => setObservation(e.target.value)} />
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">Horas Extras (R$)</label>
-                  <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={extraHours} onChange={e => setExtraHours(e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">Comissões (R$)</label>
-                  <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={commissions} onChange={e => setCommissions(e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">Outros Proventos (R$)</label>
-                  <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={otherEarnings} onChange={e => setOtherEarnings(e.target.value)} />
+
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                  <label className="text-xs font-bold text-gray-600 block">📷 Anexar Foto do Caderno (Descontos/Anotações)</label>
+                  <input type="file" accept="image/*" className="file-input w-full max-w-xs text-xs" onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      const comp = await compressPhoto(file)
+                      setCadernoPhoto(comp)
+                    }
+                  }} />
+                  {cadernoPhoto && (
+                    <div className="mt-2 relative inline-block">
+                      <img src={cadernoPhoto} alt="Anotações do Caderno" className="h-28 rounded border shadow object-contain" />
+                      <button type="button" onClick={() => setCadernoPhoto('')} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow transition-all active:scale-90">×</button>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Descontos */}
-              <div className="bg-red-50/50 p-4 rounded-xl border border-red-100 space-y-3">
-                <h4 className="text-xs font-bold text-red-800 uppercase tracking-wider">🔴 Descontos</h4>
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">INSS / Previdência (R$)</label>
-                  <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={inss} onChange={e => setInss(e.target.value)} />
+              {/* Resumo e Ação: Coluna 3 */}
+              <div className="flex flex-col justify-between">
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                    <span className="bg-brand-100 text-brand-700 text-xs w-5 h-5 rounded-full flex items-center justify-center">2</span>
+                    Resumo de Valores
+                  </h3>
+
+                  <div className="card bg-gray-50 border p-4 space-y-3">
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>Total Proventos:</span>
+                      <span className="font-semibold text-emerald-700">{formatCurrency(totalEarnings)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>Total Descontos:</span>
+                      <span className="font-semibold text-red-700">{formatCurrency(totalDeductions)}</span>
+                    </div>
+                    <div className="border-t pt-3 flex justify-between items-center">
+                      <span className="font-bold text-gray-800">Valor Líquido:</span>
+                      <span className="text-xl font-extrabold text-blue-600">{formatCurrency(netPay)}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50 text-amber-900 border border-amber-200 rounded-xl p-3 text-xs leading-relaxed space-y-1">
+                    <div>💡 <b>Resguardo Jurídico:</b></div>
+                    <div>Para funcionários sem carteira assinada, recolher a <b>assinatura física</b> do recibo impresso é essencial para evitar processos trabalhistas futuros de vínculo informal.</div>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">Adiantamento / Vale (R$)</label>
-                  <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={advancePay} onChange={e => setAdvancePay(e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">Faltas / Atrasos (R$)</label>
-                  <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={absences} onChange={e => setAbsences(e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-[11px] font-semibold text-gray-600 block mb-1">Outros Descontos (R$)</label>
-                  <input type="number" step="0.01" className="input bg-white" placeholder="0.00" value={otherDeductions} onChange={e => setOtherDeductions(e.target.value)} />
+
+                <div className="space-y-2 mt-6 lg:mt-0">
+                  <button onClick={handleSave} className="w-full btn btn-primary py-2.5 font-bold flex items-center justify-center gap-1.5 shadow-md">
+                    💾 Salvar e Gerar Recibo
+                  </button>
+                  <button onClick={clearForm} className="w-full btn btn-ghost text-xs">
+                    Limpar Campos
+                  </button>
                 </div>
               </div>
             </div>
 
-            <div>
-              <label className="text-xs font-bold text-gray-600 block mb-1">Observações no Recibo</label>
-              <textarea className="textarea bg-white" rows={2} placeholder="Ex: Pagamento referente a serviços de Diarista/Autônomo..." value={observation} onChange={e => setObservation(e.target.value)} />
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-              <label className="text-xs font-bold text-gray-600 block">📷 Anexar Foto do Caderno (Descontos/Anotações)</label>
-              <input type="file" accept="image/*" className="file-input w-full max-w-xs text-xs" onChange={async (e) => {
-                const file = e.target.files?.[0]
-                if (file) {
-                  const comp = await compressPhoto(file)
-                  setCadernoPhoto(comp)
-                }
-              }} />
-              {cadernoPhoto && (
-                <div className="mt-2 relative inline-block">
-                  <img src={cadernoPhoto} alt="Anotações do Caderno" className="h-28 rounded border shadow object-contain" />
-                  <button type="button" onClick={() => setCadernoPhoto('')} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow transition-all active:scale-90">×</button>
+            {/* Histórico */}
+            <div className="card p-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 mb-4">
+                <div>
+                  <h3 className="font-bold text-gray-900">📋 Histórico de Contracheques Gerados</h3>
+                  <p className="text-xs text-gray-500">Recibos e status de assinaturas arquivadas</p>
                 </div>
-              )}
-            </div>
-          </div>
 
-          {/* Resumo e Ação: Coluna 3 */}
-          <div className="flex flex-col justify-between">
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                <span className="bg-brand-100 text-brand-700 text-xs w-5 h-5 rounded-full flex items-center justify-center">2</span>
-                Resumo de Valores
-              </h3>
-
-              <div className="card bg-gray-50 border p-4 space-y-3">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Total Proventos:</span>
-                  <span className="font-semibold text-emerald-700">{formatCurrency(totalEarnings)}</span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>Total Descontos:</span>
-                  <span className="font-semibold text-red-700">{formatCurrency(totalDeductions)}</span>
-                </div>
-                <div className="border-t pt-3 flex justify-between items-center">
-                  <span className="font-bold text-gray-800">Valor Líquido:</span>
-                  <span className="text-xl font-extrabold text-blue-600">{formatCurrency(netPay)}</span>
+                {/* Filtros */}
+                <div className="flex items-center gap-2 flex-wrap text-xs">
+                  <select className="select select-sm w-44" value={filterEmployee} onChange={e => setFilterEmployee(e.target.value)}>
+                    <option value="">Filtrar funcionário...</option>
+                    {uniqueEmployeeNames.map(name => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
+                  <input type="month" className="input input-sm w-36" value={filterMonth} onChange={e => setFilterMonth(e.target.value)} />
+                  {(filterEmployee || filterMonth) && (
+                    <button onClick={() => { setFilterEmployee(''); setFilterMonth('') }} className="btn btn-ghost text-xs">Limpar</button>
+                  )}
                 </div>
               </div>
 
-              <div className="bg-amber-50 text-amber-900 border border-amber-200 rounded-xl p-3 text-xs leading-relaxed space-y-1">
-                <div>💡 <b>Resguardo Jurídico:</b></div>
-                <div>Para funcionários sem carteira assinada, recolher a <b>assinatura física</b> do recibo impresso é essencial para evitar processos trabalhistas futuros de vínculo informal.</div>
-              </div>
-            </div>
-
-            <div className="space-y-2 mt-6 lg:mt-0">
-              <button onClick={handleSave} className="w-full btn btn-primary py-2.5 font-bold flex items-center justify-center gap-1.5 shadow-md">
-                💾 Salvar e Gerar Recibo
-              </button>
-              <button onClick={clearForm} className="w-full btn btn-ghost text-xs">
-                Limpar Campos
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Histórico */}
-        <div className="card p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 mb-4">
-            <div>
-              <h3 className="font-bold text-gray-900">📋 Histórico de Contracheques Gerados</h3>
-              <p className="text-xs text-gray-500">Recibos e status de assinaturas arquivadas</p>
-            </div>
-
-            {/* Filtros */}
-            <div className="flex items-center gap-2 flex-wrap text-xs">
-              <select className="select select-sm w-44" value={filterEmployee} onChange={e => setFilterEmployee(e.target.value)}>
-                <option value="">Filtrar funcionário...</option>
-                {uniqueEmployeeNames.map(name => (
-                  <option key={name} value={name}>{name}</option>
-                ))}
-              </select>
-              <input type="month" className="input input-sm w-36" value={filterMonth} onChange={e => setFilterMonth(e.target.value)} />
-              {(filterEmployee || filterMonth) && (
-                <button onClick={() => { setFilterEmployee(''); setFilterMonth('') }} className="btn btn-ghost text-xs">Limpar</button>
-              )}
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="table w-full text-xs">
-              <thead>
-                <tr className="bg-gray-50 text-gray-600 border-b">
-                  <th className="p-3 text-left">Funcionário</th>
-                  <th className="p-3 text-left">Ref.</th>
-                  <th className="p-3 text-left">Pagamento</th>
-                  <th className="p-3 text-left">Tipo</th>
-                  <th className="p-3 text-right">Líquido</th>
-                  <th className="p-3 text-center">Assinatura</th>
-                  <th className="p-3 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredContracheques.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="p-8 text-center text-gray-400">
-                      Nenhum contracheque localizado.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredContracheques.map(cc => (
-                    <tr key={cc.id} className="hover:bg-gray-50/50">
-                      <td className="p-3 font-semibold text-gray-900">
-                        <div>{cc.employee}</div>
-                        {cc.cpf && <div className="text-[10px] text-gray-400 font-normal">CPF: {cc.cpf}</div>}
-                      </td>
-                      <td className="p-3 whitespace-nowrap">{formatRefMonth(cc.referenceMonth)}</td>
-                      <td className="p-3 whitespace-nowrap">{formatPaymentDate(cc.paymentDate)}</td>
-                      <td className="p-3 whitespace-nowrap">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold
-                          ${cc.type === 'retroativo' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                          {cc.type === 'retroativo' ? 'Retroativo' : 'Mensal'}
-                        </span>
-                      </td>
-                      <td className="p-3 text-right font-bold text-gray-900">{formatCurrency(cc.netPay)}</td>
-                      <td className="p-3 text-center whitespace-nowrap">
-                        <button onClick={() => toggleSignatureStatus(cc)}
-                          className={`px-3 py-1 border rounded-full text-[10px] font-bold active:scale-95 transition-all
-                            ${cc.status === 'assinado' 
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                              : 'bg-red-50 text-red-700 border-red-200'}`}>
-                          {cc.status === 'assinado' ? '✍️ Assinado' : '⏳ Pendente'}
-                        </button>
-                      </td>
-                      <td className="p-3 text-right space-x-1 whitespace-nowrap">
-                        {cc.cadernoPhoto && (
-                          <button onClick={() => setActivePhotoUrl(cc.cadernoPhoto)} className="btn btn-ghost text-xs text-purple-600 font-bold">📷 Caderno</button>
-                        )}
-                        <button onClick={() => handlePrint(cc)} className="btn btn-ghost text-xs text-blue-600">🖨️ Imprimir</button>
-                        <button onClick={() => handleDelete(cc)} className="btn btn-ghost text-xs text-red-600">Excluir</button>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="table w-full text-xs">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-600 border-b">
+                      <th className="p-3 text-left">Funcionário</th>
+                      <th className="p-3 text-left">Ref.</th>
+                      <th className="p-3 text-left">Pagamento</th>
+                      <th className="p-3 text-left">Tipo</th>
+                      <th className="p-3 text-right">Líquido</th>
+                      <th className="p-3 text-center">Assinatura</th>
+                      <th className="p-3 text-right">Ações</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredContracheques.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-gray-400">
+                          Nenhum contracheque localizado.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredContracheques.map(cc => (
+                        <tr key={cc.id} className="hover:bg-gray-50/50">
+                          <td className="p-3 font-semibold text-gray-900">
+                            <div>{cc.employee}</div>
+                            {cc.cpf && <div className="text-[10px] text-gray-400 font-normal">CPF: {cc.cpf}</div>}
+                          </td>
+                          <td className="p-3 whitespace-nowrap">{formatRefMonth(cc.referenceMonth)}</td>
+                          <td className="p-3 whitespace-nowrap">{formatPaymentDate(cc.paymentDate)}</td>
+                          <td className="p-3 whitespace-nowrap">
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold
+                              ${cc.type === 'retroativo' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                              {cc.type === 'retroativo' ? 'Retroativo' : 'Mensal'}
+                            </span>
+                          </td>
+                          <td className="p-3 text-right font-bold text-gray-900">{formatCurrency(cc.netPay)}</td>
+                          <td className="p-3 text-center whitespace-nowrap">
+                            <button onClick={() => toggleSignatureStatus(cc)}
+                              className={`px-3 py-1 border rounded-full text-[10px] font-bold active:scale-95 transition-all
+                                ${cc.status === 'assinado' 
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                  : 'bg-red-50 text-red-700 border-red-200'}`}>
+                              {cc.status === 'assinado' ? '✍️ Assinado' : '⏳ Pendente'}
+                            </button>
+                          </td>
+                          <td className="p-3 text-right space-x-1 whitespace-nowrap">
+                            {cc.cadernoPhoto && (
+                              <button onClick={() => setActivePhotoUrl(cc.cadernoPhoto)} className="btn btn-ghost text-xs text-purple-600 font-bold">📷 Caderno</button>
+                            )}
+                            <button onClick={() => handlePrint(cc)} className="btn btn-ghost text-xs text-blue-600">🖨️ Imprimir</button>
+                            <button onClick={() => handleDelete(cc)} className="btn btn-ghost text-xs text-red-600">Excluir</button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="card p-5 space-y-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
+              <div>
+                <h3 className="font-bold text-gray-900 text-base">👥 Cadastro de Funcionários para Contracheque</h3>
+                <p className="text-xs text-gray-500">Cadastre e gerencie os funcionários exclusivos dos recibos de pagamento (não têm acesso/login no aplicativo).</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Form de Cadastro Rápido */}
+              <div className="card bg-gray-50 border p-4 space-y-4 h-fit">
+                <h4 className="font-bold text-sm text-gray-800 border-b pb-2">➕ Novo Funcionário</h4>
+                
+                <div>
+                  <label className="text-xs font-bold text-gray-600 block mb-1">Nome Completo *</label>
+                  <input className="input bg-white text-xs" placeholder="Nome do funcionário" value={newEmpName} onChange={e => setNewEmpName(e.target.value)} />
+                </div>
+                
+                <div>
+                  <label className="text-xs font-bold text-gray-600 block mb-1">CPF (Recomendado)</label>
+                  <input className="input bg-white text-xs" placeholder="000.000.000-00" value={newEmpCpf} onChange={e => setNewEmpCpf(e.target.value)} />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-gray-600 block mb-1">Cargo / Função</label>
+                  <input className="input bg-white text-xs" placeholder="Ex: Atendente, Caixa" value={newEmpRole} onChange={e => setNewEmpRole(e.target.value)} />
+                </div>
+
+                <button onClick={handleAddEmployeeDirectly} className="w-full btn btn-primary py-2 font-bold text-xs flex items-center justify-center gap-1.5 shadow">
+                  💾 Salvar Funcionário
+                </button>
+              </div>
+
+              {/* Tabela de Funcionários */}
+              <div className="lg:col-span-2">
+                <div className="overflow-x-auto border rounded-xl bg-white">
+                  <table className="table w-full text-xs">
+                    <thead>
+                      <tr className="bg-gray-50 text-gray-600 border-b">
+                        <th className="p-3 text-left">Nome</th>
+                        <th className="p-3 text-left">CPF</th>
+                        <th className="p-3 text-left">Cargo</th>
+                        <th className="p-3 text-center w-24">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {contrachequeEmployees.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="p-8 text-center text-gray-400">
+                            Nenhum funcionário cadastrado ainda. Use o formulário ao lado ou digite manualmente ao gerar um recibo.
+                          </td>
+                        </tr>
+                      ) : (
+                        contrachequeEmployees.map(emp => (
+                          <tr key={emp.id} className="hover:bg-gray-50/50">
+                            <td className="p-3 font-semibold text-gray-900">{emp.name}</td>
+                            <td className="p-3">{emp.cpf || 'Não informado'}</td>
+                            <td className="p-3">{emp.role || 'Não informado'}</td>
+                            <td className="p-3 text-center">
+                              <button 
+                                onClick={async () => {
+                                  if (confirm(`Excluir o funcionário ${emp.name}?`)) {
+                                    try {
+                                      await deleteContrachequeEmployee(emp.id)
+                                    } catch (e) {
+                                      console.error(e)
+                                      alert('Erro ao excluir.')
+                                    }
+                                  }
+                                }} 
+                                className="btn btn-ghost text-xs text-red-600 font-bold hover:bg-red-50 px-2 py-1 rounded"
+                              >
+                                Excluir
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </main>
 
       {/* Modal Visualizador de Foto do Caderno */}
