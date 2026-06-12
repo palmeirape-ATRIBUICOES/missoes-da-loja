@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 export default function ManagerDashboard() {
   const { currentUser, store, logout } = useAuth()
-  const { currentWeekKey, globalsWeek, globalsOpen, tasksAll, activeEmployees, products, pdvSales, feedbackAll } = useStore()
+  const { currentWeekKey, globalsWeek, globalsOpen, tasksAll, activeEmployees, products, pdvSales, feedbackAll, contrachequesAll } = useStore()
   const navigate = useNavigate()
 
   const todaySales = pdvSales.filter(s => {
@@ -21,6 +21,7 @@ export default function ManagerDashboard() {
     { key: 'produtos', icon: '📦', label: 'Produtos', color: 'from-orange-500 to-orange-600', badge: products.length, action: () => navigate('/gerente/produtos') },
     { key: 'etiquetas', icon: '🏷️', label: 'Etiquetas', color: 'from-pink-500 to-pink-600', action: () => navigate('/gerente/etiquetas') },
     { key: 'equipe', icon: '👥', label: 'Equipe', color: 'from-cyan-500 to-cyan-600', badge: activeEmployees.length, action: () => navigate('/gerente/equipe') },
+    { key: 'contracheques', icon: '💵', label: 'Contracheques', color: 'from-sky-500 to-indigo-600', badge: (contrachequesAll || []).filter(c => c.status === 'pendente').length, action: () => navigate('/gerente/contracheques') },
     { key: 'feedback', icon: '💬', label: 'Feedback', color: 'from-amber-500 to-amber-600', badge: feedbackAll.filter(f => f.status === 'new').length, action: () => navigate('/gerente/feedback') },
     { key: 'config', icon: '⚙️', label: 'Configurações', color: 'from-gray-500 to-gray-600', action: () => navigate('/gerente/config') },
   ]

@@ -11,6 +11,7 @@ import Globals from './pages/manager/Globals'
 import Tasks from './pages/manager/Tasks'
 import Config from './pages/manager/Config'
 import Feedback from './pages/manager/Feedback'
+import Paystubs from './pages/manager/Paystubs'
 import PublicStore from './pages/PublicStore'
 import PermissionsRequest from './components/PermissionsRequest'
 import LabelsGenerator from './pages/manager/LabelsGenerator'
@@ -47,6 +48,7 @@ function GlobalsPage() { const n = useNavigate(); return <Globals onBack={() => 
 function TasksPage() { const n = useNavigate(); return <Tasks onBack={() => n('/gerente')} /> }
 function ConfigPage() { const n = useNavigate(); return <Config onBack={() => n('/gerente')} /> }
 function FeedbackPage() { const n = useNavigate(); return <Feedback onBack={() => n('/gerente')} /> }
+function PaystubsPage() { const n = useNavigate(); return <Paystubs onBack={() => n('/gerente')} /> }
 
 function AppRoutes() {
   const { currentUser, isManager, loading, firebaseUser } = useAuth()
@@ -93,6 +95,7 @@ function AppRoutes() {
         <Route path="/gerente/tarefas" element={isManager ? <TasksPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/config" element={isManager ? <ConfigPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/feedback" element={isManager ? <FeedbackPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/contracheques" element={isManager ? <PaystubsPage /> : <Navigate to="/funcionario" />} />
         <Route path="/funcionario" element={!isManager ? <EmployeeDashboard /> : <Navigate to="/gerente" />} />
         <Route path="/funcionario/produtos" element={!isManager ? <ProductsPageFunc /> : <Navigate to="/gerente" />} />
         <Route path="*" element={<Navigate to={location.pathname.startsWith('/pdv') ? '/pdv' : (isManager ? '/gerente' : '/funcionario')} />} />

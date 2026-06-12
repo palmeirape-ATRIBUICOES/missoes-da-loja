@@ -23,6 +23,7 @@ export function StoreProvider({ children }) {
   const [feedbackAll, setFeedbackAll] = useState([])
   const [pdvSales, setPdvSales] = useState([])
   const [labelConfig, setLabelConfig] = useState({})
+  const [contrachequesAll, setContrachequesAll] = useState([])
   const [loading, setLoading] = useState(true)
 
   // Refs
@@ -94,6 +95,12 @@ export function StoreProvider({ children }) {
     const salesQ = query(colRef('pdv_sales'), orderBy('createdAt', 'desc'), limit(500))
     unsubs.push(onSnapshot(salesQ, (qs) => {
       setPdvSales(qs.docs.map(d => ({ id: d.id, ...d.data() })))
+    }))
+
+    // Contracheques
+    const ccQ = query(colRef('state/contracheques/items'), orderBy('createdAt', 'desc'))
+    unsubs.push(onSnapshot(ccQ, (qs) => {
+      setContrachequesAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
     }))
 
     setLoading(false)
@@ -193,6 +200,18 @@ export function StoreProvider({ children }) {
     await setDoc(cfgRef('labels'), { ...config, updatedAt: serverTimestamp() }, { merge: false })
   }
 
+  async function saveContrachequeDoc(cc) {
+    const ref = cc.id ? doc(db, 'stores', storeId, 'state/contracheques/items', cc.id) : doc(colRef('state/contracheques/items'))
+    await setDoc(ref, {
+      ...cc,
+      updatedAt: serverTimestamp()
+    }, { merge: true })
+  }
+
+  async function deleteContrachequeDoc(id) {
+    await deleteDoc(doc(db, 'stores', storeId, 'state/contracheques/items', id))
+  }
+
   return (
     <StoreContext.Provider value={{
       currentWeekKey, setCurrentWeekKey,
@@ -200,10 +219,12 @@ export function StoreProvider({ children }) {
       globalsAll, globalsWeek, globalsOpen, globalsReview, globalTemplates,
       tasksAll, scoresDoc, listsAll, feedbackAll,
       pdvSales, labelConfig, loading,
+      contrachequesAll,
       getMonthPoints,
       saveProduct, deleteProduct, savePdvSale,
       updateGlobal, deleteGlobalDoc, publishGlobal,
       saveEmployees, saveLabelConfig,
+      saveContrachequeDoc, deleteContrachequeDoc,
       cfgRef, stateRef, colRef
     }}>
       {children}
