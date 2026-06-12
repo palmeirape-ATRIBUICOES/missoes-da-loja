@@ -261,7 +261,30 @@ export default function Paystubs({ onBack }) {
 
       await saveContrachequeDoc(payload)
       alert('Contracheque gerado e salvo com sucesso!')
-      clearForm()
+      
+      // Prepare for next month sequence
+      if (refMonth) {
+        const [year, month] = refMonth.split('-').map(Number)
+        let nextMonth = month + 1
+        let nextYear = year
+        if (nextMonth > 12) {
+          nextMonth = 1
+          nextYear += 1
+        }
+        const nextMonthStr = String(nextMonth).padStart(2, '0')
+        setRefMonth(`${nextYear}-${nextMonthStr}`)
+      }
+      setPaymentDate('')
+      setObservation('')
+      setSalaryBase('')
+      setExtraHours('')
+      setCommissions('')
+      setOtherEarnings('')
+      setInss('')
+      setAdvancePay('')
+      setAbsences('')
+      setOtherDeductions('')
+      setCadernoPhoto('')
     } catch (e) {
       console.error(e)
       alert('Erro ao salvar o contracheque.')
