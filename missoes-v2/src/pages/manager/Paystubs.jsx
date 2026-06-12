@@ -33,6 +33,9 @@ export default function Paystubs({ onBack }) {
   const [filterEmployee, setFilterEmployee] = useState('')
   const [filterMonth, setFilterMonth] = useState('')
 
+  const [cadernoPhoto, setCadernoPhoto] = useState('')
+  const [activePhotoUrl, setActivePhotoUrl] = useState(null)
+
   // Computed values for current form
   const num = (val) => {
     const n = parseFloat(val)
@@ -66,6 +69,78 @@ export default function Paystubs({ onBack }) {
     ...(contrachequesAll || []).map(c => c.employee)
   ])).sort((a, b) => a.localeCompare(b))
 
+  function compressPhoto(file) {
+    return new Promise((resolve) => {
+      if (!file) { resolve(''); return; }
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const maxW = 1000
+          let w = img.width
+          let h = img.height
+          if (w > maxW) {
+            h = Math.round((h * maxW) / w)
+            w = maxW
+          }
+          canvas.width = w
+          canvas.height = h
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, w, h)
+          resolve(canvas.toDataURL('image/jpeg', 0.7))
+        }
+        img.src = e.target.result
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  function applyAdiantamentoPreset() {
+    if (!refMonth) {
+      alert('Por favor, informe primeiro o mês de referência.')
+      return
+    }
+    setPaymentDate(`${refMonth}-20`)
+    setType('retroativo')
+    setSalaryBase('')
+    setExtraHours('')
+    setCommissions('')
+    setOtherEarnings('420.00')
+    setInss('')
+    setAdvancePay('')
+    setAbsences('')
+    setOtherDeductions('')
+    setObservation('Adiantamento quinzenal de salário referente ao mês de referência.')
+  }
+
+  function applySalarioPreset() {
+    if (!refMonth) {
+      alert('Por favor, informe primeiro o mês de referência.')
+      return
+    }
+    const [year, month] = refMonth.split('-').map(Number)
+    let nextMonth = month + 1
+    let nextYear = year
+    if (nextMonth > 12) {
+      nextMonth = 1
+      nextYear += 1
+    }
+    const nextMonthStr = String(nextMonth).padStart(2, '0')
+    setPaymentDate(`${nextYear}-${nextMonthStr}-05`)
+    
+    setType('retroativo')
+    setSalaryBase('1420.00')
+    setExtraHours('')
+    setCommissions('')
+    setOtherEarnings('')
+    setInss('')
+    setAdvancePay('420.00')
+    setAbsences('')
+    setOtherDeductions('')
+    setObservation('Pagamento de saldo de salário referente ao mês de referência, deduzido o adiantamento salarial.')
+  }
+
   function clearForm() {
     setEmployee('')
     setEmployeeManual('')
@@ -84,6 +159,7 @@ export default function Paystubs({ onBack }) {
     setAdvancePay('')
     setAbsences('')
     setOtherDeductions('')
+    setCadernoPhoto('')
   }
 
   async function handleSave() {
@@ -126,6 +202,7 @@ export default function Paystubs({ onBack }) {
         netPay,
         observation: observation.trim(),
         status: 'pendente',
+        cadernoPhoto,
         createdAt: new Date()
       }
 
@@ -678,6 +755,19 @@ export default function Paystubs({ onBack }) {
               </div>
             </div>
 
+            {/* Presets Rápidos */}
+            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <span className="font-semibold text-blue-800">⚡ Preenchimento Rápido (Histórico desde 10/2022):</span>
+              <div className="flex gap-2">
+                <button type="button" onClick={applyAdiantamentoPreset} className="px-2.5 py-1 bg-white hover:bg-blue-100 text-blue-700 rounded border border-blue-200 font-bold transition active:scale-95">
+                  Adiantamento (Dia 20) — R$ 420
+                </button>
+                <button type="button" onClick={applySalarioPreset} className="px-2.5 py-1 bg-white hover:bg-blue-100 text-blue-700 rounded border border-blue-200 font-bold transition active:scale-95">
+                  Salário (Dia 05) — R$ 1.000
+                </button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3">
               {/* Proventos */}
               <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 space-y-3">
@@ -725,6 +815,23 @@ export default function Paystubs({ onBack }) {
             <div>
               <label className="text-xs font-bold text-gray-600 block mb-1">Observações no Recibo</label>
               <textarea className="textarea bg-white" rows={2} placeholder="Ex: Pagamento referente a serviços de Diarista/Autônomo..." value={observation} onChange={e => setObservation(e.target.value)} />
+            </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+              <label className="text-xs font-bold text-gray-600 block">📷 Anexar Foto do Caderno (Descontos/Anotações)</label>
+              <input type="file" accept="image/*" className="file-input w-full max-w-xs text-xs" onChange={async (e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  const comp = await compressPhoto(file)
+                  setCadernoPhoto(comp)
+                }
+              }} />
+              {cadernoPhoto && (
+                <div className="mt-2 relative inline-block">
+                  <img src={cadernoPhoto} alt="Anotações do Caderno" className="h-28 rounded border shadow object-contain" />
+                  <button type="button" onClick={() => setCadernoPhoto('')} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow transition-all active:scale-90">×</button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -837,6 +944,9 @@ export default function Paystubs({ onBack }) {
                         </button>
                       </td>
                       <td className="p-3 text-right space-x-1 whitespace-nowrap">
+                        {cc.cadernoPhoto && (
+                          <button onClick={() => setActivePhotoUrl(cc.cadernoPhoto)} className="btn btn-ghost text-xs text-purple-600 font-bold">📷 Caderno</button>
+                        )}
                         <button onClick={() => handlePrint(cc)} className="btn btn-ghost text-xs text-blue-600">🖨️ Imprimir</button>
                         <button onClick={() => handleDelete(cc)} className="btn btn-ghost text-xs text-red-600">Excluir</button>
                       </td>
@@ -848,6 +958,22 @@ export default function Paystubs({ onBack }) {
           </div>
         </div>
       </main>
+
+      {/* Modal Visualizador de Foto do Caderno */}
+      {activePhotoUrl && (
+        <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4" onClick={() => setActivePhotoUrl(null)}>
+          <div className="relative bg-white p-2 rounded-2xl max-w-3xl max-h-[90vh] overflow-auto flex flex-col items-center shadow-2xl" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setActivePhotoUrl(null)} className="absolute top-3 right-3 bg-gray-950 text-white w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold shadow hover:bg-black active:scale-95 transition-all">×</button>
+            <div className="p-4 max-w-full">
+              <img src={activePhotoUrl} alt="Anotações do Caderno" className="max-w-full max-h-[70vh] rounded-lg object-contain" />
+            </div>
+            <div className="mt-2 flex gap-4 w-full justify-between items-center px-4 pb-2 border-t pt-2 text-xs text-gray-500">
+              <span>Anotações do Caderno (Descontos)</span>
+              <a href={activePhotoUrl} download={`caderno_anotacoes_${Date.now()}.jpg`} className="bg-brand-50 text-brand-700 font-bold px-3 py-1.5 rounded-lg hover:bg-brand-100 transition">📥 Baixar Foto</a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
