@@ -386,7 +386,7 @@ export default function Paystubs({ onBack }) {
           </thead>
           <tbody>
             ${rowHtml}
-            ${Array(Math.max(0, 3 - (earnings.length + deductions.length))).fill(0).map(() => `
+            ${Array(Math.max(0, 1 - (earnings.length + deductions.length))).fill(0).map(() => `
               <tr class="empty-row">
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
@@ -495,7 +495,7 @@ export default function Paystubs({ onBack }) {
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            padding: 12px 16px;
+            padding: 10px 12px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             page-break-inside: avoid;
             position: relative;
@@ -696,11 +696,11 @@ export default function Paystubs({ onBack }) {
               border: 1px solid #cbd5e1;
               border-radius: 8px;
               box-shadow: none;
-              padding: 12px 16px;
+              padding: 8px 12px;
               page-break-inside: avoid;
             }
             .scissors-line {
-              margin: 10px 0;
+              margin: 6px 0;
             }
             .scissors-label { background: #fff; }
           }
@@ -718,8 +718,7 @@ export default function Paystubs({ onBack }) {
         </div>
         
         <div class="print-container">
-          <div id="viaEmpregador" class="receipt-card">
-            <div class="via-tag">Via do Empregador</div>
+          <div id="viaEmpregador">
             ${receiptContent}
           </div>
           
@@ -727,8 +726,7 @@ export default function Paystubs({ onBack }) {
             <span class="scissors-label">✂️ Cortar aqui</span>
           </div>
           
-          <div id="viaEmpregado" class="receipt-card">
-            <div class="via-tag">Via do Empregado</div>
+          <div id="viaEmpregado">
             ${receiptContent}
           </div>
         </div>
