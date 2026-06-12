@@ -690,20 +690,17 @@ export default function Paystubs({ onBack }) {
               margin: 0 !important;
             }
             .print-container {
-              gap: 8mm;
+              gap: 10mm;
             }
             .receipt-card {
-              border: 1px solid #000;
+              border: 1px solid #cbd5e1;
+              border-radius: 8px;
               box-shadow: none;
-              height: 132mm;
-              max-height: 132mm;
-              padding: 10px 15px;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
+              padding: 12px 16px;
+              page-break-inside: avoid;
             }
             .scissors-line {
-              margin: 2px 0;
+              margin: 10px 0;
             }
             .scissors-label { background: #fff; }
           }
