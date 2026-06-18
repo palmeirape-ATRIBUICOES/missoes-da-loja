@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from '../../hooks/useStore'
 import { useAuth } from '../../hooks/useAuth'
 import { formatCurrency } from '../../utils/constants'
@@ -27,6 +27,10 @@ export default function Paystubs({ onBack }) {
   const [role, setRole] = useState('')
   const [type, setType] = useState('mensal')
   const [observation, setObservation] = useState('')
+
+  // Company details
+  const [companyName, setCompanyName] = useState('')
+  const [companyCnpj, setCompanyCnpj] = useState('')
 
   // Numeric states
   const [salaryBase, setSalaryBase] = useState('')
@@ -79,6 +83,20 @@ export default function Paystubs({ onBack }) {
       alert('Erro ao cadastrar funcionário.')
     }
   }
+
+  useEffect(() => {
+    if (contrachequesAll && contrachequesAll.length > 0 && !companyName) {
+      const lastWithCompany = contrachequesAll.find(c => c.companyName)
+      if (lastWithCompany) {
+        setCompanyName(lastWithCompany.companyName || '')
+        setCompanyCnpj(lastWithCompany.companyCnpj || '')
+      } else {
+        setCompanyName(store?.name || 'Padaria')
+      }
+    } else if (!companyName && store?.name) {
+      setCompanyName(store.name)
+    }
+  }, [contrachequesAll, store])
 
   // Computed values for current form
   const num = (val) => {
@@ -224,6 +242,8 @@ export default function Paystubs({ onBack }) {
     setPaymentDate(cc.paymentDate || '')
     setRole(cc.role || '')
     setType(cc.type || 'mensal')
+    setCompanyName(cc.companyName || store?.name || 'Padaria')
+    setCompanyCnpj(cc.companyCnpj || '')
     setObservation(cc.observation || '')
     setSalaryBase(cc.salaryBase ? String(cc.salaryBase) : '')
     setExtraHours(cc.extraHours ? String(cc.extraHours) : '')
@@ -271,6 +291,8 @@ export default function Paystubs({ onBack }) {
       const payload = {
         employee: finalName,
         cpf: cpf.trim(),
+        companyName: companyName.trim(),
+        companyCnpj: companyCnpj.trim(),
         referenceMonth: refMonth,
         paymentDate,
         type,
@@ -369,7 +391,8 @@ export default function Paystubs({ onBack }) {
   }
 
   function handlePrint(cc) {
-    const storeName = store?.name || store?.shortName || 'Padaria'
+    const storeName = cc.companyName || store?.name || store?.shortName || 'Padaria'
+    const cnpjHtml = cc.companyCnpj ? `<div style="font-size: 8.5pt; color: #64748b; font-weight: bold; margin-top: 1px;">CNPJ: ${cc.companyCnpj}</div>` : ''
     
     const fmt = (v) => Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     
@@ -405,12 +428,22 @@ export default function Paystubs({ onBack }) {
       </tr>
     `)].join('')
 
+    let subTitle = 'Recibo de Pagamento de Salário'
+    if (cc.type === '13_salario') {
+      subTitle = 'Recibo de 13º Salário'
+    } else if (cc.type === 'ferias') {
+      subTitle = 'Recibo de Férias'
+    } else if (cc.observation && cc.observation.toLowerCase().includes('adiantamento')) {
+      subTitle = 'Recibo de Adiantamento Salarial'
+    }
+
     const receiptContent = `
       <div class="receipt-card">
         <div class="header-box">
           <div class="company-info">
             <div class="company-name">${storeName}</div>
-            <div class="company-sub">Recibo de Pagamento de Salário</div>
+            ${cnpjHtml}
+            <div class="company-sub">${subTitle}</div>
           </div>
           <div class="ref-info">
             <div class="ref-label">Mês de Referência</div>
@@ -432,7 +465,11 @@ export default function Paystubs({ onBack }) {
               <strong>Cargo:</strong> ${cc.role || 'Funcionário'}
             </div>
             <div class="w-col text-right">
-              <strong>Tipo:</strong> ${cc.type === 'retroativo' ? 'Retroativo' : 'Regular'}
+              <strong>Tipo:</strong> ${
+              cc.type === 'retroativo' ? 'Retroativo' : 
+              cc.type === '13_salario' ? '13º Salário' :
+              cc.type === 'ferias' ? 'Férias' : 'Mensal'
+            }
             </div>
           </div>
         </div>
@@ -934,7 +971,19 @@ export default function Paystubs({ onBack }) {
                     <select className="select" value={type} onChange={e => setType(e.target.value)}>
                       <option value="mensal">Mensal (Futuro/Corrente)</option>
                       <option value="retroativo">Retroativo (Já pago, sem assinatura)</option>
+                      <option value="13_salario">13º Salário</option>
+                      <option value="ferias">Férias</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-gray-600 block mb-1">Empresa / Razão Social</label>
+                    <input className="input" placeholder="Ex: Padaria Maná de Deus" value={companyName} onChange={e => setCompanyName(e.target.value)} />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-gray-600 block mb-1">CNPJ da Empresa</label>
+                    <input className="input" placeholder="00.000.000/0000-00" value={companyCnpj} onChange={e => setCompanyCnpj(e.target.value)} />
                   </div>
                 </div>
 
@@ -1117,8 +1166,13 @@ export default function Paystubs({ onBack }) {
                           <td className="p-3 whitespace-nowrap">{formatPaymentDate(cc.paymentDate)}</td>
                           <td className="p-3 whitespace-nowrap">
                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold
-                              ${cc.type === 'retroativo' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                              {cc.type === 'retroativo' ? 'Retroativo' : 'Mensal'}
+                              ${cc.type === 'retroativo' ? 'bg-amber-100 text-amber-800' : 
+                                cc.type === '13_salario' ? 'bg-purple-100 text-purple-800' :
+                                cc.type === 'ferias' ? 'bg-sky-100 text-sky-800' :
+                                'bg-emerald-100 text-emerald-800'}`}>
+                              {cc.type === 'retroativo' ? 'Retroativo' : 
+                               cc.type === '13_salario' ? '13º Salário' :
+                               cc.type === 'ferias' ? 'Férias' : 'Mensal'}
                             </span>
                           </td>
                           <td className="p-3 text-right font-bold text-gray-900">{formatCurrency(cc.netPay)}</td>
