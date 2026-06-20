@@ -553,7 +553,8 @@ export default function Paystubs({ onBack }) {
 
   function handlePrint(cc) {
     const receiptContent = buildReceiptContent(cc)
-    
+    const showBoth = true // Single print default is always 2 vias
+
     const htmlContent = `
       <html>
       <head>
@@ -796,6 +797,52 @@ export default function Paystubs({ onBack }) {
             transform: translateX(-50%);
             font-weight: bold;
           }
+
+          /* STYLE RULES FOR DYNAMIC 1 vs 2 VIAS AND PAGE BREAKS */
+          .via-empregado-class {
+            display: none;
+          }
+          .scissors-line-internal {
+            display: none;
+          }
+          .scissors-line-between {
+            display: none;
+          }
+          .print-container {
+            page-break-after: auto;
+            break-after: auto;
+          }
+          .print-container:nth-child(2n) {
+            page-break-after: always;
+            break-after: page;
+          }
+          .print-container:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+          .print-container:nth-child(2n+1):not(:last-child) .scissors-line-between {
+            display: block;
+            margin-top: 20px;
+          }
+
+          body.show-two-vias .via-empregado-class {
+            display: block;
+          }
+          body.show-two-vias .scissors-line-internal {
+            display: block;
+          }
+          body.show-two-vias .scissors-line-between {
+            display: none !important;
+          }
+          body.show-two-vias .print-container {
+            page-break-after: always;
+            break-after: page;
+          }
+          body.show-two-vias .print-container:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+
           @media print {
             .no-print { display: none !important; }
             body {
@@ -808,15 +855,6 @@ export default function Paystubs({ onBack }) {
               width: 100%;
               margin: 0 !important;
               padding: 0 !important;
-            }
-            .print-container {
-              gap: 10mm;
-              page-break-after: always;
-              break-after: page;
-            }
-            .print-container:last-child {
-              page-break-after: avoid;
-              break-after: avoid;
             }
             .receipt-card {
               border: 1px solid #cbd5e1;
@@ -832,12 +870,12 @@ export default function Paystubs({ onBack }) {
           }
         </style>
       </head>
-      <body>
+      <body class="${showBoth ? 'show-two-vias' : ''}">
         <div class="no-print">
           <button onclick="window.print()">🖨️ Imprimir Recibo</button>
           <div style="margin-top: 8px; font-size: 12px; color: #475569;">
             <label>
-              <input type="checkbox" id="chkTwoVias" onchange="toggleVias(this.checked)" checked> 
+              <input type="checkbox" id="chkTwoVias" onchange="toggleVias(this.checked)" ${showBoth ? 'checked' : ''}> 
               Imprimir 2 vias na mesma folha (Empregador e Empregado)
             </label>
           </div>
@@ -849,22 +887,27 @@ export default function Paystubs({ onBack }) {
               ${receiptContent}
             </div>
             
-            <div class="scissors-line-class scissors-line">
+            <div class="scissors-line-internal scissors-line">
               <span class="scissors-label">✂️ Cortar aqui</span>
             </div>
             
             <div class="via-empregado-class">
               ${receiptContent}
             </div>
+            
+            <div class="scissors-line-between scissors-line">
+              <span class="scissors-label">✂️ Cortar aqui</span>
+            </div>
           </div>
         </div>
         
         <script>
           function toggleVias(showBoth) {
-            const separators = document.querySelectorAll(".scissors-line-class");
-            const secondVias = document.querySelectorAll(".via-empregado-class");
-            separators.forEach(el => el.style.display = showBoth ? "block" : "none");
-            secondVias.forEach(el => el.style.display = showBoth ? "block" : "none");
+            if (showBoth) {
+              document.body.classList.add("show-two-vias");
+            } else {
+              document.body.classList.remove("show-two-vias");
+            }
           }
         <\/script>
       </body>
@@ -910,12 +953,16 @@ export default function Paystubs({ onBack }) {
             ${receiptContent}
           </div>
           
-          <div class="scissors-line-class scissors-line" style="${showBoth ? '' : 'display: none;'}">
+          <div class="scissors-line-internal scissors-line">
             <span class="scissors-label">✂️ Cortar aqui</span>
           </div>
           
-          <div class="via-empregado-class" style="${showBoth ? '' : 'display: none;'}">
+          <div class="via-empregado-class">
             ${receiptContent}
+          </div>
+          
+          <div class="scissors-line-between scissors-line">
+            <span class="scissors-label">✂️ Cortar aqui</span>
           </div>
         </div>
       `
@@ -1163,6 +1210,52 @@ export default function Paystubs({ onBack }) {
             transform: translateX(-50%);
             font-weight: bold;
           }
+
+          /* STYLE RULES FOR DYNAMIC 1 vs 2 VIAS AND PAGE BREAKS */
+          .via-empregado-class {
+            display: none;
+          }
+          .scissors-line-internal {
+            display: none;
+          }
+          .scissors-line-between {
+            display: none;
+          }
+          .print-container {
+            page-break-after: auto;
+            break-after: auto;
+          }
+          .print-container:nth-child(2n) {
+            page-break-after: always;
+            break-after: page;
+          }
+          .print-container:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+          .print-container:nth-child(2n+1):not(:last-child) .scissors-line-between {
+            display: block;
+            margin-top: 20px;
+          }
+
+          body.show-two-vias .via-empregado-class {
+            display: block;
+          }
+          body.show-two-vias .scissors-line-internal {
+            display: block;
+          }
+          body.show-two-vias .scissors-line-between {
+            display: none !important;
+          }
+          body.show-two-vias .print-container {
+            page-break-after: always;
+            break-after: page;
+          }
+          body.show-two-vias .print-container:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+
           @media print {
             .no-print { display: none !important; }
             body {
@@ -1175,15 +1268,6 @@ export default function Paystubs({ onBack }) {
               width: 100%;
               margin: 0 !important;
               padding: 0 !important;
-            }
-            .print-container {
-              gap: 10mm;
-              page-break-after: always;
-              break-after: page;
-            }
-            .print-container:last-child {
-              page-break-after: avoid;
-              break-after: avoid;
             }
             .receipt-card {
               border: 1px solid #cbd5e1;
@@ -1199,7 +1283,7 @@ export default function Paystubs({ onBack }) {
           }
         </style>
       </head>
-      <body>
+      <body class="${showBoth ? 'show-two-vias' : ''}">
         <div class="no-print">
           <button onclick="window.print()">🖨️ Imprimir Recibos (${sortedList.length})</button>
           <div style="margin-top: 8px; font-size: 12px; color: #475569;">
@@ -1216,10 +1300,11 @@ export default function Paystubs({ onBack }) {
         
         <script>
           function toggleVias(showBoth) {
-            const separators = document.querySelectorAll(".scissors-line-class");
-            const secondVias = document.querySelectorAll(".via-empregado-class");
-            separators.forEach(el => el.style.display = showBoth ? "block" : "none");
-            secondVias.forEach(el => el.style.display = showBoth ? "block" : "none");
+            if (showBoth) {
+              document.body.classList.add("show-two-vias");
+            } else {
+              document.body.classList.remove("show-two-vias");
+            }
           }
         <\/script>
       </body>
