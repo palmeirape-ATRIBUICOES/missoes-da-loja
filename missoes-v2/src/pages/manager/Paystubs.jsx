@@ -624,6 +624,9 @@ export default function Paystubs({ onBack }) {
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             page-break-inside: avoid;
             position: relative;
+            height: 130mm;
+            display: flex;
+            flex-direction: column;
           }
           .header-box {
             display: flex;
@@ -747,7 +750,7 @@ export default function Paystubs({ onBack }) {
           .declaration-box {
             border-top: 1px solid #e2e8f0;
             padding-top: 6px;
-            margin-top: 6px;
+            margin-top: auto;
           }
           .declaration-box p {
             font-size: 8pt;
@@ -1037,6 +1040,9 @@ export default function Paystubs({ onBack }) {
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             page-break-inside: avoid;
             position: relative;
+            height: 130mm;
+            display: flex;
+            flex-direction: column;
           }
           .header-box {
             display: flex;
@@ -1160,7 +1166,7 @@ export default function Paystubs({ onBack }) {
           .declaration-box {
             border-top: 1px solid #e2e8f0;
             padding-top: 6px;
-            margin-top: 6px;
+            margin-top: auto;
           }
           .declaration-box p {
             font-size: 8pt;
