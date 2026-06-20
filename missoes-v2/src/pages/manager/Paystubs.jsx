@@ -32,6 +32,11 @@ export default function Paystubs({ onBack }) {
   const [companyName, setCompanyName] = useState('')
   const [companyCnpj, setCompanyCnpj] = useState('')
 
+  // Bulk actions states
+  const [selectedIds, setSelectedIds] = useState([])
+  const [bulkVias, setBulkVias] = useState(2)
+  const [bulkSortOrder, setBulkSortOrder] = useState('cronologica')
+
   // Numeric states
   const [salaryBase, setSalaryBase] = useState('')
   const [extraHours, setExtraHours] = useState('')
@@ -124,6 +129,9 @@ export default function Paystubs({ onBack }) {
     if (filterMonth && cc.referenceMonth !== filterMonth) return false
     return true
   })
+
+  const filteredIds = filteredContracheques.map(cc => cc.id)
+  const allFilteredSelected = filteredIds.length > 0 && filteredIds.every(id => selectedIds.includes(id))
 
   // List of unique employee names for filter
   const uniqueEmployeeNames = Array.from(new Set([
@@ -370,6 +378,7 @@ export default function Paystubs({ onBack }) {
     if (!confirm(`Excluir o recibo de ${cc.employee} (Ref: ${formatRefMonth(cc.referenceMonth)})?`)) return
     try {
       await deleteContrachequeDoc(cc.id)
+      setSelectedIds(prev => prev.filter(id => id !== cc.id))
     } catch (e) {
       console.error(e)
       alert('Erro ao excluir.')
@@ -390,7 +399,7 @@ export default function Paystubs({ onBack }) {
     return d
   }
 
-  function handlePrint(cc) {
+  const buildReceiptContent = (cc) => {
     const storeName = cc.companyName || store?.name || store?.shortName || 'Padaria'
     const cnpjHtml = cc.companyCnpj ? `<div style="font-size: 8.5pt; color: #64748b; font-weight: bold; margin-top: 1px;">CNPJ: ${cc.companyCnpj}</div>` : ''
     
@@ -437,7 +446,7 @@ export default function Paystubs({ onBack }) {
       subTitle = 'Recibo de Adiantamento Salarial'
     }
 
-    const receiptContent = `
+    return `
       <div class="receipt-card">
         <div class="header-box">
           <div class="company-info">
@@ -540,7 +549,11 @@ export default function Paystubs({ onBack }) {
         </div>
       </div>
     `
+  }
 
+  function handlePrint(cc) {
+    const receiptContent = buildReceiptContent(cc)
+    
     const htmlContent = `
       <html>
       <head>
@@ -584,12 +597,23 @@ export default function Paystubs({ onBack }) {
           .no-print button:hover {
             background: #1d4ed8;
           }
-          .print-container {
+          .print-wrapper {
             max-width: 800px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
             gap: 20px;
+          }
+          .print-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            page-break-after: always;
+            break-after: page;
+          }
+          .print-container:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
           }
           .receipt-card {
             background: #ffffff;
@@ -599,16 +623,6 @@ export default function Paystubs({ onBack }) {
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             page-break-inside: avoid;
             position: relative;
-          }
-          .via-tag {
-            position: absolute;
-            top: 8px;
-            right: 15px;
-            font-size: 7pt;
-            font-weight: bold;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
           }
           .header-box {
             display: flex;
@@ -789,8 +803,20 @@ export default function Paystubs({ onBack }) {
               padding: 0 !important;
               margin: 0 !important;
             }
+            .print-wrapper {
+              max-width: 100%;
+              width: 100%;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
             .print-container {
               gap: 10mm;
+              page-break-after: always;
+              break-after: page;
+            }
+            .print-container:last-child {
+              page-break-after: avoid;
+              break-after: avoid;
             }
             .receipt-card {
               border: 1px solid #cbd5e1;
@@ -817,24 +843,383 @@ export default function Paystubs({ onBack }) {
           </div>
         </div>
         
-        <div class="print-container">
-          <div id="viaEmpregador">
-            ${receiptContent}
-          </div>
-          
-          <div id="scissorsSeparator" class="scissors-line">
-            <span class="scissors-label">✂️ Cortar aqui</span>
-          </div>
-          
-          <div id="viaEmpregado">
-            ${receiptContent}
+        <div class="print-wrapper">
+          <div class="print-container">
+            <div class="via-empregador-class">
+              ${receiptContent}
+            </div>
+            
+            <div class="scissors-line-class scissors-line">
+              <span class="scissors-label">✂️ Cortar aqui</span>
+            </div>
+            
+            <div class="via-empregado-class">
+              ${receiptContent}
+            </div>
           </div>
         </div>
         
         <script>
           function toggleVias(showBoth) {
-            document.getElementById("scissorsSeparator").style.display = showBoth ? "block" : "none";
-            document.getElementById("viaEmpregado").style.display = showBoth ? "block" : "none";
+            const separators = document.querySelectorAll(".scissors-line-class");
+            const secondVias = document.querySelectorAll(".via-empregado-class");
+            separators.forEach(el => el.style.display = showBoth ? "block" : "none");
+            secondVias.forEach(el => el.style.display = showBoth ? "block" : "none");
+          }
+        <\/script>
+      </body>
+      </html>
+    `
+
+    const win = window.open('', '_blank')
+    if (win) {
+      win.document.write(htmlContent)
+      win.document.close()
+    } else {
+      alert('Bloqueador de popup ativo. Permita a abertura de novas abas para imprimir.')
+    }
+  }
+
+  function handlePrintSelected() {
+    const selectedCCs = (contrachequesAll || []).filter(cc => selectedIds.includes(cc.id))
+    if (selectedCCs.length === 0) {
+      alert('Nenhum contracheque selecionado.')
+      return
+    }
+
+    const sortedList = [...selectedCCs].sort((a, b) => {
+      const monthA = a.referenceMonth || ''
+      const monthB = b.referenceMonth || ''
+      let cmp = monthA.localeCompare(monthB)
+      if (cmp !== 0) {
+        return bulkSortOrder === 'cronologica' ? cmp : -cmp
+      }
+      const dateA = a.paymentDate || ''
+      const dateB = b.paymentDate || ''
+      cmp = dateA.localeCompare(dateB)
+      return bulkSortOrder === 'cronologica' ? cmp : -cmp
+    })
+
+    const showBoth = bulkVias === 2
+
+    const printContainersHtml = sortedList.map(cc => {
+      const receiptContent = buildReceiptContent(cc)
+      return `
+        <div class="print-container">
+          <div class="via-empregador-class">
+            ${receiptContent}
+          </div>
+          
+          <div class="scissors-line-class scissors-line" style="${showBoth ? '' : 'display: none;'}">
+            <span class="scissors-label">✂️ Cortar aqui</span>
+          </div>
+          
+          <div class="via-empregado-class" style="${showBoth ? '' : 'display: none;'}">
+            ${receiptContent}
+          </div>
+        </div>
+      `
+    }).join('\n')
+
+    const htmlContent = `
+      <html>
+      <head>
+        <title>Recibos em Lote - ${sortedList.length} itens</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 10mm;
+          }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            padding: 20px;
+            font-size: 9pt;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .no-print {
+            max-width: 800px;
+            margin: 0 auto 20px;
+            padding: 12px;
+            text-align: center;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+          }
+          .no-print button {
+            padding: 8px 20px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+          }
+          .no-print button:hover {
+            background: #1d4ed8;
+          }
+          .print-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+          }
+          .print-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            page-break-after: always;
+            break-after: page;
+          }
+          .print-container:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+          .receipt-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            page-break-inside: avoid;
+            position: relative;
+          }
+          .header-box {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+          }
+          .company-name {
+            font-size: 12pt;
+            font-weight: 800;
+            color: #0f172a;
+          }
+          .company-sub {
+            font-size: 8.5pt;
+            color: #64748b;
+            font-weight: 600;
+          }
+          .ref-info {
+            text-align: right;
+          }
+          .ref-label {
+            font-size: 7.5pt;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+          }
+          .ref-value {
+            font-size: 11pt;
+            font-weight: 800;
+            color: #0f172a;
+          }
+          .worker-box {
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 6px;
+            padding: 6px 10px;
+            margin-bottom: 8px;
+          }
+          .w-row {
+            display: flex;
+            justify-content: space-between;
+          }
+          .w-col {
+            flex: 1;
+          }
+          .mt-1 { margin-top: 2px; }
+          .text-right { text-align: right; }
+          .receipt-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+          }
+          .receipt-table th {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 700;
+            font-size: 7.5pt;
+            text-transform: uppercase;
+            padding: 4px 6px;
+            text-align: left;
+            border-bottom: 1px solid #cbd5e1;
+          }
+          .receipt-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 8.5pt;
+          }
+          .receipt-table th.text-right, .receipt-table td.p-val {
+            text-align: right;
+          }
+          .empty-row td {
+            border-bottom: none;
+            color: transparent;
+          }
+          .totals-box {
+            display: flex;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+          }
+          .tot-col {
+            flex: 1;
+            padding: 5px;
+            text-align: center;
+            border-right: 1px solid #cbd5e1;
+            background: #f8fafc;
+          }
+          .tot-col:last-child {
+            border-right: none;
+          }
+          .tot-col.net-col {
+            background: #eff6ff;
+          }
+          .tot-label {
+            font-size: 7.5pt;
+            color: #64748b;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+          }
+          .tot-value {
+            font-size: 10pt;
+            font-weight: 800;
+            color: #1e293b;
+          }
+          .tot-value.text-blue {
+            color: #1d4ed8;
+            font-size: 11.5pt;
+          }
+          .obs-box {
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 8pt;
+            color: #475569;
+            margin-bottom: 8px;
+            background: #fcfcfc;
+          }
+          .declaration-box {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 6px;
+            margin-top: 6px;
+          }
+          .declaration-box p {
+            font-size: 8pt;
+            color: #475569;
+            line-height: 1.3;
+            margin-bottom: 5px;
+            text-align: justify;
+          }
+          .date-row {
+            font-size: 8.5pt;
+            margin-bottom: 12px;
+          }
+          .signature-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            gap: 40px;
+          }
+          .sig-col {
+            flex: 1;
+            text-align: center;
+          }
+          .sig-line {
+            border-bottom: 1px solid #94a3b8;
+            width: 100%;
+            margin-bottom: 4px;
+          }
+          .sig-label {
+            font-size: 8pt;
+            color: #64748b;
+            font-weight: 600;
+          }
+          .scissors-line {
+            border-top: 1px dashed #94a3b8;
+            text-align: center;
+            margin: 10px 0;
+            position: relative;
+          }
+          .scissors-label {
+            background: #f8fafc;
+            padding: 2px 10px;
+            font-size: 8pt;
+            color: #64748b;
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+          }
+          @media print {
+            .no-print { display: none !important; }
+            body {
+              background: #fff;
+              padding: 0 !important;
+              margin: 0 !important;
+            }
+            .print-wrapper {
+              max-width: 100%;
+              width: 100%;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            .print-container {
+              gap: 10mm;
+              page-break-after: always;
+              break-after: page;
+            }
+            .print-container:last-child {
+              page-break-after: avoid;
+              break-after: avoid;
+            }
+            .receipt-card {
+              border: 1px solid #cbd5e1;
+              border-radius: 8px;
+              box-shadow: none;
+              padding: 8px 12px;
+              page-break-inside: avoid;
+            }
+            .scissors-line {
+              margin: 6px 0;
+            }
+            .scissors-label { background: #fff; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print">
+          <button onclick="window.print()">🖨️ Imprimir Recibos (${sortedList.length})</button>
+          <div style="margin-top: 8px; font-size: 12px; color: #475569;">
+            <label>
+              <input type="checkbox" id="chkTwoVias" onchange="toggleVias(this.checked)" ${showBoth ? 'checked' : ''}> 
+              Imprimir 2 vias na mesma folha (Empregador e Empregado)
+            </label>
+          </div>
+        </div>
+        
+        <div class="print-wrapper">
+          ${printContainersHtml}
+        </div>
+        
+        <script>
+          function toggleVias(showBoth) {
+            const separators = document.querySelectorAll(".scissors-line-class");
+            const secondVias = document.querySelectorAll(".via-empregado-class");
+            separators.forEach(el => el.style.display = showBoth ? "block" : "none");
+            secondVias.forEach(el => el.style.display = showBoth ? "block" : "none");
           }
         <\/script>
       </body>
@@ -1122,23 +1507,99 @@ export default function Paystubs({ onBack }) {
 
                 {/* Filtros */}
                 <div className="flex items-center gap-2 flex-wrap text-xs">
-                  <select className="select select-sm w-44" value={filterEmployee} onChange={e => setFilterEmployee(e.target.value)}>
+                  <select className="select select-sm w-44" value={filterEmployee} onChange={e => {
+                    setFilterEmployee(e.target.value)
+                    // Reset selected ids when filter changes to avoid printing wrong/invisible items
+                    setSelectedIds([])
+                  }}>
                     <option value="">Filtrar funcionário...</option>
                     {uniqueEmployeeNames.map(name => (
                       <option key={name} value={name}>{name}</option>
                     ))}
                   </select>
-                  <input type="month" className="input input-sm w-36" value={filterMonth} onChange={e => setFilterMonth(e.target.value)} />
+                  <input type="month" className="input input-sm w-36" value={filterMonth} onChange={e => {
+                    setFilterMonth(e.target.value)
+                    setSelectedIds([])
+                  }} />
                   {(filterEmployee || filterMonth) && (
-                    <button onClick={() => { setFilterEmployee(''); setFilterMonth('') }} className="btn btn-ghost text-xs">Limpar</button>
+                    <button onClick={() => { setFilterEmployee(''); setFilterMonth(''); setSelectedIds([]) }} className="btn btn-ghost text-xs">Limpar</button>
                   )}
                 </div>
               </div>
+
+              {/* Painel de Ações em Lote */}
+              {selectedIds.length > 0 && (
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {selectedIds.length}
+                    </span>
+                    <span className="font-semibold text-blue-900">
+                      {selectedIds.length === 1 ? 'Contracheque selecionado' : 'Contracheques selecionados'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-1">
+                      <label className="font-bold text-gray-700">Imprimir:</label>
+                      <select 
+                        className="select select-sm py-0.5 px-2 text-xs bg-white border border-gray-300 rounded" 
+                        value={bulkVias} 
+                        onChange={e => setBulkVias(Number(e.target.value))}
+                      >
+                        <option value={1}>1 Via</option>
+                        <option value={2}>2 Vias (Empregador + Empregado)</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <label className="font-bold text-gray-700">Ordem:</label>
+                      <select 
+                        className="select select-sm py-0.5 px-2 text-xs bg-white border border-gray-300 rounded" 
+                        value={bulkSortOrder} 
+                        onChange={e => setBulkSortOrder(e.target.value)}
+                      >
+                        <option value="cronologica">Cronológica (Antigos primeiro)</option>
+                        <option value="inversa">Inversa (Novos primeiro)</option>
+                      </select>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={handlePrintSelected} 
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded shadow transition active:scale-95 flex items-center gap-1"
+                      >
+                        🖨️ Imprimir Selecionados
+                      </button>
+                      <button 
+                        onClick={() => setSelectedIds([])} 
+                        className="px-2 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold rounded transition active:scale-95"
+                      >
+                        Limpar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="overflow-x-auto">
                 <table className="table w-full text-xs">
                   <thead>
                     <tr className="bg-gray-50 text-gray-600 border-b">
+                      <th className="p-3 text-center w-10">
+                        <input 
+                          type="checkbox" 
+                          className="checkbox"
+                          checked={allFilteredSelected} 
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedIds(prev => Array.from(new Set([...prev, ...filteredIds])))
+                            } else {
+                              setSelectedIds(prev => prev.filter(id => !filteredIds.includes(id)))
+                            }
+                          }}
+                        />
+                      </th>
                       <th className="p-3 text-left">Funcionário</th>
                       <th className="p-3 text-left">Ref.</th>
                       <th className="p-3 text-left">Pagamento</th>
@@ -1151,13 +1612,27 @@ export default function Paystubs({ onBack }) {
                   <tbody className="divide-y divide-gray-100">
                     {filteredContracheques.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="p-8 text-center text-gray-400">
+                        <td colSpan={8} className="p-8 text-center text-gray-400">
                           Nenhum contracheque localizado.
                         </td>
                       </tr>
                     ) : (
                       filteredContracheques.map(cc => (
                         <tr key={cc.id} className="hover:bg-gray-50/50">
+                          <td className="p-3 text-center">
+                            <input 
+                              type="checkbox" 
+                              className="checkbox"
+                              checked={selectedIds.includes(cc.id)} 
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedIds(prev => [...prev, cc.id])
+                                } else {
+                                  setSelectedIds(prev => prev.filter(id => id !== cc.id))
+                                }
+                              }}
+                            />
+                          </td>
                           <td className="p-3 font-semibold text-gray-900">
                             <div>{cc.employee}</div>
                             {cc.cpf && <div className="text-[10px] text-gray-400 font-normal">CPF: {cc.cpf}</div>}
