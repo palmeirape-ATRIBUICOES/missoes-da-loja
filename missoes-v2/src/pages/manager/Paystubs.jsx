@@ -29,8 +29,8 @@ export default function Paystubs({ onBack }) {
   const [observation, setObservation] = useState('')
 
   // Company details
-  const [companyName, setCompanyName] = useState('')
-  const [companyCnpj, setCompanyCnpj] = useState('')
+  const [companyName, setCompanyName] = useState('MANÁ PANIFICADORA E COMERCIO LTDA')
+  const [companyCnpj, setCompanyCnpj] = useState('31.269.546/0001-76')
 
   // Bulk actions states
   const [selectedIds, setSelectedIds] = useState([])
@@ -90,18 +90,11 @@ export default function Paystubs({ onBack }) {
   }
 
   useEffect(() => {
-    if (contrachequesAll && contrachequesAll.length > 0 && !companyName) {
-      const lastWithCompany = contrachequesAll.find(c => c.companyName)
-      if (lastWithCompany) {
-        setCompanyName(lastWithCompany.companyName || '')
-        setCompanyCnpj(lastWithCompany.companyCnpj || '')
-      } else {
-        setCompanyName(store?.name || 'Padaria')
-      }
-    } else if (!companyName && store?.name) {
-      setCompanyName(store.name)
+    if (!companyName) {
+      setCompanyName('MANÁ PANIFICADORA E COMERCIO LTDA')
+      setCompanyCnpj('31.269.546/0001-76')
     }
-  }, [contrachequesAll, store])
+  }, [companyName])
 
   // Computed values for current form
   const num = (val) => {
@@ -250,8 +243,8 @@ export default function Paystubs({ onBack }) {
     setPaymentDate(cc.paymentDate || '')
     setRole(cc.role || '')
     setType(cc.type || 'mensal')
-    setCompanyName(cc.companyName || store?.name || 'Padaria')
-    setCompanyCnpj(cc.companyCnpj || '')
+    setCompanyName(cc.companyName || 'MANÁ PANIFICADORA E COMERCIO LTDA')
+    setCompanyCnpj(cc.companyCnpj || '31.269.546/0001-76')
     setObservation(cc.observation || '')
     setSalaryBase(cc.salaryBase ? String(cc.salaryBase) : '')
     setExtraHours(cc.extraHours ? String(cc.extraHours) : '')
@@ -400,8 +393,9 @@ export default function Paystubs({ onBack }) {
   }
 
   const buildReceiptContent = (cc) => {
-    const storeName = cc.companyName || store?.name || store?.shortName || 'Padaria'
-    const cnpjHtml = cc.companyCnpj ? `<div style="font-size: 8.5pt; color: #64748b; font-weight: bold; margin-top: 1px;">CNPJ: ${cc.companyCnpj}</div>` : ''
+    const storeName = (cc.companyName && cc.companyName !== 'Padaria' && (!store?.name || cc.companyName !== store.name)) ? cc.companyName : 'MANÁ PANIFICADORA E COMERCIO LTDA'
+    const companyCnpj = cc.companyCnpj || '31.269.546/0001-76'
+    const cnpjHtml = `<div style="font-size: 8.5pt; color: #64748b; font-weight: bold; margin-top: 1px;">CNPJ: ${companyCnpj}</div>`
     
     const fmt = (v) => Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     

@@ -3,17 +3,27 @@ import { useStore } from '../../hooks/useStore'
 import { useAuth } from '../../hooks/useAuth'
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../../config/firebase'
-import { nowHuman } from '../../utils/constants'
+import { nowHuman, normalizeWeekKeyLoose } from '../../utils/constants'
 
 const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
 export default function Globals({ onBack }) {
   const { storeId, currentUser } = useAuth()
-  const { globalTemplates, globalsWeek, globalsOpen, deleteGlobalDoc, publishGlobal, cfgRef } = useStore()
-  const [tab, setTab] = useState('published') // 'published' | 'templates'
+  const { globalTemplates, globalsWeek, globalsOpen, deleteGlobalDoc, publishGlobal, cfgRef, currentWeekKey, globalsAll } = useStore()
+  const [tab, setTab] = useState('published') // 'published' | 'templates' | 'past_weeks'
   const [showTemplateForm, setShowTemplateForm] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [form, setForm] = useState({ name: '', items: '', scheduledDay: '', scheduledHour: '08:00' })
+
+  // Filtering and grouping past weeks' globals
+  const currentWeekNormalized = normalizeWeekKeyLoose(currentWeekKey)
+  const pastGlobals = (globalsAll || []).filter(g => normalizeWeekKeyLoose(g.weekKey) !== currentWeekNormalized)
+  const pastGlobalsByWeek = pastGlobals.reduce((acc, g) => {
+    const key = g.weekKey || 'Sem Semana'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(g)
+    return acc
+  }, {})
 
   function resetForm() {
     setForm({ name: '', items: '', scheduledDay: '', scheduledHour: '08:00' })
@@ -94,6 +104,10 @@ export default function Globals({ onBack }) {
             className={`pdv-cat-tab whitespace-nowrap shrink-0 ${tab === 'review' ? 'active' : ''}`}>
             👀 Revisão ({globalsWeek.filter(g => g.status === 'review' || g.status === 'completed').length})
           </button>
+          <button onClick={() => setTab('past_weeks')}
+            className={`pdv-cat-tab whitespace-nowrap shrink-0 ${tab === 'past_weeks' ? 'active' : ''}`}>
+            📅 Semanas Anteriores ({pastGlobals.length})
+          </button>
           <button onClick={() => setTab('templates')}
             className={`pdv-cat-tab whitespace-nowrap shrink-0 ${tab === 'templates' ? 'active' : ''}`}>
             📁 Templates ({globalTemplates.length})
@@ -146,6 +160,62 @@ export default function Globals({ onBack }) {
                globalsWeek.filter(g => g.status === 'review' || g.status === 'completed').map(g => (
                  <GlobalReviewCard key={g.id} globalDoc={g} />
                ))
+            )}
+          </div>
+        )}
+
+        {/* Past Weeks Globals */}
+        {tab === 'past_weeks' && (
+          <div className="space-y-6 animate-slide-up">
+            {Object.keys(pastGlobalsByWeek).length === 0 ? (
+              <div className="text-center p-8 text-gray-400">
+                <div className="text-4xl mb-2">📅</div>
+                <div className="font-semibold">Nenhuma global de semanas anteriores</div>
+              </div>
+            ) : (
+              Object.keys(pastGlobalsByWeek)
+                .sort((a, b) => b.localeCompare(a))
+                .map(week => (
+                  <div key={week} className="space-y-3">
+                    <div className="flex items-center justify-between border-b border-gray-200 pb-1.5 mt-2">
+                      <span className="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+                        <span>📅 Semana {week}</span>
+                      </span>
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-bold">
+                        {pastGlobalsByWeek[week].length} {pastGlobalsByWeek[week].length === 1 ? 'global' : 'globais'}
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {pastGlobalsByWeek[week].map(g => {
+                        if (g.status === 'open') {
+                          return (
+                            <div key={g.id} className="card p-4 border-l-4 border-l-gray-400 bg-gray-50/50">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="font-bold text-gray-900">{g.name || 'GLOBAL'}</div>
+                                  <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
+                                    <span>⏳ Expirou Aberta • Publicada por {g.createdBy || '-'} • {g.createdAtHuman || '-'}</span>
+                                  </div>
+                                  {g.items?.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                      {g.items.map((item, i) => (
+                                        <span key={i} className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">{item}</span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                <button onClick={() => handleDeleteGlobal(g.id)}
+                                  className="btn btn-danger text-xs py-1 px-3">🗑 Excluir</button>
+                              </div>
+                            </div>
+                          )
+                        } else {
+                          return <GlobalReviewCard key={g.id} globalDoc={g} />
+                        }
+                      })}
+                    </div>
+                  </div>
+                ))
             )}
           </div>
         )}
@@ -222,7 +292,7 @@ export default function Globals({ onBack }) {
 }
 
 function GlobalReviewCard({ globalDoc }) {
-  const { updateGlobal } = useStore()
+  const { updateGlobal, deleteGlobalDoc } = useStore()
   const responses = globalDoc.responses || []
 
   // Sort: items with managerStatus placed at the bottom
@@ -247,15 +317,30 @@ function GlobalReviewCard({ globalDoc }) {
       <div className="flex items-center justify-between mb-3">
         <div>
           <div className="font-bold text-gray-900 text-lg">{globalDoc.name}</div>
-          <div className="text-xs text-gray-500">
-            Concluída por {globalDoc.completedBy} • {globalDoc.completedAtHuman}
+          <div className="text-xs text-gray-500 flex items-center gap-2 flex-wrap">
+            <span>Concluída por {globalDoc.completedBy} • {globalDoc.completedAtHuman}</span>
+            <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">
+              Semana {globalDoc.weekKey}
+            </span>
           </div>
         </div>
-        {globalDoc.status === 'review' && (
-          <button onClick={archive} className="btn btn-ghost text-xs">
-            📦 Arquivar
+        <div className="flex items-center gap-2">
+          {globalDoc.status === 'review' && (
+            <button onClick={archive} className="btn btn-ghost text-xs px-2.5 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50">
+              📦 Arquivar
+            </button>
+          )}
+          <button 
+            onClick={async () => {
+              if (confirm('Excluir esta global permanentemente?')) {
+                await deleteGlobalDoc(globalDoc.id)
+              }
+            }} 
+            className="btn btn-ghost text-xs text-red-600 px-2.5 py-1.5 border border-red-100 rounded-lg hover:bg-red-50"
+          >
+            🗑 Excluir
           </button>
-        )}
+        </div>
       </div>
 
       <div className="space-y-2">
