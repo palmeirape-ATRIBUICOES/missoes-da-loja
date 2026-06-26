@@ -355,33 +355,57 @@ export default function Products({ onBack }) {
         
         try {
           html5QrCode = new Html5Qrcode('nfe-reader')
-          html5QrCode.start(
-            { facingMode: 'environment' },
-            {
-              fps: 10,
-              qrbox: { width: 230, height: 230 }
-            },
-            (decodedText) => {
-              const key = extractAccessKey(decodedText)
-              if (key) {
-                html5QrCode.stop().then(() => {
-                  setShowNfeScanner(false)
-                  runSefazLookup(key)
-                }).catch(err => {
-                  console.error('Failed to stop camera: ', err)
-                  setShowNfeScanner(false)
-                  runSefazLookup(key)
-                })
-              } else {
-                alert('Este QR Code não contém uma Chave de Acesso NFE/NFC-e válida de 44 dígitos.')
+          
+          const startScanning = (constraints) => {
+            if (!html5QrCode) return
+            
+            html5QrCode.start(
+              constraints,
+              {
+                fps: 15,
+                qrbox: (width, height) => {
+                  const size = Math.min(width, height) * 0.75
+                  return { width: size, height: size }
+                },
+                experimentalFeatures: {
+                  useBarCodeDetectorIfSupported: true
+                }
+              },
+              (decodedText) => {
+                const key = extractAccessKey(decodedText)
+                if (key) {
+                  html5QrCode.stop().then(() => {
+                    setShowNfeScanner(false)
+                    runSefazLookup(key)
+                  }).catch(err => {
+                    console.error('Failed to stop camera: ', err)
+                    setShowNfeScanner(false)
+                    runSefazLookup(key)
+                  })
+                } else {
+                  alert('Este QR Code não contém uma Chave de Acesso NFE/NFC-e válida de 44 dígitos.')
+                }
+              },
+              () => {
+                // Silence scan errors
               }
-            },
-            () => {
-              // Silence scan errors
-            }
-          ).catch(err => {
-            console.error('Error starting camera: ', err)
+            ).catch(err => {
+              console.error('Error starting camera with constraints: ', constraints, err)
+              // If we tried advanced constraints and failed, fall back to basic environment camera
+              if (constraints.width) {
+                console.log('Retrying with simple constraints...')
+                startScanning({ facingMode: 'environment' })
+              }
+            })
+          }
+
+          // Start scanning with HD constraints first
+          startScanning({
+            facingMode: 'environment',
+            width: { min: 640, ideal: 1280, max: 1920 },
+            height: { min: 480, ideal: 720, max: 1080 }
           })
+          
         } catch (e) {
           console.error('Failed to instantiate Html5Qrcode', e)
         }
