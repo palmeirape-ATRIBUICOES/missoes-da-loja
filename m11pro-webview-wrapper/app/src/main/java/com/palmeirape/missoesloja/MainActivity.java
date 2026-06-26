@@ -107,6 +107,69 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        @JavascriptInterface
+        public void fetchSefazData(final String key) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    final WebView scraperWebView = new WebView(mContext);
+                    scraperWebView.getSettings().setJavaScriptEnabled(true);
+                    scraperWebView.getSettings().setDomStorageEnabled(true);
+                    scraperWebView.setWebViewClient(new WebViewClient() {
+                        boolean keyFilled = false;
+
+                        @Override
+                        public void onPageFinished(WebView view, String url) {
+                            super.onPageFinished(view, url);
+                            if (!keyFilled) {
+                                String js = "javascript:(function() {" +
+                                        "var keyInput = document.querySelector('input[type=\"text\"]') || " +
+                                        "               document.querySelector('input[id*=\"chave\"]') || " +
+                                        "               document.querySelector('input[name*=\"chave\"]');" +
+                                        "if (keyInput) {" +
+                                        "    keyInput.value = '" + key + "';" +
+                                        "    keyInput.dispatchEvent(new Event('input', { bubbles: true }));" +
+                                        "    keyInput.dispatchEvent(new Event('change', { bubbles: true }));" +
+                                        "    var btnSubmit = document.querySelector('input[type=\"submit\"]') || " +
+                                        "                    document.querySelector('button[type=\"submit\"]') || " +
+                                        "                    document.querySelector('input[value*=\"Consultar\"]') || " +
+                                        "                    document.querySelector('button[id*=\"consultar\"]');" +
+                                        "    if (btnSubmit) {" +
+                                        "        btnSubmit.click();" +
+                                        "    }" +
+                                        "}" +
+                                        "})()";
+                                scraperWebView.loadUrl(js);
+                                keyFilled = true;
+                            } else {
+                                String js = "javascript:(function() {" +
+                                        "var bodyText = document.body.innerText || '';" +
+                                        "AndroidPrinter.onSefazResult(bodyText);" +
+                                        "})()";
+                                scraperWebView.loadUrl(js);
+                            }
+                        }
+                    });
+                    scraperWebView.loadUrl("https://consultadfe.fazenda.rj.gov.br/consultaDFe/paginas/consultaChaveAcesso.faces");
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void onSefazResult(final String rawText) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    String escapedText = rawText.replace("\\", "\\\\")
+                                                .replace("'", "\\'")
+                                                .replace("\"", "\\\"")
+                                                .replace("\n", "\\n")
+                                                .replace("\r", "\\r");
+                    webView.loadUrl("javascript:if(window.onSefazResultReceived) { window.onSefazResultReceived(\"" + escapedText + "\"); }");
+                }
+            });
+        }
     }
 
     /**

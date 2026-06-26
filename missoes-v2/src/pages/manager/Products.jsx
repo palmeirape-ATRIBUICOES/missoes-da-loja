@@ -456,6 +456,14 @@ export default function Products({ onBack }) {
     const isUserNfe5 = (cleanKey === '33260407384953000140651010003404631491015461')
 
     if (!isUserNfe43 && !isUserNfe38 && !isUserNfe5) {
+      if (window.AndroidPrinter && window.AndroidPrinter.fetchSefazData) {
+        setNfeLoading(true)
+        setSefazStep(2)
+        setSefazProgress('Abrindo portal SEFAZ-RJ e consultando a chave automaticamente...')
+        window.AndroidPrinter.fetchSefazData(cleanKey)
+        return
+      }
+
       try {
         await navigator.clipboard.writeText(cleanKey)
       } catch (err) {
@@ -625,6 +633,34 @@ export default function Products({ onBack }) {
       setNfeLoading(false)
     }
   }
+
+  // Handle native Android Sefaz scraping callback
+  useEffect(() => {
+    window.onSefazResultReceived = (rawText) => {
+      setNfeLoading(false)
+      if (!rawText || rawText.trim().length === 0) {
+        alert('Erro ao carregar os dados da SEFAZ ou conexão instável.')
+        return
+      }
+      
+      if (rawText.includes('bloqueia acessos') || rawText.includes('endereços IP usados') || rawText.includes('Ocorreu um erro')) {
+        alert('O portal de segurança da SEFAZ detectou uma atividade incomum ou bloqueou a consulta automática temporariamente. Por favor, tente novamente mais tarde ou importe o XML/copie o texto da nota na aba "Texto/PDF".')
+        return
+      }
+      
+      const items = parseDanfeText(rawText)
+      if (items.length === 0) {
+        alert('Não foi possível identificar nenhum produto na página consultada da SEFAZ. Verifique se a chave está correta ou use a aba "Texto/PDF".')
+        return
+      }
+      
+      importDanfeItemsList(items)
+    }
+    
+    return () => {
+      delete window.onSefazResultReceived
+    }
+  }, [products])
 
   // Camera Reader Hook
   useEffect(() => {
