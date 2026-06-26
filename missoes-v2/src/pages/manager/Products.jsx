@@ -19,6 +19,8 @@ export default function Products({ onBack }) {
   const [nfeInputMode, setNfeInputMode] = useState('xml') // 'xml' | 'qrcode' | 'key'
   const [nfeKeyInput, setNfeKeyInput] = useState('')
   const [showNfeScanner, setShowNfeScanner] = useState(false)
+  const [cameraLoading, setCameraLoading] = useState(false)
+  const [cameraError, setCameraError] = useState('')
   const [showNfeSelectionModal, setShowNfeSelectionModal] = useState(false)
   const [sefazProgress, setSefazProgress] = useState('')
   const [sefazStep, setSefazStep] = useState(0)
@@ -349,6 +351,9 @@ export default function Products({ onBack }) {
     let html5QrCode = null
     
     if (showNfeScanner) {
+      setCameraLoading(true)
+      setCameraError('')
+      
       const timer = setTimeout(() => {
         const element = document.getElementById('nfe-reader')
         if (!element) return
@@ -380,7 +385,9 @@ export default function Products({ onBack }) {
               () => {
                 // Silence scan errors
               }
-            ).catch(err => {
+            ).then(() => {
+              setCameraLoading(false)
+            }).catch(err => {
               console.error('Error starting camera with constraints: ', constraints, err)
               
               // Fallback chain to ensure camera opens on any device
@@ -396,6 +403,9 @@ export default function Products({ onBack }) {
                   {},
                   { fps: 10, qrbox: { width: 250, height: 250 } }
                 )
+              } else {
+                setCameraLoading(false)
+                setCameraError('Não foi possível acessar a câmera. Verifique se deu as permissões de acesso.')
               }
             })
           }
@@ -415,6 +425,8 @@ export default function Products({ onBack }) {
           
         } catch (e) {
           console.error('Failed to instantiate Html5Qrcode', e)
+          setCameraLoading(false)
+          setCameraError('Erro ao iniciar o leitor de QR Code.')
         }
       }, 300)
       
@@ -1322,15 +1334,40 @@ export default function Products({ onBack }) {
               {nfeInputMode === 'qrcode' && (
                 <div className="space-y-3 w-full">
                   {showNfeScanner ? (
-                    <div className="w-full bg-black rounded-2xl overflow-hidden relative border border-gray-200">
-                      <div id="nfe-reader" className="w-full animate-fade-in"></div>
-                      <button
-                        type="button"
-                        onClick={() => setShowNfeScanner(false)}
-                        className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md z-10"
-                      >
-                        Parar Câmera
-                      </button>
+                    <div className="w-full bg-black rounded-2xl overflow-hidden relative border border-gray-200 min-h-[250px] flex flex-col justify-center items-center">
+                      
+                      {cameraLoading && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/90 text-white z-10 space-y-2">
+                          <span className="text-2xl animate-spin">⏳</span>
+                          <span className="text-xs font-semibold">Iniciando câmera...</span>
+                        </div>
+                      )}
+
+                      {cameraError && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white p-4 text-center z-10 space-y-3">
+                          <span className="text-2xl">⚠️</span>
+                          <span className="text-xs font-semibold">{cameraError}</span>
+                          <button
+                            type="button"
+                            onClick={() => setShowNfeScanner(false)}
+                            className="bg-brand-500 hover:bg-brand-600 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition-all"
+                          >
+                            Voltar
+                          </button>
+                        </div>
+                      )}
+
+                      <div id="nfe-reader" className="w-full animate-fade-in min-h-[250px]"></div>
+                      
+                      {!cameraLoading && !cameraError && (
+                        <button
+                          type="button"
+                          onClick={() => setShowNfeScanner(false)}
+                          className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md z-10 hover:bg-red-700 active:scale-95 transition-all"
+                        >
+                          Parar Câmera
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <button
