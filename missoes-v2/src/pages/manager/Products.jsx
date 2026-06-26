@@ -23,6 +23,8 @@ export default function Products({ onBack }) {
   const [cameraError, setCameraError] = useState('')
   const [showNfeSelectionModal, setShowNfeSelectionModal] = useState(false)
   const [sefazProgress, setSefazProgress] = useState('')
+  const [showSefazBridgeModal, setShowSefazBridgeModal] = useState(false)
+  const [sefazBridgeKey, setSefazBridgeKey] = useState('')
   const [sefazStep, setSefazStep] = useState(0)
   const [showForm, setShowForm] = useState(false)
   const [parentCategory, setParentCategory] = useState('')
@@ -265,7 +267,14 @@ export default function Products({ onBack }) {
     const isUserNfe38 = (cleanKey === '33260406222792000125650170005774371355339953')
 
     if (!isUserNfe43 && !isUserNfe38) {
-      alert('Essa chave de DANFE não está pré-carregada no banco de dados para consulta direta do simulador. Para importar esta nota real, baixe o arquivo XML dela gratuitamente (usando sites como o FSist) e use a aba "XML".')
+      try {
+        await navigator.clipboard.writeText(cleanKey)
+      } catch (err) {
+        console.error('Failed to copy key: ', err)
+      }
+      setSefazBridgeKey(cleanKey)
+      setShowNfeSelectionModal(false)
+      setShowSefazBridgeModal(true)
       return
     }
     
@@ -1498,6 +1507,113 @@ export default function Products({ onBack }) {
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* SEFAZ-RJ Bridge Modal */}
+      {showSefazBridgeModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 max-w-md w-full p-6 space-y-5 animate-slide-up flex flex-col max-h-[90vh] relative animate-fade-in">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 shrink-0">
+              <h3 className="font-black text-gray-900 text-lg flex items-center gap-2">🌐 Consulta SEFAZ-RJ</h3>
+              <button 
+                onClick={() => { setShowSefazBridgeModal(false); setSefazBridgeKey('') }}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 active:scale-90 text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1 py-1">
+              <div className="bg-brand-50 border border-brand-100 text-brand-800 rounded-2xl p-4 flex gap-3 items-start">
+                <span className="text-2xl mt-0.5">📋</span>
+                <div>
+                  <h4 className="font-extrabold text-sm text-brand-900">Chave Copiada com Sucesso!</h4>
+                  <p className="text-xs text-brand-700 mt-1 leading-relaxed font-medium">
+                    A chave de 44 dígitos foi copiada automaticamente para sua área de transferência.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-xs font-black text-gray-400 uppercase tracking-wider">Como importar esta nota real:</h4>
+                
+                <div className="space-y-3">
+                  <div className="flex gap-3 items-start bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                    <span className="bg-white text-brand-600 font-black text-xs w-6 h-6 rounded-full flex items-center justify-center border border-gray-200 shrink-0 shadow-sm">1</span>
+                    <p className="text-xs text-gray-600 leading-relaxed font-semibold">
+                      Clique no botão azul abaixo para abrir o portal oficial da SEFAZ-RJ em uma nova aba.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3 items-start bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                    <span className="bg-white text-brand-600 font-black text-xs w-6 h-6 rounded-full flex items-center justify-center border border-gray-200 shrink-0 shadow-sm">2</span>
+                    <p className="text-xs text-gray-600 leading-relaxed font-semibold">
+                      No site da SEFAZ, cole a chave no campo de texto (<kbd className="bg-gray-200 px-1 py-0.5 rounded text-[10px] font-mono font-bold">Ctrl + V</kbd> ou pressionando e segurando).
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3 items-start bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                    <span className="bg-white text-brand-600 font-black text-xs w-6 h-6 rounded-full flex items-center justify-center border border-gray-200 shrink-0 shadow-sm">3</span>
+                    <p className="text-xs text-gray-600 leading-relaxed font-semibold">
+                      Resolva a verificação de segurança (CAPTCHA), consulte a nota e clique para baixar o **XML de distribuição**.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3 items-start bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                    <span className="bg-white text-brand-600 font-black text-xs w-6 h-6 rounded-full flex items-center justify-center border border-gray-200 shrink-0 shadow-sm">4</span>
+                    <p className="text-xs text-gray-600 leading-relaxed font-semibold">
+                      Retorne a este sistema, abra a opção **Importar Nota Fiscal** na aba **XML** e selecione o arquivo baixado.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Display Key input preview */}
+              <div className="space-y-1 bg-gray-50 border border-gray-200 rounded-2xl p-3.5 flex flex-col items-center">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider self-start">Chave da Nota</span>
+                <span className="font-mono text-[11px] font-bold text-gray-700 tracking-wider text-center select-all break-all bg-white py-1.5 px-3 rounded-xl border border-gray-150 w-full mt-1.5 shadow-inner">
+                  {sefazBridgeKey}
+                </span>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(sefazBridgeKey)
+                      alert('Chave copiada novamente!')
+                    } catch (e) {
+                      alert('Erro ao copiar chave: ' + e.message)
+                    }
+                  }}
+                  className="text-xs text-brand-600 hover:text-brand-700 font-black mt-2 flex items-center gap-1 active:scale-95 transition-all select-none"
+                >
+                  📋 Copiar Chave Novamente
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 shrink-0 pt-2 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => {
+                  window.open('https://consultadfe.fazenda.rj.gov.br/consultaDFe/paginas/consultaChaveAcesso.faces', '_blank')
+                }}
+                className="btn btn-primary w-full h-12 text-sm font-bold rounded-2xl shadow-md flex items-center justify-center gap-2"
+              >
+                🌐 Abrir Portal SEFAZ-RJ
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSefazBridgeModal(false)
+                  setSefazBridgeKey('')
+                }}
+                className="w-full text-xs font-bold text-gray-500 hover:text-gray-700 py-2.5 transition-all text-center select-none"
+              >
+                Fechar e voltar depois
+              </button>
+            </div>
           </div>
         </div>
       )}
