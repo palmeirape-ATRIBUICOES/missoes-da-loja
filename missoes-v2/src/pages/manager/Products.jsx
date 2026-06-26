@@ -356,21 +356,12 @@ export default function Products({ onBack }) {
         try {
           html5QrCode = new Html5Qrcode('nfe-reader')
           
-          const startScanning = (constraints) => {
+          const startScanning = (constraints, options) => {
             if (!html5QrCode) return
             
             html5QrCode.start(
               constraints,
-              {
-                fps: 15,
-                qrbox: (width, height) => {
-                  const size = Math.min(width, height) * 0.75
-                  return { width: size, height: size }
-                },
-                experimentalFeatures: {
-                  useBarCodeDetectorIfSupported: true
-                }
-              },
+              options,
               (decodedText) => {
                 const key = extractAccessKey(decodedText)
                 if (key) {
@@ -391,20 +382,36 @@ export default function Products({ onBack }) {
               }
             ).catch(err => {
               console.error('Error starting camera with constraints: ', constraints, err)
-              // If we tried advanced constraints and failed, fall back to basic environment camera
+              
+              // Fallback chain to ensure camera opens on any device
               if (constraints.width) {
-                console.log('Retrying with simple constraints...')
-                startScanning({ facingMode: 'environment' })
+                console.log('Retrying with simple environment constraints...')
+                startScanning(
+                  { facingMode: 'environment' },
+                  { fps: 10, qrbox: { width: 250, height: 250 } }
+                )
+              } else if (constraints.facingMode) {
+                console.log('Retrying with default camera...')
+                startScanning(
+                  {},
+                  { fps: 10, qrbox: { width: 250, height: 250 } }
+                )
               }
             })
           }
 
-          // Start scanning with HD constraints first
-          startScanning({
-            facingMode: 'environment',
-            width: { min: 640, ideal: 1280, max: 1920 },
-            height: { min: 480, ideal: 720, max: 1080 }
-          })
+          // Start scanning with HD constraints first (using ideal for soft matching)
+          startScanning(
+            {
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            },
+            {
+              fps: 15,
+              qrbox: { width: 260, height: 260 }
+            }
+          )
           
         } catch (e) {
           console.error('Failed to instantiate Html5Qrcode', e)
