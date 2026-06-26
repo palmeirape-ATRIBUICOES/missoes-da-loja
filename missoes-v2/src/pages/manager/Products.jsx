@@ -17,7 +17,7 @@ export default function Products({ onBack }) {
   const [showNfeModal, setShowNfeModal] = useState(false)
   const [nfeLoading, setNfeLoading] = useState(false)
   const [nfeInputMode, setNfeInputMode] = useState('key') // 'xml' | 'qrcode' | 'key'
-  const [nfeKeyInput, setNfeKeyInput] = useState('33260607384953000140650810031493981838858837')
+  const [nfeKeyInput, setNfeKeyInput] = useState('')
   const [showNfeScanner, setShowNfeScanner] = useState(false)
   const [cameraLoading, setCameraLoading] = useState(false)
   const [cameraError, setCameraError] = useState('')
@@ -44,6 +44,23 @@ export default function Products({ onBack }) {
       const parts = (p.category || '').split('>').map(s => s.trim()).filter(Boolean)
       if (parts[0]) set.add(parts[0])
     })
+    return Array.from(set).sort()
+  }, [products])
+
+  // Extract all unique full category names
+  const uniqueCategories = useMemo(() => {
+    const set = new Set()
+    products.forEach(p => {
+      if (p.category) {
+        set.add(p.category.trim())
+      }
+    })
+    if (set.size === 0) {
+      set.add('Prateleira 1')
+      set.add('Prateleira 2')
+      set.add('Prateleira 3')
+      set.add('Prateleira 4')
+    }
     return Array.from(set).sort()
   }, [products])
 
@@ -844,6 +861,46 @@ export default function Products({ onBack }) {
               🖨️ Imprimir ({selectedForPrint.length})
             </button>
           )}
+          {isManager && selectedForPrint.length > 0 && (
+            <select
+              onChange={async (e) => {
+                const val = e.target.value
+                if (!val) return
+                let finalCat = val
+                if (val === '__NEW__') {
+                  const newCat = prompt('Digite a nova categoria para os produtos selecionados:')
+                  if (!newCat || !newCat.trim()) {
+                    e.target.value = ''
+                    return
+                  }
+                  finalCat = newCat.trim()
+                }
+                if (confirm(`Deseja alterar a categoria de ${selectedForPrint.length} produtos para "${finalCat}"?`)) {
+                  setLoadingBarcode(true)
+                  try {
+                    for (const p of selectedForPrint) {
+                      await saveProduct({ ...p, category: finalCat })
+                    }
+                    setSelectedForPrint([])
+                    alert('Categorias atualizadas com sucesso!')
+                  } catch (err) {
+                    console.error(err)
+                    alert('Erro ao atualizar categorias: ' + err.message)
+                  } finally {
+                    setLoadingBarcode(false)
+                  }
+                }
+                e.target.value = ''
+              }}
+              className="btn btn-ghost text-sm font-bold px-3 bg-purple-50 text-purple-700 border border-purple-100 py-1.5 rounded-xl cursor-pointer"
+            >
+              <option value="">🏷️ Categorizar ({selectedForPrint.length})</option>
+              {uniqueCategories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+              <option value="__NEW__">+ Nova Prateleira...</option>
+            </select>
+          )}
           {isManager && (
             <button onClick={() => setShowNfeSelectionModal(true)} disabled={nfeLoading}
               className={`btn text-sm font-bold px-3 flex items-center gap-1 active:scale-95 transition-all
@@ -1217,11 +1274,28 @@ export default function Products({ onBack }) {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-gray-900 truncate">{p.name}</span>
-                        {p.category && (
-                          <span className="text-[10px] bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-semibold shrink-0">
-                            {p.category}
-                          </span>
-                        )}
+                        <select
+                          value={p.category || ''}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={async (e) => {
+                            const val = e.target.value
+                            if (val === '__NEW__') {
+                              const newCat = prompt('Digite o nome da nova categoria/prateleira:')
+                              if (newCat && newCat.trim()) {
+                                await saveProduct({ ...p, category: newCat.trim() })
+                              }
+                            } else {
+                              await saveProduct({ ...p, category: val })
+                            }
+                          }}
+                          className="text-[10px] bg-white border border-gray-200 hover:border-brand-300 text-gray-600 px-2 py-0.5 rounded-full font-semibold shrink-0 cursor-pointer outline-none transition-colors"
+                        >
+                          {!p.category && <option value="" disabled>+ Prateleira</option>}
+                          {uniqueCategories.map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
+                          <option value="__NEW__">+ Nova Prateleira...</option>
+                        </select>
                       </div>
                       <div className="text-xs text-gray-500 mt-0.5 flex flex-wrap items-center gap-1.5">
                         {p.code && <span>Cód: {p.code} • </span>}
@@ -1425,7 +1499,7 @@ export default function Products({ onBack }) {
           <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 max-w-md w-full p-6 space-y-4 animate-slide-up flex flex-col max-h-[90vh] relative">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3 shrink-0">
               <h3 className="font-black text-gray-900 text-lg flex items-center gap-2">🧾 Importar Nota Fiscal</h3>
-              <button onClick={() => { setShowNfeSelectionModal(false); setShowNfeScanner(false); setNfeKeyInput('33260607384953000140650810031493981838858837') }}
+              <button onClick={() => { setShowNfeSelectionModal(false); setShowNfeScanner(false); setNfeKeyInput('') }}
                 className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 active:scale-90 text-sm">
                 ✕
               </button>
@@ -1444,7 +1518,7 @@ export default function Products({ onBack }) {
                   onClick={() => {
                     setNfeInputMode(tab.key)
                     setShowNfeScanner(tab.key === 'qrcode')
-                    setNfeKeyInput('33260607384953000140650810031493981838858837')
+                    setNfeKeyInput('')
                   }}
                   className={`py-2 rounded-xl text-xs font-bold transition-all select-none
                     ${nfeInputMode === tab.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
