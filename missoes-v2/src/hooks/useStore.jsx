@@ -10,7 +10,18 @@ import { weekKey, monthKey, normalizeWeekKeyLoose, nowHuman } from '../utils/con
 const StoreContext = createContext(null)
 
 export function StoreProvider({ children }) {
-  const { storeId, currentUser, isManager } = useAuth()
+  const { storeId: authStoreId, currentUser, isManager } = useAuth()
+
+  // Extract storeId from hash if client route (e.g. #/cliente/loja_principal/...)
+  const hash = window.location.hash
+  let storeId = authStoreId
+  if (hash.includes('/cliente/')) {
+    const parts = hash.split('/')
+    const found = parts[2]
+    if (found) {
+      storeId = found.split('?')[0]
+    }
+  }
 
   const [currentWeekKey, setCurrentWeekKey] = useState(weekKey())
   const [employees, setEmployees] = useState([])
@@ -25,6 +36,9 @@ export function StoreProvider({ children }) {
   const [labelConfig, setLabelConfig] = useState({})
   const [contrachequesAll, setContrachequesAll] = useState([])
   const [contrachequeEmployees, setContrachequeEmployees] = useState([])
+  const [customersAll, setCustomersAll] = useState([])
+  const [deliverySlotsAll, setDeliverySlotsAll] = useState([])
+  const [customerOrdersAll, setCustomerOrdersAll] = useState([])
   const [loading, setLoading] = useState(true)
 
   // Refs
@@ -108,6 +122,24 @@ export function StoreProvider({ children }) {
     const ccEmpQ = query(colRef('state/contracheque_employees/items'), orderBy('name', 'asc'))
     unsubs.push(onSnapshot(ccEmpQ, (qs) => {
       setContrachequeEmployees(qs.docs.map(d => ({ id: d.id, ...d.data() })))
+    }))
+
+    // Customers
+    const custQ = query(colRef('state/customers/items'), orderBy('createdAt', 'desc'))
+    unsubs.push(onSnapshot(custQ, (qs) => {
+      setCustomersAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
+    }))
+
+    // Delivery slots
+    const slotsQ = query(colRef('state/delivery_slots/items'), orderBy('date', 'asc'), orderBy('timeStart', 'asc'))
+    unsubs.push(onSnapshot(slotsQ, (qs) => {
+      setDeliverySlotsAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
+    }))
+
+    // Customer orders
+    const ordersQ = query(colRef('state/customer_orders/items'), orderBy('createdAt', 'desc'))
+    unsubs.push(onSnapshot(ordersQ, (qs) => {
+      setCustomerOrdersAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
     }))
 
     setLoading(false)
@@ -231,6 +263,46 @@ export function StoreProvider({ children }) {
     await deleteDoc(doc(db, 'stores', storeId, 'state/contracheque_employees/items', id))
   }
 
+  async function saveCustomer(c) {
+    const ref = doc(db, 'stores', storeId, 'state/customers/items', c.id)
+    await setDoc(ref, {
+      ...c,
+      updatedAt: serverTimestamp()
+    }, { merge: true })
+  }
+
+  async function deleteCustomer(id) {
+    await deleteDoc(doc(db, 'stores', storeId, 'state/customers/items', id))
+  }
+
+  async function saveDeliverySlot(s) {
+    const ref = s.id ? doc(db, 'stores', storeId, 'state/delivery_slots/items', s.id) : doc(colRef('state/delivery_slots/items'))
+    const finalId = s.id || ref.id
+    await setDoc(ref, {
+      ...s,
+      id: finalId,
+      updatedAt: serverTimestamp()
+    }, { merge: true })
+  }
+
+  async function deleteDeliverySlot(id) {
+    await deleteDoc(doc(db, 'stores', storeId, 'state/delivery_slots/items', id))
+  }
+
+  async function saveCustomerOrder(o) {
+    const ref = o.id ? doc(db, 'stores', storeId, 'state/customer_orders/items', o.id) : doc(colRef('state/customer_orders/items'))
+    const finalId = o.id || ref.id
+    await setDoc(ref, {
+      ...o,
+      id: finalId,
+      updatedAt: serverTimestamp()
+    }, { merge: true })
+  }
+
+  async function deleteCustomerOrder(id) {
+    await deleteDoc(doc(db, 'stores', storeId, 'state/customer_orders/items', id))
+  }
+
   return (
     <StoreContext.Provider value={{
       currentWeekKey, setCurrentWeekKey,
@@ -239,12 +311,16 @@ export function StoreProvider({ children }) {
       tasksAll, scoresDoc, listsAll, feedbackAll,
       pdvSales, labelConfig, loading,
       contrachequesAll, contrachequeEmployees,
+      customersAll, deliverySlotsAll, customerOrdersAll,
       getMonthPoints,
       saveProduct, deleteProduct, savePdvSale,
       updateGlobal, deleteGlobalDoc, publishGlobal,
       saveEmployees, saveLabelConfig,
       saveContrachequeDoc, deleteContrachequeDoc,
       saveContrachequeEmployee, deleteContrachequeEmployee,
+      saveCustomer, deleteCustomer,
+      saveDeliverySlot, deleteDeliverySlot,
+      saveCustomerOrder, deleteCustomerOrder,
       cfgRef, stateRef, colRef
     }}>
       {children}

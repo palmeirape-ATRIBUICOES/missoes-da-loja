@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { doc, collection, setDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { STORE_MAP, nowHuman } from '../utils/constants'
 
 export default function PublicStore() {
   const { storeId } = useParams()
+  const navigate = useNavigate()
   const [type, setType] = useState(null) // 'feedback' | 'cv'
   const [step, setStep] = useState('select') // select -> form -> success
   const [loading, setLoading] = useState(false)
@@ -62,6 +63,22 @@ export default function PublicStore() {
 
         {step === 'select' && (
           <div className="space-y-4 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            <button onClick={() => {
+              const session = localStorage.getItem(`mdl_customer_${storeId}`)
+              if (session) {
+                navigate(`/cliente/${storeId}/loja`)
+              } else {
+                navigate(`/cliente/${storeId}/login`)
+              }
+            }}
+              className="w-full bg-brand-500 hover:bg-brand-600 text-white p-6 rounded-3xl shadow-md border-0 transition-all flex items-center gap-4 text-left active:scale-95">
+              <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">🛍️</div>
+              <div>
+                <h3 className="font-black text-white text-lg">Fazer Pedido / Comprar</h3>
+                <p className="text-sm text-white/80 mt-1">Compre online e agende a entrega</p>
+              </div>
+            </button>
+
             <button onClick={() => { setType('feedback'); setStep('form') }}
               className="w-full bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:border-brand-300 hover:shadow-md transition-all flex items-center gap-4 text-left active:scale-95">
               <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center text-2xl shrink-0">⭐</div>

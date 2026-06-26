@@ -1,0 +1,633 @@
+import { useState, useEffect, useMemo } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useStore } from '../../hooks/useStore'
+import { STORE_MAP, formatCurrency, parseCurrency, nowHuman } from '../../utils/constants'
+
+export default function CustomerStore() {
+  const { storeId } = useParams()
+  const navigate = useNavigate()
+  const { products, deliverySlotsAll, saveCustomerOrder } = useStore()
+
+  // Authentication check
+  const [customer, setCustomer] = useState(null)
+  useEffect(() => {
+    const session = localStorage.getItem(`mdl_customer_${storeId}`)
+    if (!session) {
+      navigate(`/cliente/${storeId}/login`)
+    } else {
+      setCustomer(JSON.parse(session))
+    }
+  }, [storeId, navigate])
+
+  // Catalog State
+  const [search, setSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [cart, setCart] = useState([])
+  const [isCartOpen, setIsCartOpen] = useState(false)
+
+  // Checkout Flow State
+  const [checkoutStep, setCheckoutStep] = useState('catalog') // 'catalog' | 'checkout' | 'payment'
+  const [deliveryAddress, setDeliveryAddress] = useState('')
+  const [selectedSlot, setSelectedSlot] = useState(null)
+  const [paymentMethod, setPaymentMethod] = useState('pix') // 'pix' | 'card'
+
+  // Card Simulator State
+  const [cardForm, setCardForm] = useState({ number: '', name: '', expiry: '', cvv: '' })
+  const [paymentLoading, setPaymentLoading] = useState(false)
+
+  const storeEntry = Object.values(STORE_MAP).find(s => s.id === storeId) || STORE_MAP.loja_principal
+
+  // Set default address when customer is loaded
+  useEffect(() => {
+    if (customer) {
+      setDeliveryAddress(customer.address)
+    }
+  }, [customer])
+
+  // Extract categories
+  const categories = useMemo(() => {
+    const set = new Set()
+    products.forEach(p => {
+      const parent = (p.category || '').split('>')[0]?.trim()
+      if (parent) set.add(parent)
+    })
+    return ['all', ...Array.from(set)]
+  }, [products])
+
+  // Filter products
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      const parentCat = (p.category || '').split('>')[0]?.trim() || 'Geral'
+      const matchesCat = selectedCategory === 'all' || parentCat === selectedCategory
+      const matchesSearch = p.name?.toLowerCase().includes(search.toLowerCase()) || 
+                            (p.description || '').toLowerCase().includes(search.toLowerCase())
+      return matchesCat && matchesSearch
+    })
+  }, [products, selectedCategory, search])
+
+  // Available Slots Filtered
+  const availableSlots = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0]
+    return deliverySlotsAll.filter(slot => {
+      // Must be active and for today or future dates
+      const isFutureOrToday = slot.date >= todayStr
+      return slot.active && isFutureOrToday
+    })
+  }, [deliverySlotsAll])
+
+  // Cart operations
+  function addToCart(product) {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === product.id)
+      if (existing) {
+        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)
+      }
+      const price = parseCurrency(product.promoPrice || product.price || product.oldPrice)
+      return [...prev, { ...product, price, quantity: 1 }]
+    })
+  }
+
+  function updateQuantity(id, delta) {
+    setCart(prev => prev.map(item => {
+      if (item.id === id) {
+        const nextQ = item.quantity + delta
+        return nextQ > 0 ? { ...item, quantity: nextQ } : item
+      }
+      return item
+    }).filter(Boolean))
+  }
+
+  function removeFromCart(id) {
+    setCart(prev => prev.filter(item => item.id !== id))
+  }
+
+  const cartTotal = useMemo(() => {
+    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  }, [cart])
+
+  const cartItemsCount = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.quantity, 0)
+  }, [cart])
+
+  function handleLogout() {
+    localStorage.removeItem(`mdl_customer_${storeId}`)
+    navigate(`/cliente/${storeId}/login`)
+  }
+
+  function formatDateBr(dateStr) {
+    if (!dateStr) return ''
+    const [year, month, day] = dateStr.split('-')
+    return `${day}/${month}`
+  }
+
+  async function handleConfirmOrder() {
+    if (!deliveryAddress.trim()) {
+      alert('Por favor, informe o endereço de entrega.')
+      return
+    }
+    if (!selectedSlot) {
+      alert('Por favor, selecione um horário de entrega disponível.')
+      return
+    }
+
+    setCheckoutStep('payment')
+  }
+
+  async function simulatePayment() {
+    if (paymentMethod === 'card') {
+      if (!cardForm.number || !cardForm.name || !cardForm.expiry || !cardForm.cvv) {
+        alert('Por favor, preencha todos os dados do cartão de crédito.')
+        return
+      }
+    }
+
+    setPaymentLoading(true)
+
+    // Simulate 2 seconds loading
+    setTimeout(async () => {
+      try {
+        const orderId = `order_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+        const slotLabel = `${formatDateBr(selectedSlot.date)} das ${selectedSlot.timeStart} às ${selectedSlot.timeEnd}`
+        
+        const finalOrder = {
+          id: orderId,
+          customerId: customer.id,
+          customerName: customer.name,
+          customerPhone: customer.phone,
+          items: cart.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            photo: item.photo || ''
+          })),
+          total: cartTotal,
+          paymentMethod,
+          paymentStatus: 'paid', // Upfront payment simulator guarantees this
+          slotId: selectedSlot.id,
+          slotLabel,
+          deliveryAddress: deliveryAddress.trim(),
+          status: 'pending',
+          createdAtHuman: nowHuman()
+        }
+
+        await saveCustomerOrder(finalOrder)
+
+        // Clear cart
+        setCart([])
+        setCheckoutStep('catalog')
+        setSelectedSlot(null)
+        setCardForm({ number: '', name: '', expiry: '', cvv: '' })
+
+        // Redirect to tracking page
+        navigate(`/cliente/${storeId}/pedido/${orderId}`)
+      } catch (err) {
+        console.error(err)
+        alert('Erro ao registrar o pedido. Tente novamente.')
+      }
+      setPaymentLoading(false)
+    }, 1800)
+  }
+
+  if (!customer) return null
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-20 flex items-center justify-between shadow-sm">
+        <div>
+          <h2 className="font-black text-gray-900 text-lg flex items-center gap-1.5">
+            <span>🏪</span> {storeEntry.shortName}
+          </h2>
+          <p className="text-xs text-gray-500">Olá, {customer.name.split(' ')[0]}</p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {checkoutStep === 'catalog' && (
+            <button onClick={() => setIsCartOpen(true)} className="relative w-10 h-10 rounded-xl bg-purple-50 hover:bg-purple-100 text-brand-600 flex items-center justify-center text-lg active:scale-95 transition-all">
+              🛒
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-scale-in">
+                  {cartItemsCount}
+                </span>
+              )}
+            </button>
+          )}
+
+          <button onClick={handleLogout} className="text-xs bg-gray-100 hover:bg-gray-200 font-bold px-3 py-2 rounded-xl text-gray-600 active:scale-95 transition-all">
+            Sair
+          </button>
+        </div>
+      </header>
+
+      {checkoutStep === 'catalog' && (
+        <>
+          {/* Categories bar */}
+          <div className="bg-white border-b border-gray-100 px-4 py-3 flex gap-2 overflow-x-auto scrollbar-none shrink-0">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all select-none
+                  ${selectedCategory === cat ? 'bg-brand-500 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                {cat === 'all' ? '🏷️ Todos' : cat}
+              </button>
+            ))}
+          </div>
+
+          <main className="flex-1 max-w-4xl w-full mx-auto p-4 space-y-4 overflow-y-auto">
+            {/* Search */}
+            <div className="relative">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+              <input
+                type="text"
+                placeholder="O que você está procurando hoje?"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="input pl-10 h-12 text-sm bg-white shadow-sm border-gray-100 focus:border-brand-300"
+              />
+            </div>
+
+            {/* Products List */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {filteredProducts.length === 0 ? (
+                <div className="col-span-full text-center py-12 text-gray-400">
+                  <span className="text-4xl">🍞</span>
+                  <p className="mt-2 font-bold">Nenhum produto encontrado</p>
+                </div>
+              ) : (
+                filteredProducts.map(p => {
+                  const price = parseCurrency(p.promoPrice || p.price || p.oldPrice)
+                  const hasPromo = p.oldPrice && p.promoPrice
+                  return (
+                    <div key={p.id} className="card p-3 flex flex-col justify-between hover:shadow-md transition-shadow relative bg-white border border-gray-100 rounded-3xl">
+                      {p.photo ? (
+                        <div className="h-32 w-full flex items-center justify-center bg-gray-50 rounded-2xl overflow-hidden p-2">
+                          <img src={p.photo} alt={p.name} className="max-h-full max-w-full object-contain" />
+                        </div>
+                      ) : (
+                        <div className="h-32 w-full flex items-center justify-center bg-gray-100 rounded-2xl text-4xl">🍞</div>
+                      )}
+                      
+                      <div className="mt-2.5 flex-1 flex flex-col justify-between">
+                        <div>
+                          <h4 className="font-extrabold text-gray-900 text-sm line-clamp-2 leading-snug">{p.name}</h4>
+                          <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-2">{p.description || 'Sem descrição'}</p>
+                        </div>
+                        
+                        <div className="mt-3 flex items-center justify-between gap-1.5">
+                          <div>
+                            {hasPromo && (
+                              <span className="text-[10px] text-gray-400 line-through block leading-none">{formatCurrency(p.oldPrice)}</span>
+                            )}
+                            <span className="font-black text-brand-600 text-sm">{formatCurrency(price)}</span>
+                          </div>
+                          
+                          <button onClick={() => addToCart(p)}
+                            className="w-9 h-9 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-black text-lg flex items-center justify-center active:scale-90 transition-all shadow-sm">
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </main>
+
+          {/* Cart Drawer Modal */}
+          {isCartOpen && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-end animate-fade-in">
+              <div className="bg-white max-w-md w-full h-full p-5 flex flex-col justify-between shadow-2xl animate-slide-left">
+                <div>
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h3 className="font-extrabold text-gray-900 text-lg flex items-center gap-2">🛒 Seu Carrinho</h3>
+                    <button onClick={() => setIsCartOpen(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 active:scale-90">✕</button>
+                  </div>
+
+                  <div className="mt-4 divide-y divide-gray-100 overflow-y-auto max-h-[60vh] pr-1">
+                    {cart.length === 0 ? (
+                      <div className="text-center py-12 text-gray-400">
+                        <span className="text-4xl">🛒</span>
+                        <p className="mt-2 font-bold">Seu carrinho está vazio</p>
+                      </div>
+                    ) : (
+                      cart.map(item => (
+                        <div key={item.id} className="flex justify-between items-center py-3">
+                          <div className="flex items-center gap-3">
+                            {item.photo ? (
+                              <img src={item.photo} alt="" className="w-12 h-12 rounded-xl object-contain bg-gray-50 border border-gray-100 p-1 shrink-0" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-xl shrink-0">🍞</div>
+                            )}
+                            <div>
+                              <h5 className="font-bold text-gray-950 text-sm line-clamp-1">{item.name}</h5>
+                              <span className="text-xs text-gray-500 font-semibold">{formatCurrency(item.price)}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => updateQuantity(item.id, -1)} className="w-6 h-6 rounded-lg bg-gray-100 text-gray-600 font-black text-sm active:scale-90">-</button>
+                            <span className="font-black text-sm text-gray-800 w-4 text-center">{item.quantity}</span>
+                            <button onClick={() => updateQuantity(item.id, 1)} className="w-6 h-6 rounded-lg bg-gray-100 text-gray-600 font-black text-sm active:scale-90">+</button>
+                            <button onClick={() => removeFromCart(item.id)} className="text-xs text-red-500 hover:text-red-600 font-bold ml-2">Remover</button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 pt-4 space-y-3">
+                  <div className="flex justify-between items-center text-base">
+                    <span className="font-bold text-gray-500">Valor dos produtos</span>
+                    <span className="font-black text-gray-900 text-lg">{formatCurrency(cartTotal)}</span>
+                  </div>
+
+                  <button
+                    disabled={cart.length === 0}
+                    onClick={() => {
+                      setIsCartOpen(false)
+                      setCheckoutStep('checkout')
+                    }}
+                    className="btn btn-primary w-full h-14 rounded-2xl font-bold text-base shadow-lg"
+                  >
+                    🚀 Finalizar Pedido
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Floating Cart Button for Mobile */}
+          {cartItemsCount > 0 && !isCartOpen && (
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-10 animate-slide-up">
+              <button onClick={() => setIsCartOpen(true)}
+                className="w-full bg-brand-600 hover:bg-brand-700 text-white py-4 px-6 rounded-2xl flex items-center justify-between shadow-lg active:scale-98 transition-all font-bold">
+                <span className="flex items-center gap-2">
+                  <span>🛒 Ver Carrinho</span>
+                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs font-black">{cartItemsCount}</span>
+                </span>
+                <span>{formatCurrency(cartTotal)} →</span>
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {checkoutStep === 'checkout' && (
+        <main className="flex-1 max-w-lg w-full mx-auto p-4 space-y-5 overflow-y-auto animate-slide-up">
+          <button onClick={() => setCheckoutStep('catalog')} className="text-sm text-brand-600 font-extrabold mb-2 flex items-center gap-1">
+            ← Voltar para a Loja
+          </button>
+
+          <h3 className="text-xl font-black text-gray-900">Finalizar sua Compra</h3>
+
+          {/* Delivery Address */}
+          <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+            <h4 className="font-extrabold text-gray-950 text-sm flex items-center gap-1.5">📍 Endereço de Entrega</h4>
+            <textarea
+              required
+              value={deliveryAddress}
+              onChange={e => setDeliveryAddress(e.target.value)}
+              placeholder="Rua, número, complemento, ponto de referência..."
+              className="input min-h-[90px] py-2 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl"
+            />
+          </div>
+
+          {/* Delivery Slots Selection */}
+          <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+            <h4 className="font-extrabold text-gray-950 text-sm flex items-center gap-1.5">📅 Escolha o Horário de Entrega</h4>
+            
+            {availableSlots.length === 0 ? (
+              <div className="text-center py-6 text-red-500 font-bold text-xs bg-red-50 rounded-2xl border border-red-100">
+                ⚠️ A loja não possui horários de entrega ativos disponíveis para hoje/futuro. Entre em contato com a gerência.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {availableSlots.map(slot => {
+                  const isSelected = selectedSlot?.id === slot.id
+                  return (
+                    <button
+                      key={slot.id}
+                      type="button"
+                      onClick={() => setSelectedSlot(slot)}
+                      className={`p-3 rounded-2xl border-2 text-left transition-all active:scale-98
+                        ${isSelected ? 'border-brand-500 bg-brand-50/40 text-brand-950' : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'}`}
+                    >
+                      <div className="font-extrabold text-sm">{formatDateBr(slot.date)}</div>
+                      <div className="text-xs text-gray-500 mt-1 font-semibold">⏰ {slot.timeStart} às {slot.timeEnd}</div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Payment Method Selector */}
+          <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+            <h4 className="font-extrabold text-gray-950 text-sm flex items-center gap-1.5">💳 Forma de Pagamento Antecipado</h4>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('pix')}
+                className={`py-4 rounded-2xl border-2 font-bold text-sm text-center transition-all active:scale-98 flex flex-col items-center gap-1
+                  ${paymentMethod === 'pix' ? 'border-emerald-500 bg-emerald-50/30 text-emerald-950' : 'border-gray-200 bg-white text-gray-700'}`}
+              >
+                <span className="text-xl">⚡</span>
+                <span>PIX</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('card')}
+                className={`py-4 rounded-2xl border-2 font-bold text-sm text-center transition-all active:scale-98 flex flex-col items-center gap-1
+                  ${paymentMethod === 'card' ? 'border-indigo-500 bg-indigo-50/30 text-indigo-950' : 'border-gray-200 bg-white text-gray-700'}`}
+              >
+                <span className="text-xl">💳</span>
+                <span>Cartão de Crédito</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Summary of Order */}
+          <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3">
+            <h4 className="font-extrabold text-gray-950 text-sm">Resumo do Pedido</h4>
+            <div className="flex justify-between items-center text-base">
+              <span className="font-bold text-gray-500">Total a Pagar</span>
+              <span className="font-black text-emerald-600 text-xl">{formatCurrency(cartTotal)}</span>
+            </div>
+          </div>
+
+          <button
+            onClick={handleConfirmOrder}
+            className="btn btn-primary w-full h-14 rounded-2xl font-bold text-base shadow-lg"
+          >
+            Ir para o Pagamento
+          </button>
+        </main>
+      )}
+
+      {checkoutStep === 'payment' && (
+        <main className="flex-1 max-w-lg w-full mx-auto p-4 space-y-5 overflow-y-auto animate-slide-up">
+          <button onClick={() => setCheckoutStep('checkout')} className="text-sm text-brand-600 font-extrabold mb-2 flex items-center gap-1">
+            ← Voltar para Revisão
+          </button>
+
+          <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-xl space-y-6 text-center">
+            {paymentMethod === 'pix' ? (
+              <>
+                <div>
+                  <h3 className="text-2xl font-black text-gray-900">Pagamento via Pix</h3>
+                  <p className="text-sm text-gray-500 mt-1">Pague agora para confirmar seu horário e pedido</p>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-100 inline-block mx-auto">
+                  {/* Premium Simulated QR Code using Google Charts API */}
+                  <img
+                    src={`https://chart.googleapis.com/chart?chs=220x220&cht=qr&chl=MDL_PAYMENT_${storeId}_${cartTotal}`}
+                    alt="Pix QR Code"
+                    className="w-48 h-48 bg-white p-2 rounded-2xl shadow-inner"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="text-xs text-gray-400 font-semibold">Chave Pix Copia e Cola:</div>
+                  <div className="flex gap-2 w-full max-w-sm mx-auto">
+                    <input
+                      type="text"
+                      readOnly
+                      value={`00020126580014BR.GOV.BCB.PIX0136mdl_${storeId}_payment_${Date.now()}5204000053039865406${cartTotal.toFixed(2)}5802BR5915PadariaManaDeus6009SaoPaulo62070503***6304`}
+                      className="input h-10 text-xs bg-gray-50 text-gray-400 select-all overflow-hidden text-ellipsis truncate"
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`00020126580014BR.GOV.BCB.PIX0136mdl_${storeId}_payment_${Date.now()}5204000053039865406${cartTotal.toFixed(2)}5802BR5915PadariaManaDeus6009SaoPaulo62070503***6304`)
+                        alert('Pix Copia e Cola copiado para a área de transferência!')
+                      }}
+                      className="btn btn-primary h-10 px-3.5 text-xs font-bold shrink-0 rounded-xl"
+                    >
+                      Copiar
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-gray-100">
+                  <div className="text-xs text-gray-400 font-bold mb-3 flex items-center justify-center gap-1">
+                    <span>💡</span> Após realizar o pagamento no seu banco, clique em "Confirmar Pagamento".
+                  </div>
+
+                  <button
+                    onClick={simulatePayment}
+                    disabled={paymentLoading}
+                    className="btn btn-success w-full h-14 rounded-2xl font-bold text-base shadow-md flex items-center justify-center gap-2"
+                  >
+                    {paymentLoading ? '⏳ Confirmando...' : '✅ Confirmar Pagamento Pix'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <h3 className="text-2xl font-black text-gray-900">Cartão de Crédito</h3>
+                  <p className="text-sm text-gray-500 mt-1">Insira os dados do cartão para finalizar</p>
+                </div>
+
+                {/* Animated Simulated Card */}
+                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-5 rounded-3xl text-white text-left shadow-lg relative overflow-hidden max-w-sm mx-auto aspect-[1.6/1]">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-8 -mt-8"></div>
+                  <div className="flex justify-between items-start mb-6">
+                    <span className="text-xl">💳</span>
+                    <span className="text-[10px] font-bold tracking-widest bg-white/20 px-2 py-0.5 rounded uppercase">CRÉDITO</span>
+                  </div>
+                  <div className="text-lg font-black tracking-widest mb-4">
+                    {cardForm.number || '•••• •••• •••• ••••'}
+                  </div>
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <div className="text-[8px] text-white/60 font-bold uppercase">Titular do Cartão</div>
+                      <div className="text-xs font-bold uppercase truncate max-w-[150px]">
+                        {cardForm.name || 'Nome do Titular'}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[8px] text-white/60 font-bold uppercase">Validade</div>
+                      <div className="text-xs font-bold">{cardForm.expiry || 'MM/AA'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Inputs */}
+                <div className="space-y-3.5 max-w-sm mx-auto text-left">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Número do Cartão</label>
+                    <input
+                      type="text"
+                      maxLength={16}
+                      required
+                      placeholder="1234 5678 1234 5678"
+                      value={cardForm.number}
+                      onChange={e => setCardForm(f => ({ ...f, number: e.target.value.replace(/[^\d]/g, '') }))}
+                      className="input h-11 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nome Impresso no Cartão</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ex: JOÃO DA SILVA"
+                      value={cardForm.name}
+                      onChange={e => setCardForm(f => ({ ...f, name: e.target.value.toUpperCase() }))}
+                      className="input h-11 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Validade (MM/AA)</label>
+                      <input
+                        type="text"
+                        maxLength={5}
+                        required
+                        placeholder="12/29"
+                        value={cardForm.expiry}
+                        onChange={e => setCardForm(f => ({ ...f, expiry: e.target.value }))}
+                        className="input h-11 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CVV (Código)</label>
+                      <input
+                        type="password"
+                        maxLength={3}
+                        required
+                        placeholder="123"
+                        value={cardForm.cvv}
+                        onChange={e => setCardForm(f => ({ ...f, cvv: e.target.value.replace(/[^\d]/g, '') }))}
+                        className="input h-11 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 max-w-sm mx-auto">
+                  <button
+                    onClick={simulatePayment}
+                    disabled={paymentLoading}
+                    className="btn btn-success w-full h-14 rounded-2xl font-bold text-base shadow-md flex items-center justify-center gap-2"
+                  >
+                    {paymentLoading ? '⏳ Processando...' : '💳 Pagar com Cartão'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </main>
+      )}
+    </div>
+  )
+}

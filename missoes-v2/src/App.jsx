@@ -15,10 +15,20 @@ import Paystubs from './pages/manager/Paystubs'
 import PublicStore from './pages/PublicStore'
 import PermissionsRequest from './components/PermissionsRequest'
 import LabelsGenerator from './pages/manager/LabelsGenerator'
+import CustomerRegister from './pages/customer/CustomerRegister'
+import CustomerLogin from './pages/customer/CustomerLogin'
+import CustomerStore from './pages/customer/CustomerStore'
+import CustomerOrderDetails from './pages/customer/CustomerOrderDetails'
+import Customers from './pages/manager/Customers'
+import DeliverySlots from './pages/manager/DeliverySlots'
+import CustomerOrders from './pages/manager/CustomerOrders'
 
 import { useStore } from './hooks/useStore'
 
 function ProductsPage() { const n = useNavigate(); return <Products onBack={() => n('/gerente')} /> }
+function CustomersPage() { const n = useNavigate(); return <Customers onBack={() => n('/gerente')} /> }
+function DeliverySlotsPage() { const n = useNavigate(); return <DeliverySlots onBack={() => n('/gerente')} /> }
+function CustomerOrdersPage() { const n = useNavigate(); return <CustomerOrders onBack={() => n('/gerente')} /> }
 function ProductsPageFunc() {
   const n = useNavigate()
   const { currentUser, isManager } = useAuth()
@@ -56,9 +66,15 @@ function AppRoutes() {
 
   if (location.pathname.startsWith('/cliente/')) {
     return (
-      <Routes>
-        <Route path="/cliente/:storeId" element={<PublicStore />} />
-      </Routes>
+      <StoreProvider>
+        <Routes>
+          <Route path="/cliente/:storeId" element={<PublicStore />} />
+          <Route path="/cliente/:storeId/cadastro" element={<CustomerRegister />} />
+          <Route path="/cliente/:storeId/login" element={<CustomerLogin />} />
+          <Route path="/cliente/:storeId/loja" element={<CustomerStore />} />
+          <Route path="/cliente/:storeId/pedido/:orderId" element={<CustomerOrderDetails />} />
+        </Routes>
+      </StoreProvider>
     )
   }
 
@@ -96,6 +112,9 @@ function AppRoutes() {
         <Route path="/gerente/config" element={isManager ? <ConfigPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/feedback" element={isManager ? <FeedbackPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/contracheques" element={isManager ? <PaystubsPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/clientes" element={isManager ? <CustomersPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/entregas" element={isManager ? <DeliverySlotsPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/pedidos-clientes" element={isManager ? <CustomerOrdersPage /> : <Navigate to="/funcionario" />} />
         <Route path="/funcionario" element={!isManager ? <EmployeeDashboard /> : <Navigate to="/gerente" />} />
         <Route path="/funcionario/produtos" element={!isManager ? <ProductsPageFunc /> : <Navigate to="/gerente" />} />
         <Route path="*" element={<Navigate to={location.pathname.startsWith('/pdv') ? '/pdv' : (isManager ? '/gerente' : '/funcionario')} />} />
