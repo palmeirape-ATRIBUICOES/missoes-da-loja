@@ -40,11 +40,65 @@ export function StoreProvider({ children }) {
   const [deliverySlotsAll, setDeliverySlotsAll] = useState([])
   const [customerOrdersAll, setCustomerOrdersAll] = useState([])
   const [loading, setLoading] = useState(true)
-
   // Refs
   const cfgRef = (name) => doc(db, 'stores', storeId, 'config', name)
   const stateRef = (name) => doc(db, 'stores', storeId, 'state', name)
   const colRef = (name) => collection(db, 'stores', storeId, name)
+
+  // Trigger high-urgency notifications for manager
+  const triggerUrgentNotification = useCallback((customerName) => {
+    // 1. Play alert sound (synthesized with Web Audio API for 100% offline support)
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext
+      if (AudioContextClass) {
+        const ctx = new AudioContextClass()
+        const playBeep = (time, freq, duration) => {
+          const osc = ctx.createOscillator()
+          const gain = ctx.createGain()
+          osc.type = 'sine'
+          osc.frequency.setValueAtTime(freq, time)
+          gain.gain.setValueAtTime(0, time)
+          gain.gain.linearRampToValueAtTime(0.8, time + 0.05)
+          gain.gain.exponentialRampToValueAtTime(0.001, time + duration)
+          osc.connect(gain)
+          gain.connect(ctx.destination)
+          osc.start(time)
+          osc.stop(time + duration)
+        }
+        const now = ctx.currentTime
+        // Alarm chime
+        playBeep(now, 587.33, 0.25)
+        playBeep(now + 0.15, 698.46, 0.25)
+        playBeep(now + 0.3, 880.00, 0.45)
+      }
+    } catch (e) {
+      console.warn('Audio context alert failed:', e)
+    }
+
+    // 2. Show native browser/PWA notification if permission is granted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const title = 'Aprovação Pendente! ⏳'
+      const body = `O cliente ${customerName} acabou de se cadastrar e está aguardando aprovação.`
+      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification(title, {
+            body,
+            icon: '/android-chrome-192x192.png',
+            badge: '/android-chrome-192x192.png',
+            vibrate: [300, 100, 300, 100, 400],
+            tag: 'customer-pending-approval',
+            requireInteraction: true,
+            renotify: true
+          }).catch(err => {
+            console.warn('Service worker showNotification failed:', err)
+            new Notification(title, { body, requireInteraction: true, tag: 'customer-pending-approval', renotify: true })
+          })
+        })
+      } else {
+        new Notification(title, { body, requireInteraction: true, tag: 'customer-pending-approval', renotify: true })
+      }
+    }
+  }, [])
 
   // Subscribe to all collections
   useEffect(() => {
@@ -125,9 +179,23 @@ export function StoreProvider({ children }) {
     }))
 
     // Customers
+    let isInitialCustomersLoad = true
     const custQ = query(colRef('state/customers/items'), orderBy('createdAt', 'desc'))
     unsubs.push(onSnapshot(custQ, (qs) => {
-      setCustomersAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
+      const items = qs.docs.map(d => ({ id: d.id, ...d.data() }))
+      setCustomersAll(items)
+      
+      if (isManager && !isInitialCustomersLoad) {
+        qs.docChanges().forEach(change => {
+          if (change.type === 'added') {
+            const data = change.doc.data()
+            if (data.status === 'pending') {
+              triggerUrgentNotification(data.name || 'Cliente')
+            }
+          }
+        })
+      }
+      isInitialCustomersLoad = false
     }))
 
     // Delivery slots
