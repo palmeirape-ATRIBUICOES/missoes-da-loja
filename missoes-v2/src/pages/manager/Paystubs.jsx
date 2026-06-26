@@ -556,7 +556,7 @@ export default function Paystubs({ onBack }) {
         <style>
           @page {
             size: A4 portrait;
-            margin: 10mm;
+            margin: 15mm;
           }
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
@@ -614,7 +614,7 @@ export default function Paystubs({ onBack }) {
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            padding: 10px 12px;
+            padding: 10px 18px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             page-break-inside: avoid;
             position: relative;
@@ -857,7 +857,7 @@ export default function Paystubs({ onBack }) {
               border: 1px solid #cbd5e1;
               border-radius: 8px;
               box-shadow: none;
-              padding: 8px 12px;
+              padding: 8px 18px;
               page-break-inside: avoid;
             }
             .scissors-line {
@@ -972,7 +972,7 @@ export default function Paystubs({ onBack }) {
         <style>
           @page {
             size: A4 portrait;
-            margin: 10mm;
+            margin: 15mm;
           }
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
@@ -1030,7 +1030,7 @@ export default function Paystubs({ onBack }) {
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            padding: 10px 12px;
+            padding: 10px 18px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             page-break-inside: avoid;
             position: relative;
@@ -1273,7 +1273,7 @@ export default function Paystubs({ onBack }) {
               border: 1px solid #cbd5e1;
               border-radius: 8px;
               box-shadow: none;
-              padding: 8px 12px;
+              padding: 8px 18px;
               page-break-inside: avoid;
             }
             .scissors-line {
