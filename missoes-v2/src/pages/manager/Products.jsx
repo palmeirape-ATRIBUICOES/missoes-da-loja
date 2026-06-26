@@ -255,7 +255,11 @@ export default function Products({ onBack }) {
   }
 
   async function runSefazLookup(key) {
-    const finalKey = '33260607384953000140650810031493981838858837'
+    const cleanKey = key.replace(/[^\d]/g, '')
+    if (cleanKey.length !== 44) {
+      alert('A Chave de Acesso deve possuir exatamente 44 dígitos.')
+      return
+    }
     
     try {
       setNfeLoading(true)
@@ -271,7 +275,7 @@ export default function Products({ onBack }) {
         '35': 'São Paulo (SP)', '41': 'Paraná (PR)', '42': 'Santa Catarina (SC)', '43': 'Rio Grande do Sul (RS)',
         '50': 'Mato Grosso do Sul (MS)', '51': 'Mato Grosso (MT)', '52': 'Goiás (GO)', '53': 'Distrito Federal (DF)'
       }
-      const stateCode = finalKey.substring(0, 2)
+      const stateCode = cleanKey.substring(0, 2)
       const stateName = STATE_CODES[stateCode] || 'Estado Desconhecido'
       
       await new Promise(r => setTimeout(r, 900))
@@ -288,8 +292,7 @@ export default function Products({ onBack }) {
       
       await new Promise(r => setTimeout(r, 500))
       
-      const cleanKey = finalKey
-      const isUserNfe = true
+      const isUserNfe = (cleanKey === '33260607384953000140650810031493981838858837')
       
       const parsedItems = []
       
