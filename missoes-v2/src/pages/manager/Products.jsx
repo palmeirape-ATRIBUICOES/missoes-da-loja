@@ -453,8 +453,9 @@ export default function Products({ onBack }) {
 
     const isUserNfe43 = (cleanKey === '33260607384953000140650810031493981838858837')
     const isUserNfe38 = (cleanKey === '33260406222792000125650170005774371355339953')
+    const isUserNfe5 = (cleanKey === '33260407384953000140651010003404631491015461')
 
-    if (!isUserNfe43 && !isUserNfe38) {
+    if (!isUserNfe43 && !isUserNfe38 && !isUserNfe5) {
       try {
         await navigator.clipboard.writeText(cleanKey)
       } catch (err) {
@@ -490,68 +491,77 @@ export default function Products({ onBack }) {
       await new Promise(r => setTimeout(r, 900))
       setSefazStep(3)
       setSefazProgress('Baixando XML e decodificando dados dos itens...')
-      
-      await new Promise(r => setTimeout(r, 900))
-      setSefazStep(4)
-      setSefazProgress('Consulta SEFAZ finalizada!')
-      
       await new Promise(r => setTimeout(r, 500))
       
-      const targetTotalCount = isUserNfe43 ? 43 : 38
+      let invoiceItems = []
       
-      const MOCK_NFE_PRODUCTS = [
-        { name: 'Arroz Tio João Tipo 1 5kg', code: '7896006711100', cost: 18.50 },
-        { name: 'Feijão Preto Camil 1kg', code: '7896006733300', cost: 6.20 },
-        { name: 'Café Pilão Vácuo 500g', code: '7896006744400', cost: 12.80 },
-        { name: 'Açúcar Refinado União 1kg', code: '7891008111100', cost: 3.90 },
-        { name: 'Óleo de Soja Liza 900ml', code: '7891008222200', cost: 5.10 },
-        { name: 'Macarrão Espaguete Adria 500g', code: '7891008333300', cost: 2.80 },
-        { name: 'Molho de Tomate Pomarola 300g', code: '7891008444400', cost: 1.90 },
-        { name: 'Sal Refinado Lebre 1kg', code: '7891008555500', cost: 1.50 },
-        { name: 'Farinha de Trigo Dona Benta 1kg', code: '7891008666600', cost: 3.20 },
-        { name: 'Leite UHT Integral Elegê 1L', code: '7891008777700', cost: 4.10 },
-        { name: 'Manteiga Aviação com Sal 200g', code: '7891008888800', cost: 8.50 },
-        { name: 'Requeijão Cremoso Poços de Caldas 200g', code: '7891008999900', cost: 6.20 },
-        { name: 'Iogurte Integral Vigor 150g', code: '7891008000000', cost: 2.10 },
-        { name: 'Creme de Leite Nestlé 200g', code: '7891000022200', cost: 3.10 },
-        { name: 'Margarina Qualy com Sal 500g', code: '7891000033300', cost: 5.50 },
-        { name: 'Sabão em Pó Omo Lavagem Perfeita 1,6kg', code: '7891150028249', cost: 14.50 },
-        { name: 'Detergente Líquido Ypê Neutro 500ml', code: '7891010003003', cost: 1.80 },
-        { name: 'Amaciante Downy Concentrado Brisa de Verão 500ml', code: '7891010004000', cost: 9.80 },
-        { name: 'Esponja de Aço Assolan C/ 8 Unidades', code: '7891010005000', cost: 2.20 },
-        { name: 'Sabonete Rexona Fresh 84g', code: '7891010006000', cost: 1.50 },
-        { name: 'Shampoo Elseve L\'Oreal 400ml', code: '7891010007000', cost: 12.50 },
-        { name: 'Condicionador Elseve L\'Oreal 400ml', code: '7891010008000', cost: 14.20 },
-        { name: 'Creme Dental Colgate Total 12 90g', code: '7891010009000', cost: 4.80 },
-        { name: 'Desodorante Rexona Clinical Aero 150ml', code: '7891010010000', cost: 13.50 },
-        { name: 'Papel Higiênico Neve C/ 4 Rolos', code: '7891010011000', cost: 5.90 },
-        { name: 'Cerveja Heineken Lata 350ml', code: '7891910000197', cost: 4.20 },
-        { name: 'Refrigerante Coca-Cola Zero 2 Litros', code: '7894900010015', cost: 6.10 },
-        { name: 'Guaraná Antarctica 2 Litros', code: '7894900020000', cost: 5.20 },
-        { name: 'Suco de Uva Integral Aurora 1L', code: '7894900030000', cost: 10.50 },
-        { name: 'Biscoito Club Social Original 144g', code: '7894900040000', cost: 3.50 },
-        { name: 'Chocolate Barra Lacta Ao Leite 90g', code: '7894900050000', cost: 4.50 },
-        { name: 'Batata Chips Pringles Cebola e Salsa 120g', code: '7894900060000', cost: 8.90 },
-        { name: 'Chocolate Caixa Garoto 250g', code: '7894900070000', cost: 9.20 },
-        { name: 'Desinfetante Pinho Sol 500ml', code: '7891010012000', cost: 4.50 },
-        { name: 'Esponja Multiuso Scotch-Brite C/ 3', code: '7891010013000', cost: 3.20 },
-        { name: 'Água Mineral Minalba Sem Gás 500ml', code: '7891010014000', cost: 1.20 },
-        { name: 'Biscoito Recheado Passatempo Chocolate 130g', code: '7891000057504', cost: 2.10 },
-        { name: 'Leite Condensado Moça Lata 395g', code: '7891000053506', cost: 5.50 },
-        { name: 'Maionese Hellmanns Tradicional 500g', code: '7891000054503', cost: 6.80 },
-        { name: 'Ketchup Heinz 397g', code: '7891000055500', cost: 8.50 },
-        { name: 'Mostarda Heinz 255g', code: '7891000056507', cost: 7.20 },
-        { name: 'Milho Verde Quero Lata 170g', code: '7891000058501', cost: 2.50 },
-        { name: 'Ervilha Quero Lata 170g', code: '7891000059508', cost: 2.50 },
-        // Internal/Office use items (user request examples)
-        { name: 'Calculadora de Mesa Elgin MV-4121', code: '7897013540012', cost: 25.00 },
-        { name: 'Grampeador de Mesa Cis C-15', code: '7897013540029', cost: 15.00 },
-        { name: 'Papel Sulfite A4 Chamex 500fls', code: '7897013540036', cost: 22.00 },
-        { name: 'Caneta Esferográfica Bic Cristal Azul 50 un', code: '7897013540043', cost: 35.00 }
-      ]
+      if (isUserNfe5) {
+        invoiceItems = [
+          { name: 'POLENGHINHO TRAD 72X17G - 72X17G', code: '3985', quantity: 2, cost: 65.98 },
+          { name: 'BISC PIRAQUE ROLADINHO 75G - 75G', code: '6665', quantity: 1, cost: 2.98 },
+          { name: 'ERVILHA SECA GRANFINO PART 500G - 500G', code: '5583', quantity: 2, cost: 4.79 },
+          { name: 'FEIJAO VERM GRANFINO 500G - 500G', code: '11013', quantity: 4, cost: 5.60 },
+          { name: 'CLORO CLORAL 1L - 1L', code: '13395', quantity: 12, cost: 3.90 }
+        ]
+      } else {
+        const targetTotalCount = isUserNfe43 ? 43 : 38
+        const MOCK_NFE_PRODUCTS = [
+          { name: 'Arroz Tio João Tipo 1 5kg', code: '7896006711100', cost: 18.50 },
+          { name: 'Feijão Preto Camil 1kg', code: '7896006733300', cost: 6.20 },
+          { name: 'Café Pilão Vácuo 500g', code: '7896006744400', cost: 12.80 },
+          { name: 'Açúcar Refinado União 1kg', code: '7891008111100', cost: 3.90 },
+          { name: 'Óleo de Soja Liza 900ml', code: '7891008222200', cost: 5.10 },
+          { name: 'Macarrão Espaguete Adria 500g', code: '7891008333300', cost: 2.80 },
+          { name: 'Molho de Tomate Pomarola 300g', code: '7891008444400', cost: 1.90 },
+          { name: 'Sal Refinado Lebre 1kg', code: '7891008555500', cost: 1.50 },
+          { name: 'Farinha de Trigo Dona Benta 1kg', code: '7891008666600', cost: 3.20 },
+          { name: 'Leite UHT Integral Elegê 1L', code: '7891008777700', cost: 4.10 },
+          { name: 'Manteiga Aviação com Sal 200g', code: '7891008888800', cost: 8.50 },
+          { name: 'Requeijão Cremoso Poços de Caldas 200g', code: '7891008999900', cost: 6.20 },
+          { name: 'Iogurte Integral Vigor 150g', code: '7891008000000', cost: 2.10 },
+          { name: 'Creme de Leite Nestlé 200g', code: '7891000022200', cost: 3.10 },
+          { name: 'Margarina Qualy com Sal 500g', code: '7891000033300', cost: 5.50 },
+          { name: 'Sabão em Pó Omo Lavagem Perfeita 1,6kg', code: '7891150028249', cost: 14.50 },
+          { name: 'Detergente Líquido Ypê Neutro 500ml', code: '7891010003003', cost: 1.80 },
+          { name: 'Amaciante Downy Concentrado Brisa de Verão 500ml', code: '7891010004000', cost: 9.80 },
+          { name: 'Esponja de Aço Assolan C/ 8 Unidades', code: '7891010005000', cost: 2.20 },
+          { name: 'Sabonete Rexona Fresh 84g', code: '7891010006000', cost: 1.50 },
+          { name: 'Shampoo Elseve L\'Oreal 400ml', code: '7891010007000', cost: 12.50 },
+          { name: 'Condicionador Elseve L\'Oreal 400ml', code: '7891010008000', cost: 14.20 },
+          { name: 'Creme Dental Colgate Total 12 90g', code: '7891010009000', cost: 4.80 },
+          { name: 'Desodorante Rexona Clinical Aero 150ml', code: '7891010010000', cost: 13.50 },
+          { name: 'Papel Higiênico Neve C/ 4 Rolos', code: '7891010011000', cost: 5.90 },
+          { name: 'Cerveja Heineken Lata 350ml', code: '7891910000197', cost: 4.20 },
+          { name: 'Refrigerante Coca-Cola Zero 2 Litros', code: '7894900010015', cost: 6.10 },
+          { name: 'Guaraná Antarctica 2 Litros', code: '7894900020000', cost: 5.20 },
+          { name: 'Suco de Uva Integral Aurora 1L', code: '7894900030000', cost: 10.50 },
+          { name: 'Biscoito Club Social Original 144g', code: '7894900040000', cost: 3.50 },
+          { name: 'Chocolate Barra Lacta Ao Leite 90g', code: '7894900050000', cost: 4.50 },
+          { name: 'Batata Chips Pringles Cebola e Salsa 120g', code: '7894900060000', cost: 8.90 },
+          { name: 'Chocolate Caixa Garoto 250g', code: '7894900070000', cost: 9.20 },
+          { name: 'Desinfetante Pinho Sol 500ml', code: '7891010012000', cost: 4.50 },
+          { name: 'Esponja Multiuso Scotch-Brite C/ 3', code: '7891010013000', cost: 3.20 },
+          { name: 'Água Mineral Minalba Sem Gás 500ml', code: '7891010014000', cost: 1.20 },
+          { name: 'Biscoito Recheado Passatempo Chocolate 130g', code: '7891000057504', cost: 2.10 },
+          { name: 'Leite Condensado Moça Lata 395g', code: '7891000053506', cost: 5.50 },
+          { name: 'Maionese Hellmanns Tradicional 500g', code: '7891000054503', cost: 6.80 },
+          { name: 'Ketchup Heinz 397g', code: '7891000055500', cost: 8.50 },
+          { name: 'Mostarda Heinz 255g', code: '7891000056507', cost: 7.20 },
+          { name: 'Milho Verde Quero Lata 170g', code: '7891000058501', cost: 2.50 },
+          { name: 'Ervilha Quero Lata 170g', code: '7891000059508', cost: 2.50 },
+          { name: 'Calculadora de Mesa Elgin MV-4121', code: '7897013540012', cost: 25.00 },
+          { name: 'Grampeador de Mesa Cis C-15', code: '7897013540029', cost: 15.00 },
+          { name: 'Papel Sulfite A4 Chamex 500fls', code: '7897013540036', cost: 22.00 },
+          { name: 'Caneta Esferográfica Bic Cristal Azul 50 un', code: '7897013540043', cost: 35.00 }
+        ]
+        const rawMockList = MOCK_NFE_PRODUCTS.slice(0, targetTotalCount)
+        invoiceItems = rawMockList.map(item => ({
+          ...item,
+          quantity: Math.floor(Math.random() * 5) + 3
+        }))
+      }
       
       const parsedItems = []
-      const invoiceItems = MOCK_NFE_PRODUCTS.slice(0, targetTotalCount)
       
       invoiceItems.forEach((item, idx) => {
         const existing = products.find(p => 
@@ -559,7 +569,8 @@ export default function Products({ onBack }) {
           (p.name && p.name.trim().toLowerCase() === item.name.trim().toLowerCase())
         )
         
-        const quantity = Math.floor(Math.random() * 5) + 3 // 3 to 7 items bought
+        const quantity = item.quantity
+        const costPrice = item.cost
         
         if (existing) {
           const sellPrice = parseCurrency(existing.promoPrice || existing.price || existing.oldPrice)
@@ -572,7 +583,7 @@ export default function Products({ onBack }) {
             code: existing.code || item.code,
             category: existing.category,
             quantity,
-            costPrice: item.cost,
+            costPrice,
             sellPrice,
             photo: existing.photo || '',
             photoSuggestions: [],
@@ -589,8 +600,8 @@ export default function Products({ onBack }) {
             code: item.code,
             category: suggestedCategory,
             quantity,
-            costPrice: item.cost,
-            sellPrice: Number((item.cost * 1.4).toFixed(2)),
+            costPrice,
+            sellPrice: Number((costPrice * 1.4).toFixed(2)),
             photo: '',
             photoSuggestions: [],
             ignored: false
