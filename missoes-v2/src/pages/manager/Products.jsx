@@ -368,109 +368,104 @@ export default function Products({ onBack }) {
         try {
           html5QrCode = new Html5Qrcode('nfe-reader')
           
-          const startScanning = (constraints, options, isFallback = false) => {
+          const startScanning = async () => {
             if (!html5QrCode || !isCurrent) return
             
-            // Timeout to retry with simple constraints if HD request hangs
-            let startTimeout = null
-            if (!isFallback) {
-              startTimeout = setTimeout(() => {
-                console.warn('Camera start timed out. Retrying with basic fallback...')
-                if (html5QrCode && isCurrent) {
-                  try {
-                    // Attempt to stop current initialization if any, and start fallback
-                    html5QrCode.stop().catch(() => {}).then(() => {
-                      if (isCurrent) {
-                        startScanning(
-                          { facingMode: 'environment' },
-                          { fps: 10, qrbox: { width: 250, height: 250 } },
-                          true
-                        )
-                      }
-                    })
-                  } catch (e) {
-                    if (isCurrent) {
-                      startScanning(
-                        { facingMode: 'environment' },
-                        { fps: 10, qrbox: { width: 250, height: 250 } },
-                        true
-                      )
-                    }
-                  }
-                }
-              }, 2500)
-            }
-            
-            html5QrCode.start(
-              constraints,
-              options,
-              (decodedText) => {
-                const key = extractAccessKey(decodedText)
-                if (key) {
-                  html5QrCode.stop().then(() => {
-                    setShowNfeScanner(false)
-                    runSefazLookup(key)
-                  }).catch(err => {
-                    console.error('Failed to stop camera: ', err)
-                    setShowNfeScanner(false)
-                    runSefazLookup(key)
-                  })
-                } else {
-                  alert('Este QR Code não contém uma Chave de Acesso NFE/NFC-e válida de 44 dígitos.')
-                }
-              },
-              () => {
-                // Silence scan errors
-              }
-            ).then(() => {
-              if (startTimeout) clearTimeout(startTimeout)
-              if (!isCurrent) {
-                if (html5QrCode && html5QrCode.isScanning) {
-                  html5QrCode.stop().catch(console.error)
-                }
-              } else {
-                setCameraLoading(false)
-              }
-            }).catch(err => {
-              if (startTimeout) clearTimeout(startTimeout)
-              console.error('Error starting camera with constraints: ', constraints, err)
-              
+            try {
+              // 1. Get cameras list
+              const devices = await Html5Qrcode.getCameras()
               if (!isCurrent) return
               
-              // Fallback chain to ensure camera opens on any device
-              if (!isFallback && constraints.width) {
-                console.log('Retrying with simple environment constraints...')
-                startScanning(
-                  { facingMode: 'environment' },
-                  { fps: 10, qrbox: { width: 250, height: 250 } },
-                  true
-                )
-              } else if (constraints.facingMode) {
-                console.log('Retrying with default camera...')
-                startScanning(
-                  {},
-                  { fps: 10, qrbox: { width: 250, height: 250 } },
-                  true
-                )
-              } else {
-                setCameraLoading(false)
-                setCameraError('Não foi possível acessar a câmera. Verifique se deu as permissões de acesso.')
+              let cameraDevice = null
+              if (devices && devices.length > 0) {
+                // Find rear/back camera
+                cameraDevice = devices.find(d => {
+                  const label = (d.label || '').toLowerCase()
+                  return label.includes('back') || label.includes('traseira') || label.includes('trás') || label.includes('rear')
+                })
+                
+                // Fallback to the last camera in the list
+                if (!cameraDevice) {
+                  cameraDevice = devices[devices.length - 1]
+                }
               }
-            })
-          }
-
-          // Start scanning with HD constraints first (using ideal for soft matching)
-          startScanning(
-            {
-              facingMode: 'environment',
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
-            },
-            {
-              fps: 15,
-              qrbox: { width: 260, height: 260 }
+              
+              const targetCamera = cameraDevice ? cameraDevice.id : { facingMode: 'environment' }
+              
+              // 2. Start scanning
+              await html5QrCode.start(
+                targetCamera,
+                {
+                  fps: 10,
+                  qrbox: { width: 260, height: 260 }
+                },
+                (decodedText) => {
+                  const key = extractAccessKey(decodedText)
+                  if (key) {
+                    html5QrCode.stop().then(() => {
+                      setShowNfeScanner(false)
+                      runSefazLookup(key)
+                    }).catch(err => {
+                      console.error('Failed to stop camera: ', err)
+                      setShowNfeScanner(false)
+                      runSefazLookup(key)
+                    })
+                  } else {
+                    alert('Este QR Code não contém uma Chave de Acesso NFE/NFC-e válida de 44 dígitos.')
+                  }
+                },
+                () => {
+                  // Silence scan errors
+                }
+              )
+              
+              if (isCurrent) {
+                setCameraLoading(false)
+              }
+            } catch (err) {
+              console.error('Error starting camera: ', err)
+              if (!isCurrent) return
+              
+              // Fallback to simple facingMode constraints if getCameras/id fails
+              try {
+                await html5QrCode.start(
+                  { facingMode: 'environment' },
+                  {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                  },
+                  (decodedText) => {
+                    const key = extractAccessKey(decodedText)
+                    if (key) {
+                      html5QrCode.stop().then(() => {
+                        setShowNfeScanner(false)
+                        runSefazLookup(key)
+                      }).catch(err => {
+                        console.error('Failed to stop camera fallback: ', err)
+                        setShowNfeScanner(false)
+                        runSefazLookup(key)
+                      })
+                    } else {
+                      alert('Este QR Code não contém uma Chave de Acesso NFE/NFC-e válida de 44 dígitos.')
+                    }
+                  },
+                  () => {}
+                )
+                
+                if (isCurrent) {
+                  setCameraLoading(false)
+                }
+              } catch (fallbackErr) {
+                console.error('Fallback camera failed: ', fallbackErr)
+                if (isCurrent) {
+                  setCameraLoading(false)
+                  setCameraError('Não foi possível acessar a câmera. Verifique as permissões de acesso.')
+                }
+              }
             }
-          )
+          }
+          
+          startScanning()
           
         } catch (e) {
           console.error('Failed to instantiate Html5Qrcode', e)
