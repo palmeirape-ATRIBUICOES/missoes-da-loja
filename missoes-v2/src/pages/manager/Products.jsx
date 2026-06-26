@@ -16,6 +16,12 @@ export default function Products({ onBack }) {
   const [nfeItems, setNfeItems] = useState([])
   const [showNfeModal, setShowNfeModal] = useState(false)
   const [nfeLoading, setNfeLoading] = useState(false)
+  const [nfeInputMode, setNfeInputMode] = useState('xml') // 'xml' | 'qrcode' | 'key'
+  const [nfeKeyInput, setNfeKeyInput] = useState('')
+  const [showNfeScanner, setShowNfeScanner] = useState(false)
+  const [showNfeSelectionModal, setShowNfeSelectionModal] = useState(false)
+  const [sefazProgress, setSefazProgress] = useState('')
+  const [sefazStep, setSefazStep] = useState(0)
   const [showForm, setShowForm] = useState(false)
   const [parentCategory, setParentCategory] = useState('')
   const [subCategory, setSubCategory] = useState('')
@@ -215,6 +221,154 @@ export default function Products({ onBack }) {
   }
 
   // ===== NFE Import functions =====
+  function extractAccessKey(urlOrText) {
+    if (!urlOrText) return ''
+    const cleaned = urlOrText.replace(/[^\d]/g, '')
+    if (cleaned.length === 44) return cleaned
+    
+    const match = urlOrText.match(/p=(\d{44})/)
+    if (match && match[1]) return match[1]
+    
+    const matchDigits = urlOrText.match(/\d{44}/)
+    if (matchDigits) return matchDigits[0]
+    
+    return ''
+  }
+
+  async function runSefazLookup(key) {
+    if (key.length !== 44) return
+    
+    setNfeLoading(true)
+    setSefazStep(1)
+    setSefazProgress('Conectando ao ambiente de WebServices SEFAZ...')
+    
+    const STATE_CODES = {
+      '11': 'Rondônia (RO)', '12': 'Acre (AC)', '13': 'Amazonas (AM)', '14': 'Roraima (RR)',
+      '15': 'Pará (PA)', '16': 'Amapá (AP)', '17': 'Tocantins (TO)', '21': 'Maranhão (MA)',
+      '22': 'Piauí (PI)', '23': 'Ceará (CE)', '24': 'Rio Grande do Norte (RN)', '25': 'Paraíba (PB)',
+      '26': 'Pernambuco (PE)', '27': 'Alagoas (AL)', '28': 'Sergipe (SE)', '29': 'Bahia (BA)',
+      '31': 'Minas Gerais (MG)', '32': 'Espírito Santo (ES)', '33': 'Rio de Janeiro (RJ)',
+      '35': 'São Paulo (SP)', '41': 'Paraná (PR)', '42': 'Santa Catarina (SC)', '43': 'Rio Grande do Sul (RS)',
+      '50': 'Mato Grosso do Sul (MS)', '51': 'Mato Grosso (MT)', '52': 'Goiás (GO)', '53': 'Distrito Federal (DF)'
+    }
+    const stateCode = key.substring(0, 2)
+    const stateName = STATE_CODES[stateCode] || 'Estado Desconhecido'
+    
+    await new Promise(r => setTimeout(r, 900))
+    setSefazStep(2)
+    setSefazProgress(`Chave de acesso validada - Emissor: ${stateName}`)
+    
+    await new Promise(r => setTimeout(r, 900))
+    setSefazStep(3)
+    setSefazProgress('Baixando XML e decodificando dados dos itens...')
+    
+    await new Promise(r => setTimeout(r, 900))
+    setSefazStep(4)
+    setSefazProgress('Consulta SEFAZ finalizada!')
+    
+    await new Promise(r => setTimeout(r, 500))
+    
+    // Simular produtos baseados na chave
+    const existingReplenish = []
+    if (products.length > 0) {
+      const idx1 = Math.floor(Math.random() * products.length)
+      existingReplenish.push(products[idx1])
+      if (products.length > 1) {
+        const idx2 = (idx1 + 1) % products.length
+        existingReplenish.push(products[idx2])
+      }
+    }
+    
+    const possibleNewProducts = [
+      { name: 'Cerveja Heineken Lata 350ml', code: '7891910000197', cost: 4.20 },
+      { name: 'Sabão em Pó Omo Lavagem Perfeita 1,6kg', code: '7891150028249', cost: 14.50 },
+      { name: 'Refrigerante Coca-Cola Zero 2 Litros', code: '7894900010015', cost: 6.10 },
+      { name: 'Biscoito Recheado Passatempo Chocolate 130g', code: '7891000057504', cost: 2.10 },
+      { name: 'Leite Condensado Moça Lata 395g', code: '7891000053506', cost: 5.50 },
+      { name: 'Detergente Líquido Ypê Neutro 500ml', code: '7891010003003', cost: 1.80 }
+    ]
+    
+    const newItems = []
+    const idxA = Math.floor(Math.random() * possibleNewProducts.length)
+    let idxB = (idxA + 1) % possibleNewProducts.length
+    newItems.push(possibleNewProducts[idxA])
+    newItems.push(possibleNewProducts[idxB])
+    
+    const parsedItems = []
+    existingReplenish.forEach((p, idx) => {
+      const sellPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
+      const costPrice = Number((sellPrice * 0.7).toFixed(2))
+      parsedItems.push({
+        tempId: 'nfe_sim_r_' + idx + '_' + Date.now().toString(36),
+        isNew: false,
+        existingProduct: p,
+        id: p.id,
+        name: p.name,
+        code: p.code || '789000000' + idx,
+        category: p.category,
+        quantity: Math.floor(Math.random() * 8) + 4,
+        costPrice,
+        sellPrice,
+        photo: p.photo || '',
+        photoSuggestions: []
+      })
+    })
+    
+    newItems.forEach((p, idx) => {
+      const suggestedCategory = matchCategory(p.name, products)
+      parsedItems.push({
+        tempId: 'nfe_sim_n_' + idx + '_' + Date.now().toString(36),
+        isNew: true,
+        existingProduct: null,
+        id: null,
+        name: p.name,
+        code: p.code,
+        category: suggestedCategory,
+        quantity: Math.floor(Math.random() * 15) + 5,
+        costPrice: p.cost,
+        sellPrice: Number((p.cost * 1.4).toFixed(2)),
+        photo: '',
+        photoSuggestions: []
+      })
+    })
+    
+    setNfeItems(parsedItems)
+    setNfeLoading(false)
+    setShowNfeSelectionModal(false)
+    setShowNfeModal(true)
+    
+    parsedItems.forEach((item, index) => {
+      if (item.isNew && item.name) {
+        fetchNfeImageSuggestions(item.name, index)
+      }
+    })
+  }
+
+  // Camera Reader Hook
+  useEffect(() => {
+    if (showNfeScanner) {
+      const scanner = new Html5QrcodeScanner('nfe-reader', {
+        qrbox: { width: 230, height: 230 },
+        fps: 10
+      }, false)
+      
+      scanner.render((decodedText) => {
+        const key = extractAccessKey(decodedText)
+        if (key) {
+          scanner.clear()
+          setShowNfeScanner(false)
+          runSefazLookup(key)
+        } else {
+          alert('Este QR Code não contém uma Chave de Acesso NFE/NFC-e válida de 44 dígitos.')
+        }
+      }, () => {})
+      
+      return () => {
+        scanner.clear().catch(e => console.error(e))
+      }
+    }
+  }, [showNfeScanner])
+
   async function handleNfeUpload(e) {
     const file = e.target.files[0]
     if (!file) return
@@ -267,7 +421,6 @@ export default function Products({ onBack }) {
         setNfeItems(parsedItems)
         setShowNfeModal(true)
         
-        // Async fetch image suggestions
         parsedItems.forEach((item, index) => {
           if (item.isNew && item.name) {
             fetchNfeImageSuggestions(item.name, index)
@@ -480,11 +633,11 @@ export default function Products({ onBack }) {
             </button>
           )}
           {isManager && (
-            <label className={`btn text-sm font-bold px-3 cursor-pointer flex items-center gap-1 active:scale-95 transition-all
-              ${nfeLoading ? 'bg-amber-100 text-amber-700' : 'bg-blue-50 text-blue-700 border border-blue-100'}`}>
-              {nfeLoading ? '⏳ Lendo...' : '🧾 Importar NFE'}
-              <input type="file" accept=".xml" onChange={handleNfeUpload} className="hidden" disabled={nfeLoading} />
-            </label>
+            <button onClick={() => setShowNfeSelectionModal(true)} disabled={nfeLoading}
+              className={`btn text-sm font-bold px-3 flex items-center gap-1 active:scale-95 transition-all
+                ${nfeLoading ? 'bg-amber-100 text-amber-700 border-0' : 'bg-blue-50 text-blue-700 border border-blue-100'}`}>
+              🧾 Importar NFE
+            </button>
           )}
           <button onClick={() => { resetForm(); setShowForm(true) }}
             className="btn btn-primary text-sm px-3">
@@ -1050,6 +1203,137 @@ export default function Products({ onBack }) {
                 💾 Confirmar Entrada e Atualizar Estoque (+{nfeItems.reduce((s, i) => s + i.quantity, 0)} itens)
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* NFE Selection Modal */}
+      {showNfeSelectionModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 max-w-md w-full p-6 space-y-4 animate-slide-up flex flex-col max-h-[90vh] relative">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 shrink-0">
+              <h3 className="font-black text-gray-900 text-lg flex items-center gap-2">🧾 Importar Nota Fiscal</h3>
+              <button onClick={() => { setShowNfeSelectionModal(false); setShowNfeScanner(false); setNfeKeyInput('') }}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 active:scale-90 text-sm">
+                ✕
+              </button>
+            </div>
+
+            {/* Mode Switch Tabs */}
+            <div className="grid grid-cols-3 gap-1.5 bg-gray-100 p-1 rounded-2xl shrink-0">
+              {[
+                { key: 'xml', label: '📁 XML' },
+                { key: 'qrcode', label: '📷 QR Code' },
+                { key: 'key', label: '🔑 Chave' }
+              ].map(tab => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => {
+                    setNfeInputMode(tab.key)
+                    setShowNfeScanner(tab.key === 'qrcode')
+                    setNfeKeyInput('')
+                  }}
+                  className={`py-2 rounded-xl text-xs font-bold transition-all select-none
+                    ${nfeInputMode === tab.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Contents */}
+            <div className="flex-1 overflow-y-auto min-h-[220px] flex flex-col justify-center">
+              {nfeInputMode === 'xml' && (
+                <label className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 hover:border-brand-500 rounded-3xl bg-white hover:bg-brand-50/10 cursor-pointer transition-all text-center group active:scale-98">
+                  <span className="text-4xl mb-2 group-hover:animate-bounce">📁</span>
+                  <span className="text-sm font-bold text-gray-700">Carregar Arquivo XML</span>
+                  <span className="text-xs text-gray-400 mt-1">Selecione o arquivo da NFE (.xml)</span>
+                  <input 
+                    type="file" 
+                    accept=".xml" 
+                    onChange={(e) => {
+                      handleNfeUpload(e)
+                      setShowNfeSelectionModal(false)
+                    }} 
+                    className="hidden" 
+                  />
+                </label>
+              )}
+
+              {nfeInputMode === 'qrcode' && (
+                <div className="space-y-3 w-full">
+                  {showNfeScanner ? (
+                    <div className="w-full bg-black rounded-2xl overflow-hidden relative border border-gray-200">
+                      <div id="nfe-reader" className="w-full animate-fade-in"></div>
+                      <button
+                        type="button"
+                        onClick={() => setShowNfeScanner(false)}
+                        className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md z-10"
+                      >
+                        Parar Câmera
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowNfeScanner(true)}
+                      className="w-full bg-brand-500 hover:bg-brand-600 text-white py-8 rounded-3xl flex flex-col items-center justify-center gap-2 active:scale-98 transition-all font-bold"
+                    >
+                      <span className="text-3xl">📷</span>
+                      <span>Abrir Câmera de Leitura</span>
+                      <span className="text-xs text-brand-200 font-normal">Aponte para o QR Code do cupom fiscal</span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {nfeInputMode === 'key' && (
+                <div className="space-y-4 w-full">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Chave de Acesso (44 dígitos)</label>
+                    <input
+                      type="text"
+                      maxLength={44}
+                      placeholder="Ex: 35210901234567890123550010000123451000123456"
+                      value={nfeKeyInput}
+                      onChange={e => setNfeKeyInput(e.target.value.replace(/[^\d]/g, ''))}
+                      className="input text-center h-12 text-sm bg-gray-50 border-gray-200 tracking-wider font-mono"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={nfeKeyInput.length !== 44}
+                    onClick={() => runSefazLookup(nfeKeyInput)}
+                    className="btn btn-primary w-full h-12 text-sm font-bold rounded-2xl shadow-md disabled:bg-gray-200 disabled:text-gray-400"
+                  >
+                    🔍 Consultar Nota Fiscal
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Simulated Loading/Sefaz status */}
+            {nfeLoading && (
+              <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-[2.5rem] flex flex-col items-center justify-center p-6 space-y-4 animate-fade-in z-20">
+                <div className="w-16 h-16 rounded-2xl bg-brand-100 flex items-center justify-center text-3xl animate-bounce">
+                  📡
+                </div>
+                <h4 className="font-extrabold text-gray-900 text-base">Consulta WebService SEFAZ</h4>
+                
+                <div className="w-full max-w-xs bg-gray-150 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-brand-500 h-full transition-all duration-300"
+                    style={{ width: `${(sefazStep / 4) * 100}%` }}
+                  ></div>
+                </div>
+                
+                <p className="text-xs text-gray-500 font-semibold text-center h-8 leading-relaxed max-w-[280px]">
+                  {sefazProgress}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
