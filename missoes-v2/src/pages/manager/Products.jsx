@@ -381,40 +381,13 @@ export default function Products({ onBack }) {
             if (!html5QrCode || !isCurrent) return
             
             try {
-              // 1. Get cameras list
-              const devices = await Html5Qrcode.getCameras()
-              if (!isCurrent) return
-              
-              let cameraDevice = null
-              if (devices && devices.length > 0) {
-                // Find rear/back camera
-                cameraDevice = devices.find(d => {
-                  const label = (d.label || '').toLowerCase()
-                  return label.includes('back') || label.includes('traseira') || label.includes('trás') || label.includes('rear')
-                })
-                
-                // Fallback to the last camera in the list
-                if (!cameraDevice) {
-                  cameraDevice = devices[devices.length - 1]
-                }
-              }
-              
-              // Build target constraints requesting HD resolution
-              const targetCamera = cameraDevice 
-                ? { 
-                    deviceId: cameraDevice.id,
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                  } 
-                : { 
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                  }
-              
-              // 2. Start scanning
+              // Try directly starting with environment and HD constraints (ideal values are soft)
               await html5QrCode.start(
-                targetCamera,
+                {
+                  facingMode: 'environment',
+                  width: { ideal: 1280 },
+                  height: { ideal: 720 }
+                },
                 {
                   fps: 15,
                   qrbox: { width: 260, height: 260 }
@@ -439,15 +412,20 @@ export default function Products({ onBack }) {
                 }
               )
               
-              if (isCurrent) {
+              if (!isCurrent) {
+                if (html5QrCode && html5QrCode.isScanning) {
+                  html5QrCode.stop().catch(console.error)
+                }
+              } else {
                 setCameraLoading(false)
               }
             } catch (err) {
-              console.error('Error starting camera: ', err)
+              console.error('Error starting HD camera: ', err)
               if (!isCurrent) return
               
-              // Fallback to simple facingMode constraints if getCameras/id fails
+              // Fallback: Re-instantiate Html5Qrcode to reset state and try simple constraints
               try {
+                html5QrCode = new Html5Qrcode('nfe-reader')
                 await html5QrCode.start(
                   { facingMode: 'environment' },
                   {
@@ -472,7 +450,11 @@ export default function Products({ onBack }) {
                   () => {}
                 )
                 
-                if (isCurrent) {
+                if (!isCurrent) {
+                  if (html5QrCode && html5QrCode.isScanning) {
+                    html5QrCode.stop().catch(console.error)
+                  }
+                } else {
                   setCameraLoading(false)
                 }
               } catch (fallbackErr) {
