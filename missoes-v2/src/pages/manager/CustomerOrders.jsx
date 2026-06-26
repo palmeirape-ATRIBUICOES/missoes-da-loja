@@ -3,7 +3,7 @@ import { useStore } from '../../hooks/useStore'
 import { formatCurrency } from '../../utils/constants'
 
 export default function CustomerOrders({ onBack }) {
-  const { customerOrdersAll, saveCustomerOrder } = useStore()
+  const { customerOrdersAll, saveCustomerOrder, updateProductsStock } = useStore()
   const [statusFilter, setStatusFilter] = useState('pending') // 'pending' | 'preparing' | 'dispatched' | 'delivered' | 'cancelled' | 'all'
 
   const filteredOrders = useMemo(() => {
@@ -37,6 +37,9 @@ export default function CustomerOrders({ onBack }) {
       ...order,
       status: 'cancelled'
     })
+    if (order.items && order.items.length > 0) {
+      await updateProductsStock(order.items, true)
+    }
   }
 
   function getStatusLabel(status) {

@@ -6,7 +6,7 @@ import { STORE_MAP, formatCurrency, parseCurrency, nowHuman } from '../../utils/
 export default function CustomerStore() {
   const { storeId } = useParams()
   const navigate = useNavigate()
-  const { products, deliverySlotsAll, saveCustomerOrder } = useStore()
+  const { products, deliverySlotsAll, saveCustomerOrder, updateProductsStock } = useStore()
 
   // Authentication check
   const [customer, setCustomer] = useState(null)
@@ -77,9 +77,19 @@ export default function CustomerStore() {
 
   // Cart operations
   function addToCart(product) {
+    const stockAvailable = product.stock !== undefined ? Number(product.stock) : 0
+    if (stockAvailable <= 0) {
+      alert('Desculpe, este produto está temporariamente esgotado.')
+      return
+    }
+
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id)
       if (existing) {
+        if (existing.quantity >= stockAvailable) {
+          alert(`Limite de estoque atingido! Temos apenas ${stockAvailable} unidades disponíveis deste item.`)
+          return prev
+        }
         return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)
       }
       const price = parseCurrency(product.promoPrice || product.price || product.oldPrice)
@@ -88,9 +98,16 @@ export default function CustomerStore() {
   }
 
   function updateQuantity(id, delta) {
+    const product = products.find(p => p.id === id)
+    const stockAvailable = product?.stock !== undefined ? Number(product.stock) : 0
+
     setCart(prev => prev.map(item => {
       if (item.id === id) {
         const nextQ = item.quantity + delta
+        if (delta > 0 && nextQ > stockAvailable) {
+          alert(`Limite de estoque atingido! Temos apenas ${stockAvailable} unidades disponíveis deste item.`)
+          return item
+        }
         return nextQ > 0 ? { ...item, quantity: nextQ } : item
       }
       return item
@@ -172,6 +189,7 @@ export default function CustomerStore() {
         }
 
         await saveCustomerOrder(finalOrder)
+        await updateProductsStock(cart, false)
 
         // Clear cart
         setCart([])
@@ -260,20 +278,39 @@ export default function CustomerStore() {
                 filteredProducts.map(p => {
                   const price = parseCurrency(p.promoPrice || p.price || p.oldPrice)
                   const hasPromo = p.oldPrice && p.promoPrice
+                  const stock = p.stock !== undefined ? Number(p.stock) : 0
+                  const isOutOfStock = stock <= 0
+
                   return (
-                    <div key={p.id} className="card p-3 flex flex-col justify-between hover:shadow-md transition-shadow relative bg-white border border-gray-100 rounded-3xl">
+                    <div key={p.id} className={`card p-3 flex flex-col justify-between hover:shadow-md transition-shadow relative bg-white border border-gray-100 rounded-3xl
+                      ${isOutOfStock ? 'opacity-60' : ''}`}>
+                      
                       {p.photo ? (
-                        <div className="h-32 w-full flex items-center justify-center bg-gray-50 rounded-2xl overflow-hidden p-2">
+                        <div className="h-32 w-full flex items-center justify-center bg-gray-50 rounded-2xl overflow-hidden p-2 relative">
                           <img src={p.photo} alt={p.name} className="max-h-full max-w-full object-contain" />
+                          {isOutOfStock && (
+                            <span className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs font-black uppercase tracking-wider rounded-2xl select-none">Esgotado</span>
+                          )}
                         </div>
                       ) : (
-                        <div className="h-32 w-full flex items-center justify-center bg-gray-100 rounded-2xl text-4xl">🍞</div>
+                        <div className="h-32 w-full flex items-center justify-center bg-gray-100 rounded-2xl text-4xl relative">
+                          🍞
+                          {isOutOfStock && (
+                            <span className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs font-black uppercase tracking-wider rounded-2xl select-none">Esgotado</span>
+                          )}
+                        </div>
                       )}
                       
                       <div className="mt-2.5 flex-1 flex flex-col justify-between">
                         <div>
-                          <h4 className="font-extrabold text-gray-900 text-sm line-clamp-2 leading-snug">{p.name}</h4>
+                          <div className="flex justify-between items-start gap-1">
+                            <h4 className="font-extrabold text-gray-900 text-sm line-clamp-2 leading-snug">{p.name}</h4>
+                          </div>
                           <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-2">{p.description || 'Sem descrição'}</p>
+                          <span className={`inline-block text-[9px] font-black px-1.5 py-0.5 rounded-md mt-1
+                            ${stock > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                            {stock > 0 ? `Estoque: ${stock} un` : 'Esgotado'}
+                          </span>
                         </div>
                         
                         <div className="mt-3 flex items-center justify-between gap-1.5">
@@ -284,8 +321,9 @@ export default function CustomerStore() {
                             <span className="font-black text-brand-600 text-sm">{formatCurrency(price)}</span>
                           </div>
                           
-                          <button onClick={() => addToCart(p)}
-                            className="w-9 h-9 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-black text-lg flex items-center justify-center active:scale-90 transition-all shadow-sm">
+                          <button onClick={() => addToCart(p)} disabled={isOutOfStock}
+                            className={`w-9 h-9 rounded-xl font-black text-lg flex items-center justify-center active:scale-90 transition-all shadow-sm
+                              ${isOutOfStock ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-brand-500 hover:bg-brand-600 text-white'}`}>
                             +
                           </button>
                         </div>

@@ -7,10 +7,15 @@ import { Html5QrcodeScanner } from 'html5-qrcode'
 
 export default function Products({ onBack }) {
   const { isManager } = useAuth()
-  const { products, saveProduct, deleteProduct } = useStore()
+  const { products, saveProduct, deleteProduct, saveMultipleProducts } = useStore()
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '', photo: '' })
+  const [form, setForm] = useState({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '', photo: '', stock: '' })
+  
+  // NFE States
+  const [nfeItems, setNfeItems] = useState([])
+  const [showNfeModal, setShowNfeModal] = useState(false)
+  const [nfeLoading, setNfeLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [parentCategory, setParentCategory] = useState('')
   const [subCategory, setSubCategory] = useState('')
@@ -156,7 +161,7 @@ export default function Products({ onBack }) {
   }
 
   function resetForm() {
-    setForm({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '', photo: '' })
+    setForm({ name: '', description: '', price: '', oldPrice: '', promoPrice: '', category: '', code: '', photo: '', stock: '' })
     setParentCategory('')
     setSubCategory('')
     setIsNewParent(false)
@@ -179,7 +184,8 @@ export default function Products({ onBack }) {
       promoPrice: product.promoPrice || '',
       category: product.category || '',
       code: product.code || '',
-      photo: product.photo || ''
+      photo: product.photo || '',
+      stock: product.stock !== undefined ? product.stock : ''
     })
     setParentCategory(parent)
     setSubCategory(sub)
@@ -201,10 +207,207 @@ export default function Products({ onBack }) {
       promoPrice: form.promoPrice,
       category: finalCategory || 'Geral',
       code: form.code.trim(),
-      photo: form.photo || ''
+      photo: form.photo || '',
+      stock: form.stock !== '' ? Number(form.stock) : 0
     }
     await saveProduct(product)
     resetForm()
+  }
+
+  // ===== NFE Import functions =====
+  async function handleNfeUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    
+    setNfeLoading(true)
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      try {
+        const xmlText = event.target.result
+        const parser = new DOMParser()
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml")
+        
+        const dets = xmlDoc.getElementsByTagName('det')
+        if (dets.length === 0) {
+          alert('Este arquivo XML não é uma NFE válida ou não possui itens de produtos.')
+          setNfeLoading(false)
+          return
+        }
+        
+        const parsedItems = []
+        for (let i = 0; i < dets.length; i++) {
+          const det = dets[i]
+          const prod = det.getElementsByTagName('prod')[0]
+          
+          const code = prod.getElementsByTagName('cEAN')[0]?.textContent || prod.getElementsByTagName('cProd')[0]?.textContent || ''
+          const rawName = prod.getElementsByTagName('xProd')[0]?.textContent || ''
+          const quantity = Number(prod.getElementsByTagName('qCom')[0]?.textContent || 0)
+          const costPrice = Number(prod.getElementsByTagName('vUnCom')[0]?.textContent || 0)
+          
+          const cleanName = cleanProductName(rawName)
+          const matchedProduct = products.find(p => (p.code && p.code === code) || p.name.toLowerCase() === cleanName.toLowerCase())
+          const suggestedCategory = matchedProduct ? matchedProduct.category : matchCategory(cleanName, products)
+          
+          parsedItems.push({
+            tempId: 'nfe_' + i + '_' + Date.now().toString(36),
+            isNew: !matchedProduct,
+            existingProduct: matchedProduct || null,
+            id: matchedProduct?.id || null,
+            name: cleanName,
+            code: code,
+            category: suggestedCategory,
+            quantity,
+            costPrice,
+            sellPrice: matchedProduct ? parseCurrency(matchedProduct.promoPrice || matchedProduct.price || matchedProduct.oldPrice) : Number((costPrice * 1.4).toFixed(2)),
+            photo: matchedProduct?.photo || '',
+            photoSuggestions: []
+          })
+        }
+        
+        setNfeItems(parsedItems)
+        setShowNfeModal(true)
+        
+        // Async fetch image suggestions
+        parsedItems.forEach((item, index) => {
+          if (item.isNew && item.name) {
+            fetchNfeImageSuggestions(item.name, index)
+          }
+        })
+        
+      } catch (err) {
+        console.error(err)
+        alert('Erro ao analisar o XML da NFE. Verifique se o arquivo XML é válido.')
+      }
+      setNfeLoading(false)
+    }
+    reader.readAsText(file)
+  }
+
+  async function fetchNfeImageSuggestions(queryText, itemIndex) {
+    const fullQuery = encodeURIComponent(queryText + " png fundo branco")
+    const searchUrl = `https://duckduckgo.com/?q=${fullQuery}`
+    
+    const proxies = [
+      url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+    ]
+    
+    for (let proxyFn of proxies) {
+      try {
+        const htmlRes = await fetch(proxyFn(searchUrl))
+        if (!htmlRes.ok) continue
+        const html = await htmlRes.text()
+        const vqdRegex = /vqd=['"]([^'"]+)['"]/
+        const match = html.match(vqdRegex)
+        if (!match) continue
+        const vqd = match[1]
+        
+        const apiUrl = `https://duckduckgo.com/i.js?q=${fullQuery}&vqd=${vqd}&o=json`
+        const apiRes = await fetch(proxyFn(apiUrl))
+        if (!apiRes.ok) continue
+        const data = await apiRes.json()
+        
+        if (data.results && data.results.length > 0) {
+          const list = data.results.slice(0, 4).map(item => item.image)
+          setNfeItems(prev => prev.map((item, idx) => {
+            if (idx === itemIndex) {
+              return {
+                ...item,
+                photoSuggestions: list,
+                photo: item.photo || list[0] || ''
+              }
+            }
+            return item
+          }))
+          return
+        }
+      } catch (e) {
+        console.error('NFE proxy search failed, trying fallback...', e)
+      }
+    }
+  }
+
+  function cleanProductName(rawName) {
+    if (!rawName) return ''
+    let name = rawName.trim()
+    name = name.replace(/\s+/g, ' ')
+    name = name.toLowerCase().split(' ').map(word => {
+      if (word.length <= 2 && !['un', 'kg', 'cx', 'g', 'l'].includes(word)) return word
+      return word.charAt(0).toUpperCase() + word.slice(1)
+    }).join(' ')
+    return name
+  }
+
+  function matchCategory(productName, existingProducts) {
+    if (!existingProducts || existingProducts.length === 0) return 'Geral'
+    
+    const tokens = productName.toLowerCase().split(/[^\w]+/).filter(t => t.length > 2)
+    if (tokens.length === 0) return 'Geral'
+    
+    const commonKeywords = [
+      { cat: 'Bebidas', keywords: ['refrigerante', 'suco', 'cerveja', 'agua', 'coca', 'fanta', 'guarana', 'vinho', 'vodka', 'bebida', 'energetico'] },
+      { cat: 'Laticínios', keywords: ['leite', 'queijo', 'presunto', 'manteiga', 'requeijao', 'iogurte', 'nata', 'margarina'] },
+      { cat: 'Padaria', keywords: ['pao', 'bolo', 'bisnaguinha', 'torta', 'salgado', 'paozinho', 'croissant'] },
+      { cat: 'Limpeza', keywords: ['sabao', 'detergente', 'amaciante', 'desinfetante', 'agua sanitaria', 'esponja', 'limpador', 'cloro'] },
+      { cat: 'Higiene', keywords: ['shampoo', 'condicionador', 'sabonete', 'pasta de dente', 'escova', 'desodorante', 'fio dental', 'papel higienico'] },
+      { cat: 'Mercearia', keywords: ['arroz', 'feijao', 'oleo', 'azeite', 'sal', 'acucar', 'cafe', 'farinha', 'macarrao', 'molho', 'milho', 'ervilha'] },
+      { cat: 'Biscoitos & Doces', keywords: ['biscoito', 'bolacha', 'chocolate', 'bala', 'chiclete', 'doce', 'wafer', 'recheado'] }
+    ]
+    
+    const scores = {}
+    existingProducts.forEach(p => {
+      if (!p.category) return
+      const pTokens = p.name.toLowerCase().split(/[^\w]+/).filter(t => t.length > 2)
+      let matches = 0
+      tokens.forEach(t => {
+        if (pTokens.includes(t)) matches++
+      })
+      if (matches > 0) {
+        const cat = p.category.split('>')[0]?.trim() || p.category
+        scores[cat] = (scores[cat] || 0) + matches * 2
+      }
+    })
+    
+    commonKeywords.forEach(group => {
+      let matches = 0
+      tokens.forEach(t => {
+        if (group.keywords.includes(t)) matches++
+      })
+      if (matches > 0) {
+        scores[group.cat] = (scores[group.cat] || 0) + matches
+      }
+    })
+    
+    let bestCat = 'Geral'
+    let maxScore = 0
+    Object.entries(scores).forEach(([cat, score]) => {
+      if (score > maxScore) {
+        maxScore = score
+        bestCat = cat
+      }
+    })
+    
+    return bestCat
+  }
+
+  async function handleConfirmNfeImport() {
+    const itemsToSave = nfeItems.map(item => {
+      const currentStock = item.existingProduct ? (Number(item.existingProduct.stock) || 0) : 0
+      return {
+        ...(item.id ? { id: item.id } : {}),
+        name: item.name,
+        code: item.code,
+        category: item.category,
+        price: String(item.sellPrice),
+        photo: item.photo,
+        stock: currentStock + Number(item.quantity)
+      }
+    })
+    
+    await saveMultipleProducts(itemsToSave)
+    setShowNfeModal(false)
+    setNfeItems([])
+    alert('Reposição de estoque e novos produtos inseridos com sucesso via NFE!')
   }
 
   async function handleDelete(id) {
@@ -275,6 +478,13 @@ export default function Products({ onBack }) {
             }} className={`btn text-sm font-bold px-3 ${selectedForPrint.length > 0 ? 'bg-brand-100 text-brand-700 border-0' : 'btn-ghost text-gray-500'}`}>
               🖨️ Imprimir ({selectedForPrint.length})
             </button>
+          )}
+          {isManager && (
+            <label className={`btn text-sm font-bold px-3 cursor-pointer flex items-center gap-1 active:scale-95 transition-all
+              ${nfeLoading ? 'bg-amber-100 text-amber-700' : 'bg-blue-50 text-blue-700 border border-blue-100'}`}>
+              {nfeLoading ? '⏳ Lendo...' : '🧾 Importar NFE'}
+              <input type="file" accept=".xml" onChange={handleNfeUpload} className="hidden" disabled={nfeLoading} />
+            </label>
           )}
           <button onClick={() => { resetForm(); setShowForm(true) }}
             className="btn btn-primary text-sm px-3">
@@ -433,6 +643,8 @@ export default function Products({ onBack }) {
                 onChange={e => setForm(f => ({ ...f, oldPrice: e.target.value }))} />
               <input className="input" placeholder="Preço promocional" type="number" step="0.01" value={form.promoPrice}
                 onChange={e => setForm(f => ({ ...f, promoPrice: e.target.value }))} />
+              <input className="input" placeholder="Estoque Atual" type="number" value={form.stock}
+                onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} />
             </div>
 
             {/* Upload de Foto Premium */}
@@ -646,12 +858,16 @@ export default function Products({ onBack }) {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
-                        {p.code && `Cód: ${p.code} • `}
-                        Preço: {formatCurrency(price)}
+                      <div className="text-xs text-gray-500 mt-0.5 flex flex-wrap items-center gap-1.5">
+                        {p.code && <span>Cód: {p.code} • </span>}
+                        <span>Preço: {formatCurrency(price)}</span>
                         {p.oldPrice && p.promoPrice && (
-                          <span className="text-red-400 line-through ml-1">{formatCurrency(p.oldPrice)}</span>
+                          <span className="text-red-400 line-through">{formatCurrency(p.oldPrice)}</span>
                         )}
+                        <span className={`px-2 py-0.5 rounded-full font-black text-[9px] uppercase tracking-wider
+                          ${Number(p.stock || 0) > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                          Estoque: {p.stock !== undefined ? p.stock : 0} un
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -685,6 +901,158 @@ export default function Products({ onBack }) {
           )}
         </div>
       </main>
+
+      {/* NFE Import Modal */}
+      {showNfeModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 max-w-4xl w-full p-6 space-y-4 animate-slide-up flex flex-col max-h-[92vh]">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3 shrink-0">
+              <div>
+                <h3 className="font-black text-gray-900 text-xl flex items-center gap-2">🧾 Revisar Entrada de NFE</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{nfeItems.length} produtos identificados no arquivo XML</p>
+              </div>
+              <button onClick={() => { setShowNfeModal(false); setNfeItems([]) }}
+                className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 active:scale-90 text-sm">
+                ✕
+              </button>
+            </div>
+
+            {/* Items List */}
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-1">
+              {/* Section A: Reposição de Estoque */}
+              {nfeItems.some(i => !i.isNew) && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-black text-amber-700 uppercase tracking-widest bg-amber-50 px-3 py-1.5 rounded-xl">🔄 Reposição de Estoque ({nfeItems.filter(i => !i.isNew).length} itens)</h4>
+                  <div className="space-y-1.5">
+                    {nfeItems.filter(i => !i.isNew).map((item, idx) => (
+                      <div key={item.tempId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-gray-50 rounded-2xl border border-gray-200">
+                        <div>
+                          <div className="font-bold text-gray-900 text-sm">{item.name}</div>
+                          <div className="text-[10px] text-gray-500 mt-0.5">
+                            Cód: {item.code} | Custo: {formatCurrency(item.costPrice)} | Estoque Atual: <span className="font-bold">{item.existingProduct?.stock || 0} un</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <div className="text-[10px] text-gray-400 font-bold uppercase">Qtd Comprada</div>
+                            <div className="font-black text-gray-900 text-sm">+{item.quantity} un</div>
+                          </div>
+                          <div className="w-24">
+                            <label className="text-[9px] text-gray-400 font-bold uppercase block">Preço Venda</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={item.sellPrice}
+                              onChange={e => {
+                                const val = Number(e.target.value) || 0
+                                setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, sellPrice: val } : x))
+                              }}
+                              className="input text-xs h-8 min-h-0 bg-white border-gray-300"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Section B: Novos Produtos */}
+              {nfeItems.some(i => i.isNew) && (
+                <div className="space-y-2 pt-2">
+                  <h4 className="text-xs font-black text-blue-700 uppercase tracking-widest bg-blue-50 px-3 py-1.5 rounded-xl">✨ Novos Produtos Detectados ({nfeItems.filter(i => i.isNew).length} itens)</h4>
+                  <div className="space-y-3">
+                    {nfeItems.filter(i => i.isNew).map((item, idx) => (
+                      <div key={item.tempId} className="p-4 bg-white rounded-2xl border-2 border-dashed border-blue-200 grid grid-cols-1 md:grid-cols-12 gap-3.5 items-start">
+                        {/* Image Selector */}
+                        <div className="md:col-span-2 flex flex-col items-center gap-2">
+                          {item.photo ? (
+                            <img src={item.photo} alt="" className="w-16 h-16 rounded-xl object-contain bg-slate-50 border p-1" />
+                          ) : (
+                            <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-2xl">📦</div>
+                          )}
+                          {item.photoSuggestions?.length > 0 && (
+                            <div className="flex gap-1 overflow-x-auto w-full max-w-[120px] scrollbar-none py-0.5">
+                              {item.photoSuggestions.map((img, sIdx) => (
+                                <button
+                                  key={sIdx}
+                                  type="button"
+                                  onClick={() => setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, photo: img } : x))}
+                                  className={`w-6 h-6 rounded border shrink-0 bg-white overflow-hidden p-0.5 ${item.photo === img ? 'border-blue-500' : 'border-gray-200'}`}
+                                >
+                                  <img src={img} alt="" className="w-full h-full object-contain" />
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Editable Details */}
+                        <div className="md:col-span-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-left">
+                          <div className="sm:col-span-2">
+                            <label className="text-[9px] text-gray-400 font-bold uppercase">Nome do Novo Produto</label>
+                            <input
+                              type="text"
+                              value={item.name}
+                              onChange={e => setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, name: e.target.value } : x))}
+                              className="input text-xs h-9 min-h-0 bg-gray-50"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[9px] text-gray-400 font-bold uppercase block">Prateleira / Categoria</label>
+                            <select
+                              value={item.category}
+                              onChange={e => setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, category: e.target.value } : x))}
+                              className="input text-xs h-9 min-h-0 bg-gray-50"
+                            >
+                              <option value="Geral">Geral</option>
+                              <option value="Bebidas">Bebidas</option>
+                              <option value="Laticínios">Laticínios</option>
+                              <option value="Padaria">Padaria</option>
+                              <option value="Limpeza">Limpeza</option>
+                              <option value="Higiene">Higiene</option>
+                              <option value="Mercearia">Mercearia</option>
+                              <option value="Biscoitos & Doces">Biscoitos & Doces</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="text-[9px] text-gray-400 font-bold uppercase">Preço de Venda Sugerido</label>
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">R$</span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={item.sellPrice}
+                                onChange={e => {
+                                  const val = Number(e.target.value) || 0
+                                  setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, sellPrice: val } : x))
+                                }}
+                                className="input text-xs h-9 min-h-0 bg-gray-50 pl-7"
+                              />
+                            </div>
+                            <span className="text-[9px] text-gray-400 mt-0.5 block">Custo NFE: {formatCurrency(item.costPrice)} (+40%)</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-3 border-t shrink-0">
+              <button onClick={() => { setShowNfeModal(false); setNfeItems([]) }} className="btn btn-ghost flex-1 h-12 text-sm">
+                Cancelar Importação
+              </button>
+              <button onClick={handleConfirmNfeImport} className="btn btn-success flex-[2] h-12 text-sm shadow-md font-bold">
+                💾 Confirmar Entrada e Atualizar Estoque (+{nfeItems.reduce((s, i) => s + i.quantity, 0)} itens)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

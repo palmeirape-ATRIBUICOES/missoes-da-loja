@@ -303,6 +303,34 @@ export function StoreProvider({ children }) {
     await deleteDoc(doc(db, 'stores', storeId, 'state/customer_orders/items', id))
   }
 
+  async function saveMultipleProducts(itemsToSave) {
+    let next = [...products]
+    itemsToSave.forEach(product => {
+      const existingIndex = next.findIndex(p => p.id === product.id)
+      if (existingIndex >= 0) {
+        next = next.map(p => p.id === product.id ? { ...p, ...product, updatedAt: nowHuman() } : p)
+      } else {
+        const newId = product.id || 'p_' + Math.random().toString(36).substring(2, 9)
+        next.push({ ...product, id: newId, createdAt: nowHuman() })
+      }
+    })
+    await setDoc(cfgRef('products'), { items: next, updatedAt: serverTimestamp() }, { merge: false })
+  }
+
+  async function updateProductsStock(cartItems, isRefund = false) {
+    const next = products.map(p => {
+      const cartItem = cartItems.find(item => item.id === p.id)
+      if (cartItem) {
+        const currentStock = Number(p.stock) || 0
+        const delta = Number(cartItem.quantity) || 0
+        const nextStock = isRefund ? (currentStock + delta) : Math.max(0, currentStock - delta)
+        return { ...p, stock: nextStock }
+      }
+      return p
+    })
+    await setDoc(cfgRef('products'), { items: next, updatedAt: serverTimestamp() }, { merge: false })
+  }
+
   return (
     <StoreContext.Provider value={{
       currentWeekKey, setCurrentWeekKey,
@@ -321,6 +349,7 @@ export function StoreProvider({ children }) {
       saveCustomer, deleteCustomer,
       saveDeliverySlot, deleteDeliverySlot,
       saveCustomerOrder, deleteCustomerOrder,
+      saveMultipleProducts, updateProductsStock,
       cfgRef, stateRef, colRef
     }}>
       {children}
