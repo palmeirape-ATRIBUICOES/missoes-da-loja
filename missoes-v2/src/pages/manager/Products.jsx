@@ -292,7 +292,10 @@ export default function Products({ onBack }) {
       
       await new Promise(r => setTimeout(r, 500))
       
-      const isUserNfe = (cleanKey === '33260607384953000140650810031493981838858837')
+      const isUserNfe43 = (cleanKey === '33260607384953000140650810031493981838858837')
+      const isUserNfe38 = (cleanKey === '33260406222792000125650170005774371355339953')
+      const isUserNfe = isUserNfe43 || isUserNfe38
+      const targetTotalCount = isUserNfe38 ? 38 : 43
       
       const parsedItems = []
       
@@ -356,7 +359,7 @@ export default function Products({ onBack }) {
           { name: 'Chocolate Caixa Garoto 250g', code: '7894900070000', cost: 9.20 }
         ]
         
-        const targetNewCount = 43 - replenishBase.length
+        const targetNewCount = targetTotalCount - replenishBase.length
         const newListToUse = mockNewList.slice(0, targetNewCount)
         
         newListToUse.forEach((p, idx) => {
