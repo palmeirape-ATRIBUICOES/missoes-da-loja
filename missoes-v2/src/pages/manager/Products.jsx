@@ -3,7 +3,7 @@ import { useStore } from '../../hooks/useStore'
 import { useAuth } from '../../hooks/useAuth'
 import { formatCurrency, parseCurrency } from '../../utils/constants'
 import { printLabels } from '../../services/printer'
-import { Html5QrcodeScanner } from 'html5-qrcode'
+import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode'
 
 export default function Products({ onBack }) {
   const { isManager } = useAuth()
@@ -346,25 +346,52 @@ export default function Products({ onBack }) {
 
   // Camera Reader Hook
   useEffect(() => {
+    let html5QrCode = null
+    
     if (showNfeScanner) {
-      const scanner = new Html5QrcodeScanner('nfe-reader', {
-        qrbox: { width: 230, height: 230 },
-        fps: 10
-      }, false)
-      
-      scanner.render((decodedText) => {
-        const key = extractAccessKey(decodedText)
-        if (key) {
-          scanner.clear()
-          setShowNfeScanner(false)
-          runSefazLookup(key)
-        } else {
-          alert('Este QR Code não contém uma Chave de Acesso NFE/NFC-e válida de 44 dígitos.')
+      const timer = setTimeout(() => {
+        const element = document.getElementById('nfe-reader')
+        if (!element) return
+        
+        try {
+          html5QrCode = new Html5Qrcode('nfe-reader')
+          html5QrCode.start(
+            { facingMode: 'environment' },
+            {
+              fps: 10,
+              qrbox: { width: 230, height: 230 }
+            },
+            (decodedText) => {
+              const key = extractAccessKey(decodedText)
+              if (key) {
+                html5QrCode.stop().then(() => {
+                  setShowNfeScanner(false)
+                  runSefazLookup(key)
+                }).catch(err => {
+                  console.error('Failed to stop camera: ', err)
+                  setShowNfeScanner(false)
+                  runSefazLookup(key)
+                })
+              } else {
+                alert('Este QR Code não contém uma Chave de Acesso NFE/NFC-e válida de 44 dígitos.')
+              }
+            },
+            () => {
+              // Silence scan errors
+            }
+          ).catch(err => {
+            console.error('Error starting camera: ', err)
+          })
+        } catch (e) {
+          console.error('Failed to instantiate Html5Qrcode', e)
         }
-      }, () => {})
+      }, 300)
       
       return () => {
-        scanner.clear().catch(e => console.error(e))
+        clearTimeout(timer)
+        if (html5QrCode && html5QrCode.isScanning) {
+          html5QrCode.stop().catch(console.error)
+        }
       }
     }
   }, [showNfeScanner])
