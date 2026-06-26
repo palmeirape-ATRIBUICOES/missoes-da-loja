@@ -240,110 +240,119 @@ export default function Products({ onBack }) {
   async function runSefazLookup(key) {
     if (key.length !== 44) return
     
-    setNfeLoading(true)
-    setSefazStep(1)
-    setSefazProgress('Conectando ao ambiente de WebServices SEFAZ...')
-    
-    const STATE_CODES = {
-      '11': 'Rondônia (RO)', '12': 'Acre (AC)', '13': 'Amazonas (AM)', '14': 'Roraima (RR)',
-      '15': 'Pará (PA)', '16': 'Amapá (AP)', '17': 'Tocantins (TO)', '21': 'Maranhão (MA)',
-      '22': 'Piauí (PI)', '23': 'Ceará (CE)', '24': 'Rio Grande do Norte (RN)', '25': 'Paraíba (PB)',
-      '26': 'Pernambuco (PE)', '27': 'Alagoas (AL)', '28': 'Sergipe (SE)', '29': 'Bahia (BA)',
-      '31': 'Minas Gerais (MG)', '32': 'Espírito Santo (ES)', '33': 'Rio de Janeiro (RJ)',
-      '35': 'São Paulo (SP)', '41': 'Paraná (PR)', '42': 'Santa Catarina (SC)', '43': 'Rio Grande do Sul (RS)',
-      '50': 'Mato Grosso do Sul (MS)', '51': 'Mato Grosso (MT)', '52': 'Goiás (GO)', '53': 'Distrito Federal (DF)'
-    }
-    const stateCode = key.substring(0, 2)
-    const stateName = STATE_CODES[stateCode] || 'Estado Desconhecido'
-    
-    await new Promise(r => setTimeout(r, 900))
-    setSefazStep(2)
-    setSefazProgress(`Chave de acesso validada - Emissor: ${stateName}`)
-    
-    await new Promise(r => setTimeout(r, 900))
-    setSefazStep(3)
-    setSefazProgress('Baixando XML e decodificando dados dos itens...')
-    
-    await new Promise(r => setTimeout(r, 900))
-    setSefazStep(4)
-    setSefazProgress('Consulta SEFAZ finalizada!')
-    
-    await new Promise(r => setTimeout(r, 500))
-    
-    // Simular produtos baseados na chave
-    const existingReplenish = []
-    if (products.length > 0) {
-      const idx1 = Math.floor(Math.random() * products.length)
-      existingReplenish.push(products[idx1])
-      if (products.length > 1) {
-        const idx2 = (idx1 + 1) % products.length
-        existingReplenish.push(products[idx2])
+    try {
+      setNfeLoading(true)
+      setSefazStep(1)
+      setSefazProgress('Conectando ao ambiente de WebServices SEFAZ...')
+      
+      const STATE_CODES = {
+        '11': 'Rondônia (RO)', '12': 'Acre (AC)', '13': 'Amazonas (AM)', '14': 'Roraima (RR)',
+        '15': 'Pará (PA)', '16': 'Amapá (AP)', '17': 'Tocantins (TO)', '21': 'Maranhão (MA)',
+        '22': 'Piauí (PI)', '23': 'Ceará (CE)', '24': 'Rio Grande do Norte (RN)', '25': 'Paraíba (PB)',
+        '26': 'Pernambuco (PE)', '27': 'Alagoas (AL)', '28': 'Sergipe (SE)', '29': 'Bahia (BA)',
+        '31': 'Minas Gerais (MG)', '32': 'Espírito Santo (ES)', '33': 'Rio de Janeiro (RJ)',
+        '35': 'São Paulo (SP)', '41': 'Paraná (PR)', '42': 'Santa Catarina (SC)', '43': 'Rio Grande do Sul (RS)',
+        '50': 'Mato Grosso do Sul (MS)', '51': 'Mato Grosso (MT)', '52': 'Goiás (GO)', '53': 'Distrito Federal (DF)'
       }
-    }
-    
-    const possibleNewProducts = [
-      { name: 'Cerveja Heineken Lata 350ml', code: '7891910000197', cost: 4.20 },
-      { name: 'Sabão em Pó Omo Lavagem Perfeita 1,6kg', code: '7891150028249', cost: 14.50 },
-      { name: 'Refrigerante Coca-Cola Zero 2 Litros', code: '7894900010015', cost: 6.10 },
-      { name: 'Biscoito Recheado Passatempo Chocolate 130g', code: '7891000057504', cost: 2.10 },
-      { name: 'Leite Condensado Moça Lata 395g', code: '7891000053506', cost: 5.50 },
-      { name: 'Detergente Líquido Ypê Neutro 500ml', code: '7891010003003', cost: 1.80 }
-    ]
-    
-    const newItems = []
-    const idxA = Math.floor(Math.random() * possibleNewProducts.length)
-    let idxB = (idxA + 1) % possibleNewProducts.length
-    newItems.push(possibleNewProducts[idxA])
-    newItems.push(possibleNewProducts[idxB])
-    
-    const parsedItems = []
-    existingReplenish.forEach((p, idx) => {
-      const sellPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
-      const costPrice = Number((sellPrice * 0.7).toFixed(2))
-      parsedItems.push({
-        tempId: 'nfe_sim_r_' + idx + '_' + Date.now().toString(36),
-        isNew: false,
-        existingProduct: p,
-        id: p.id,
-        name: p.name,
-        code: p.code || '789000000' + idx,
-        category: p.category,
-        quantity: Math.floor(Math.random() * 8) + 4,
-        costPrice,
-        sellPrice,
-        photo: p.photo || '',
-        photoSuggestions: []
-      })
-    })
-    
-    newItems.forEach((p, idx) => {
-      const suggestedCategory = matchCategory(p.name, products)
-      parsedItems.push({
-        tempId: 'nfe_sim_n_' + idx + '_' + Date.now().toString(36),
-        isNew: true,
-        existingProduct: null,
-        id: null,
-        name: p.name,
-        code: p.code,
-        category: suggestedCategory,
-        quantity: Math.floor(Math.random() * 15) + 5,
-        costPrice: p.cost,
-        sellPrice: Number((p.cost * 1.4).toFixed(2)),
-        photo: '',
-        photoSuggestions: []
-      })
-    })
-    
-    setNfeItems(parsedItems)
-    setNfeLoading(false)
-    setShowNfeSelectionModal(false)
-    setShowNfeModal(true)
-    
-    parsedItems.forEach((item, index) => {
-      if (item.isNew && item.name) {
-        fetchNfeImageSuggestions(item.name, index)
+      const stateCode = key.substring(0, 2)
+      const stateName = STATE_CODES[stateCode] || 'Estado Desconhecido'
+      
+      await new Promise(r => setTimeout(r, 900))
+      setSefazStep(2)
+      setSefazProgress(`Chave de acesso validada - Emissor: ${stateName}`)
+      
+      await new Promise(r => setTimeout(r, 900))
+      setSefazStep(3)
+      setSefazProgress('Baixando XML e decodificando dados dos itens...')
+      
+      await new Promise(r => setTimeout(r, 900))
+      setSefazStep(4)
+      setSefazProgress('Consulta SEFAZ finalizada!')
+      
+      await new Promise(r => setTimeout(r, 500))
+      
+      // Simular produtos baseados na chave
+      const existingReplenish = []
+      if (products && products.length > 0) {
+        const idx1 = Math.floor(Math.random() * products.length)
+        const p1 = products[idx1]
+        if (p1) existingReplenish.push(p1)
+        if (products.length > 1) {
+          const idx2 = (idx1 + 1) % products.length
+          const p2 = products[idx2]
+          if (p2) existingReplenish.push(p2)
+        }
       }
-    })
+      
+      const possibleNewProducts = [
+        { name: 'Cerveja Heineken Lata 350ml', code: '7891910000197', cost: 4.20 },
+        { name: 'Sabão em Pó Omo Lavagem Perfeita 1,6kg', code: '7891150028249', cost: 14.50 },
+        { name: 'Refrigerante Coca-Cola Zero 2 Litros', code: '7894900010015', cost: 6.10 },
+        { name: 'Biscoito Recheado Passatempo Chocolate 130g', code: '7891000057504', cost: 2.10 },
+        { name: 'Leite Condensado Moça Lata 395g', code: '7891000053506', cost: 5.50 },
+        { name: 'Detergente Líquido Ypê Neutro 500ml', code: '7891010003003', cost: 1.80 }
+      ]
+      
+      const newItems = []
+      const idxA = Math.floor(Math.random() * possibleNewProducts.length)
+      let idxB = (idxA + 1) % possibleNewProducts.length
+      newItems.push(possibleNewProducts[idxA])
+      newItems.push(possibleNewProducts[idxB])
+      
+      const parsedItems = []
+      existingReplenish.forEach((p, idx) => {
+        if (!p) return
+        const sellPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
+        const costPrice = Number((sellPrice * 0.7).toFixed(2))
+        parsedItems.push({
+          tempId: 'nfe_sim_r_' + idx + '_' + Date.now().toString(36),
+          isNew: false,
+          existingProduct: p,
+          id: p.id,
+          name: p.name,
+          code: p.code || '789000000' + idx,
+          category: p.category,
+          quantity: Math.floor(Math.random() * 8) + 4,
+          costPrice,
+          sellPrice,
+          photo: p.photo || '',
+          photoSuggestions: []
+        })
+      })
+      
+      newItems.forEach((p, idx) => {
+        const suggestedCategory = matchCategory(p.name, products)
+        parsedItems.push({
+          tempId: 'nfe_sim_n_' + idx + '_' + Date.now().toString(36),
+          isNew: true,
+          existingProduct: null,
+          id: null,
+          name: p.name,
+          code: p.code,
+          category: suggestedCategory,
+          quantity: Math.floor(Math.random() * 15) + 5,
+          costPrice: p.cost,
+          sellPrice: Number((p.cost * 1.4).toFixed(2)),
+          photo: '',
+          photoSuggestions: []
+        })
+      })
+      
+      setNfeItems(parsedItems)
+      setNfeLoading(false)
+      setShowNfeSelectionModal(false)
+      setShowNfeModal(true)
+      
+      parsedItems.forEach((item, index) => {
+        if (item.isNew && item.name) {
+          fetchNfeImageSuggestions(item.name, index)
+        }
+      })
+    } catch (error) {
+      console.error('Error in runSefazLookup:', error)
+      alert('Erro ao consultar nota fiscal: ' + error.message)
+      setNfeLoading(false)
+    }
   }
 
   // Camera Reader Hook
@@ -390,13 +399,24 @@ export default function Products({ onBack }) {
                 }
               }
               
-              const targetCamera = cameraDevice ? cameraDevice.id : { facingMode: 'environment' }
+              // Build target constraints requesting HD resolution
+              const targetCamera = cameraDevice 
+                ? { 
+                    deviceId: cameraDevice.id,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                  } 
+                : { 
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                  }
               
               // 2. Start scanning
               await html5QrCode.start(
                 targetCamera,
                 {
-                  fps: 10,
+                  fps: 15,
                   qrbox: { width: 260, height: 260 }
                 },
                 (decodedText) => {
