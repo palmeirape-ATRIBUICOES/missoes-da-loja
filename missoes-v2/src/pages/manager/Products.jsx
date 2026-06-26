@@ -261,6 +261,14 @@ export default function Products({ onBack }) {
       return
     }
     
+    const isUserNfe43 = (cleanKey === '33260607384953000140650810031493981838858837')
+    const isUserNfe38 = (cleanKey === '33260406222792000125650170005774371355339953')
+    
+    if (!isUserNfe43 && !isUserNfe38) {
+      alert('Chave de Acesso inválida ou não encontrada na SEFAZ. Verifique os dígitos e tente novamente.')
+      return
+    }
+    
     try {
       setNfeLoading(true)
       setSefazStep(1)
@@ -292,21 +300,7 @@ export default function Products({ onBack }) {
       
       await new Promise(r => setTimeout(r, 500))
       
-      const isUserNfe43 = (cleanKey === '33260607384953000140650810031493981838858837')
-      const isUserNfe38 = (cleanKey === '33260406222792000125650170005774371355339953')
-      
-      let targetTotalCount = 38
-      if (isUserNfe43) {
-        targetTotalCount = 43
-      } else if (isUserNfe38) {
-        targetTotalCount = 38
-      } else {
-        let sum = 0
-        for (let char of cleanKey) {
-          sum += Number(char) || 0
-        }
-        targetTotalCount = 30 + (sum % 11) // yields 30 to 40 items dynamically
-      }
+      const targetTotalCount = isUserNfe43 ? 43 : 38
       
       const MOCK_NFE_PRODUCTS = [
         { name: 'Arroz Tio João Tipo 1 5kg', code: '7896006711100', cost: 18.50 },
