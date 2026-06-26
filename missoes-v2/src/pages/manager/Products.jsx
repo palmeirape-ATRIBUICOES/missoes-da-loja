@@ -1303,10 +1303,47 @@ export default function Products({ onBack }) {
                         {p.oldPrice && p.promoPrice && (
                           <span className="text-red-400 line-through">{formatCurrency(p.oldPrice)}</span>
                         )}
-                        <span className={`px-2 py-0.5 rounded-full font-black text-[9px] uppercase tracking-wider
-                          ${Number(p.stock || 0) > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
-                          Estoque: {p.stock !== undefined ? p.stock : 0} un
-                        </span>
+                        <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-full px-1 py-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button 
+                            type="button"
+                            onClick={async () => {
+                              const current = p.stock !== undefined ? p.stock : 0
+                              if (current > 0) {
+                                await saveProduct({ ...p, stock: current - 1 })
+                              }
+                            }}
+                            className="w-5 h-5 rounded-full bg-white border border-gray-200 flex items-center justify-center text-[11px] font-bold text-gray-500 active:scale-90 hover:bg-gray-100 transition-all select-none"
+                          >
+                            -
+                          </button>
+                          <span 
+                            onClick={async () => {
+                              const current = p.stock !== undefined ? p.stock : 0
+                              const newStockStr = prompt(`Digite a quantidade de estoque para "${p.name}":`, current)
+                              if (newStockStr !== null) {
+                                const val = parseInt(newStockStr, 10)
+                                if (!isNaN(val) && val >= 0) {
+                                  await saveProduct({ ...p, stock: val })
+                                }
+                              }
+                            }}
+                            className={`px-1 text-[9px] font-black uppercase tracking-wider cursor-pointer hover:underline select-none
+                              ${Number(p.stock || 0) > 0 ? 'text-emerald-700' : 'text-red-700'}`}
+                            title="Clique para digitar a quantidade"
+                          >
+                            Estoque: {p.stock !== undefined ? p.stock : 0} un
+                          </span>
+                          <button 
+                            type="button"
+                            onClick={async () => {
+                              const current = p.stock !== undefined ? p.stock : 0
+                              await saveProduct({ ...p, stock: current + 1 })
+                            }}
+                            className="w-5 h-5 rounded-full bg-white border border-gray-200 flex items-center justify-center text-[11px] font-bold text-gray-500 active:scale-90 hover:bg-gray-100 transition-all select-none"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
