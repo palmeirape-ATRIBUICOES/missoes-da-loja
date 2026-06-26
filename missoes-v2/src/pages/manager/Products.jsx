@@ -349,6 +349,7 @@ export default function Products({ onBack }) {
   // Camera Reader Hook
   useEffect(() => {
     let html5QrCode = null
+    let isCurrent = true
     
     if (showNfeScanner) {
       setCameraLoading(true)
@@ -356,13 +357,49 @@ export default function Products({ onBack }) {
       
       const timer = setTimeout(() => {
         const element = document.getElementById('nfe-reader')
-        if (!element) return
+        if (!element) {
+          if (isCurrent) {
+            setCameraLoading(false)
+            setCameraError('Contêiner do leitor não encontrado.')
+          }
+          return
+        }
         
         try {
           html5QrCode = new Html5Qrcode('nfe-reader')
           
-          const startScanning = (constraints, options) => {
-            if (!html5QrCode) return
+          const startScanning = (constraints, options, isFallback = false) => {
+            if (!html5QrCode || !isCurrent) return
+            
+            // Timeout to retry with simple constraints if HD request hangs
+            let startTimeout = null
+            if (!isFallback) {
+              startTimeout = setTimeout(() => {
+                console.warn('Camera start timed out. Retrying with basic fallback...')
+                if (html5QrCode && isCurrent) {
+                  try {
+                    // Attempt to stop current initialization if any, and start fallback
+                    html5QrCode.stop().catch(() => {}).then(() => {
+                      if (isCurrent) {
+                        startScanning(
+                          { facingMode: 'environment' },
+                          { fps: 10, qrbox: { width: 250, height: 250 } },
+                          true
+                        )
+                      }
+                    })
+                  } catch (e) {
+                    if (isCurrent) {
+                      startScanning(
+                        { facingMode: 'environment' },
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        true
+                      )
+                    }
+                  }
+                }
+              }, 2500)
+            }
             
             html5QrCode.start(
               constraints,
@@ -386,22 +423,34 @@ export default function Products({ onBack }) {
                 // Silence scan errors
               }
             ).then(() => {
-              setCameraLoading(false)
+              if (startTimeout) clearTimeout(startTimeout)
+              if (!isCurrent) {
+                if (html5QrCode && html5QrCode.isScanning) {
+                  html5QrCode.stop().catch(console.error)
+                }
+              } else {
+                setCameraLoading(false)
+              }
             }).catch(err => {
+              if (startTimeout) clearTimeout(startTimeout)
               console.error('Error starting camera with constraints: ', constraints, err)
               
+              if (!isCurrent) return
+              
               // Fallback chain to ensure camera opens on any device
-              if (constraints.width) {
+              if (!isFallback && constraints.width) {
                 console.log('Retrying with simple environment constraints...')
                 startScanning(
                   { facingMode: 'environment' },
-                  { fps: 10, qrbox: { width: 250, height: 250 } }
+                  { fps: 10, qrbox: { width: 250, height: 250 } },
+                  true
                 )
               } else if (constraints.facingMode) {
                 console.log('Retrying with default camera...')
                 startScanning(
                   {},
-                  { fps: 10, qrbox: { width: 250, height: 250 } }
+                  { fps: 10, qrbox: { width: 250, height: 250 } },
+                  true
                 )
               } else {
                 setCameraLoading(false)
@@ -425,15 +474,20 @@ export default function Products({ onBack }) {
           
         } catch (e) {
           console.error('Failed to instantiate Html5Qrcode', e)
-          setCameraLoading(false)
-          setCameraError('Erro ao iniciar o leitor de QR Code.')
+          if (isCurrent) {
+            setCameraLoading(false)
+            setCameraError('Erro ao iniciar o leitor de QR Code.')
+          }
         }
       }, 300)
       
       return () => {
+        isCurrent = false
         clearTimeout(timer)
-        if (html5QrCode && html5QrCode.isScanning) {
-          html5QrCode.stop().catch(console.error)
+        if (html5QrCode) {
+          if (html5QrCode.isScanning) {
+            html5QrCode.stop().catch(console.error)
+          }
         }
       }
     }
