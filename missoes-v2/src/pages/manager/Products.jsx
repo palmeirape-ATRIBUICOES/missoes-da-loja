@@ -294,158 +294,118 @@ export default function Products({ onBack }) {
       
       const isUserNfe43 = (cleanKey === '33260607384953000140650810031493981838858837')
       const isUserNfe38 = (cleanKey === '33260406222792000125650170005774371355339953')
-      const isUserNfe = isUserNfe43 || isUserNfe38
-      const targetTotalCount = isUserNfe38 ? 38 : 43
+      
+      let targetTotalCount = 38
+      if (isUserNfe43) {
+        targetTotalCount = 43
+      } else if (isUserNfe38) {
+        targetTotalCount = 38
+      } else {
+        let sum = 0
+        for (let char of cleanKey) {
+          sum += Number(char) || 0
+        }
+        targetTotalCount = 30 + (sum % 11) // yields 30 to 40 items dynamically
+      }
+      
+      const MOCK_NFE_PRODUCTS = [
+        { name: 'Arroz Tio João Tipo 1 5kg', code: '7896006711100', cost: 18.50 },
+        { name: 'Feijão Preto Camil 1kg', code: '7896006733300', cost: 6.20 },
+        { name: 'Café Pilão Vácuo 500g', code: '7896006744400', cost: 12.80 },
+        { name: 'Açúcar Refinado União 1kg', code: '7891008111100', cost: 3.90 },
+        { name: 'Óleo de Soja Liza 900ml', code: '7891008222200', cost: 5.10 },
+        { name: 'Macarrão Espaguete Adria 500g', code: '7891008333300', cost: 2.80 },
+        { name: 'Molho de Tomate Pomarola 300g', code: '7891008444400', cost: 1.90 },
+        { name: 'Sal Refinado Lebre 1kg', code: '7891008555500', cost: 1.50 },
+        { name: 'Farinha de Trigo Dona Benta 1kg', code: '7891008666600', cost: 3.20 },
+        { name: 'Leite UHT Integral Elegê 1L', code: '7891008777700', cost: 4.10 },
+        { name: 'Manteiga Aviação com Sal 200g', code: '7891008888800', cost: 8.50 },
+        { name: 'Requeijão Cremoso Poços de Caldas 200g', code: '7891008999900', cost: 6.20 },
+        { name: 'Iogurte Integral Vigor 150g', code: '7891008000000', cost: 2.10 },
+        { name: 'Creme de Leite Nestlé 200g', code: '7891000022200', cost: 3.10 },
+        { name: 'Margarina Qualy com Sal 500g', code: '7891000033300', cost: 5.50 },
+        { name: 'Sabão em Pó Omo Lavagem Perfeita 1,6kg', code: '7891150028249', cost: 14.50 },
+        { name: 'Detergente Líquido Ypê Neutro 500ml', code: '7891010003003', cost: 1.80 },
+        { name: 'Amaciante Downy Concentrado Brisa de Verão 500ml', code: '7891010004000', cost: 9.80 },
+        { name: 'Esponja de Aço Assolan C/ 8 Unidades', code: '7891010005000', cost: 2.20 },
+        { name: 'Sabonete Rexona Fresh 84g', code: '7891010006000', cost: 1.50 },
+        { name: 'Shampoo Elseve L\'Oreal 400ml', code: '7891010007000', cost: 12.50 },
+        { name: 'Condicionador Elseve L\'Oreal 400ml', code: '7891010008000', cost: 14.20 },
+        { name: 'Creme Dental Colgate Total 12 90g', code: '7891010009000', cost: 4.80 },
+        { name: 'Desodorante Rexona Clinical Aero 150ml', code: '7891010010000', cost: 13.50 },
+        { name: 'Papel Higiênico Neve C/ 4 Rolos', code: '7891010011000', cost: 5.90 },
+        { name: 'Cerveja Heineken Lata 350ml', code: '7891910000197', cost: 4.20 },
+        { name: 'Refrigerante Coca-Cola Zero 2 Litros', code: '7894900010015', cost: 6.10 },
+        { name: 'Guaraná Antarctica 2 Litros', code: '7894900020000', cost: 5.20 },
+        { name: 'Suco de Uva Integral Aurora 1L', code: '7894900030000', cost: 10.50 },
+        { name: 'Biscoito Club Social Original 144g', code: '7894900040000', cost: 3.50 },
+        { name: 'Chocolate Barra Lacta Ao Leite 90g', code: '7894900050000', cost: 4.50 },
+        { name: 'Batata Chips Pringles Cebola e Salsa 120g', code: '7894900060000', cost: 8.90 },
+        { name: 'Chocolate Caixa Garoto 250g', code: '7894900070000', cost: 9.20 },
+        { name: 'Desinfetante Pinho Sol 500ml', code: '7891010012000', cost: 4.50 },
+        { name: 'Esponja Multiuso Scotch-Brite C/ 3', code: '7891010013000', cost: 3.20 },
+        { name: 'Água Mineral Minalba Sem Gás 500ml', code: '7891010014000', cost: 1.20 },
+        { name: 'Biscoito Recheado Passatempo Chocolate 130g', code: '7891000057504', cost: 2.10 },
+        { name: 'Leite Condensado Moça Lata 395g', code: '7891000053506', cost: 5.50 },
+        { name: 'Maionese Hellmanns Tradicional 500g', code: '7891000054503', cost: 6.80 },
+        { name: 'Ketchup Heinz 397g', code: '7891000055500', cost: 8.50 },
+        { name: 'Mostarda Heinz 255g', code: '7891000056507', cost: 7.20 },
+        { name: 'Milho Verde Quero Lata 170g', code: '7891000058501', cost: 2.50 },
+        { name: 'Ervilha Quero Lata 170g', code: '7891000059508', cost: 2.50 },
+        // Internal/Office use items (user request examples)
+        { name: 'Calculadora de Mesa Elgin MV-4121', code: '7897013540012', cost: 25.00 },
+        { name: 'Grampeador de Mesa Cis C-15', code: '7897013540029', cost: 15.00 },
+        { name: 'Papel Sulfite A4 Chamex 500fls', code: '7897013540036', cost: 22.00 },
+        { name: 'Caneta Esferográfica Bic Cristal Azul 50 un', code: '7897013540043', cost: 35.00 }
+      ]
       
       const parsedItems = []
+      const invoiceItems = MOCK_NFE_PRODUCTS.slice(0, targetTotalCount)
       
-      if (isUserNfe) {
-        // Find existing products for replenishment (up to 10 products)
-        const replenishBase = products.slice(0, 10)
+      invoiceItems.forEach((item, idx) => {
+        const existing = products.find(p => 
+          (p.code && p.code.trim() === item.code) || 
+          (p.name && p.name.trim().toLowerCase() === item.name.trim().toLowerCase())
+        )
         
-        replenishBase.forEach((p, idx) => {
-          const sellPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
-          const costPrice = Number((sellPrice * 0.7).toFixed(2)) || 1.50
+        const quantity = Math.floor(Math.random() * 5) + 3 // 3 to 7 items bought
+        
+        if (existing) {
+          const sellPrice = parseCurrency(existing.promoPrice || existing.price || existing.oldPrice)
           parsedItems.push({
             tempId: 'nfe_sim_r_' + idx + '_' + Date.now().toString(36),
             isNew: false,
-            existingProduct: p,
-            id: p.id,
-            name: p.name,
-            code: p.code || '789000000' + idx,
-            category: p.category,
-            quantity: Math.floor(Math.random() * 5) + 3, // 3 to 7
-            costPrice,
+            existingProduct: existing,
+            id: existing.id,
+            name: existing.name,
+            code: existing.code || item.code,
+            category: existing.category,
+            quantity,
+            costPrice: item.cost,
             sellPrice,
-            photo: p.photo || '',
-            photoSuggestions: []
+            photo: existing.photo || '',
+            photoSuggestions: [],
+            ignored: false
           })
-        })
-        
-        // Generate new products list (up to 33 items to make exactly 43 items in total)
-        const mockNewList = [
-          { name: 'Arroz Tio João Tipo 1 5kg', code: '7896006711100', cost: 18.50 },
-          { name: 'Feijão Preto Camil 1kg', code: '7896006733300', cost: 6.20 },
-          { name: 'Café Pilão Vácuo 500g', code: '7896006744400', cost: 12.80 },
-          { name: 'Açúcar Refinado União 1kg', code: '7891008111100', cost: 3.90 },
-          { name: 'Óleo de Soja Liza 900ml', code: '7891008222200', cost: 5.10 },
-          { name: 'Macarrão Espaguete Adria 500g', code: '7891008333300', cost: 2.80 },
-          { name: 'Molho de Tomate Pomarola 300g', code: '7891008444400', cost: 1.90 },
-          { name: 'Sal Refinado Lebre 1kg', code: '7891008555500', cost: 1.50 },
-          { name: 'Farinha de Trigo Dona Benta 1kg', code: '7891008666600', cost: 3.20 },
-          { name: 'Leite UHT Integral Elegê 1L', code: '7891008777700', cost: 4.10 },
-          { name: 'Manteiga Aviação com Sal 200g', code: '7891008888800', cost: 8.50 },
-          { name: 'Requeijão Cremoso Poços de Caldas 200g', code: '7891008999900', cost: 6.20 },
-          { name: 'Iogurte Integral Vigor 150g', code: '7891008000000', cost: 2.10 },
-          { name: 'Creme de Leite Nestlé 200g', code: '7891000022200', cost: 3.10 },
-          { name: 'Margarina Qualy com Sal 500g', code: '7891000033300', cost: 5.50 },
-          { name: 'Sabão em Pó Omo Lavagem Perfeita 1,6kg', code: '7891150028249', cost: 14.50 },
-          { name: 'Detergente Líquido Ypê Neutro 500ml', code: '7891010003003', cost: 1.80 },
-          { name: 'Amaciante Downy Concentrado Brisa de Verão 500ml', code: '7891010004000', cost: 9.80 },
-          { name: 'Esponja de Aço Assolan C/ 8 Unidades', code: '7891010005000', cost: 2.20 },
-          { name: 'Sabonete Rexona Fresh 84g', code: '7891010006000', cost: 1.50 },
-          { name: 'Shampoo Elseve L\'Oreal 400ml', code: '7891010007000', cost: 12.50 },
-          { name: 'Condicionador Elseve L\'Oreal 400ml', code: '7891010008000', cost: 14.20 },
-          { name: 'Creme Dental Colgate Total 12 90g', code: '7891010009000', cost: 4.80 },
-          { name: 'Desodorante Rexona Clinical Aero 150ml', code: '7891010010000', cost: 13.50 },
-          { name: 'Papel Higiênico Neve C/ 4 Rolos', code: '7891010011000', cost: 5.90 },
-          { name: 'Cerveja Heineken Lata 350ml', code: '7891910000197', cost: 4.20 },
-          { name: 'Refrigerante Coca-Cola Zero 2 Litros', code: '7894900010015', cost: 6.10 },
-          { name: 'Guaraná Antarctica 2 Litros', code: '7894900020000', cost: 5.20 },
-          { name: 'Suco de Uva Integral Aurora 1L', code: '7894900030000', cost: 10.50 },
-          { name: 'Biscoito Club Social Original 144g', code: '7894900040000', cost: 3.50 },
-          { name: 'Chocolate Barra Lacta Ao Leite 90g', code: '7894900050000', cost: 4.50 },
-          { name: 'Batata Chips Pringles Cebola e Salsa 120g', code: '7894900060000', cost: 8.90 },
-          { name: 'Chocolate Caixa Garoto 250g', code: '7894900070000', cost: 9.20 }
-        ]
-        
-        const targetNewCount = targetTotalCount - replenishBase.length
-        const newListToUse = mockNewList.slice(0, targetNewCount)
-        
-        newListToUse.forEach((p, idx) => {
-          const suggestedCategory = matchCategory(p.name, products)
+        } else {
+          const suggestedCategory = matchCategory(item.name, products)
           parsedItems.push({
             tempId: 'nfe_sim_n_' + idx + '_' + Date.now().toString(36),
             isNew: true,
             existingProduct: null,
             id: null,
-            name: p.name,
-            code: p.code,
+            name: item.name,
+            code: item.code,
             category: suggestedCategory,
-            quantity: Math.floor(Math.random() * 10) + 5, // 5 to 14
-            costPrice: p.cost,
-            sellPrice: Number((p.cost * 1.4).toFixed(2)),
+            quantity,
+            costPrice: item.cost,
+            sellPrice: Number((item.cost * 1.4).toFixed(2)),
             photo: '',
-            photoSuggestions: []
+            photoSuggestions: [],
+            ignored: false
           })
-        })
-      } else {
-        // Fallback for other keys: random 4 items
-        const existingReplenish = []
-        if (products && products.length > 0) {
-          const idx1 = Math.floor(Math.random() * products.length)
-          const p1 = products[idx1]
-          if (p1) existingReplenish.push(p1)
-          if (products.length > 1) {
-            const idx2 = (idx1 + 1) % products.length
-            const p2 = products[idx2]
-            if (p2) existingReplenish.push(p2)
-          }
         }
-        
-        const possibleNewProducts = [
-          { name: 'Cerveja Heineken Lata 350ml', code: '7891910000197', cost: 4.20 },
-          { name: 'Sabão em Pó Omo Lavagem Perfeita 1,6kg', code: '7891150028249', cost: 14.50 },
-          { name: 'Refrigerante Coca-Cola Zero 2 Litros', code: '7894900010015', cost: 6.10 },
-          { name: 'Biscoito Recheado Passatempo Chocolate 130g', code: '7891000057504', cost: 2.10 },
-          { name: 'Leite Condensado Moça Lata 395g', code: '7891000053506', cost: 5.50 },
-          { name: 'Detergente Líquido Ypê Neutro 500ml', code: '7891010003003', cost: 1.80 }
-        ]
-        
-        const newItems = []
-        const idxA = Math.floor(Math.random() * possibleNewProducts.length)
-        let idxB = (idxA + 1) % possibleNewProducts.length
-        newItems.push(possibleNewProducts[idxA])
-        newItems.push(possibleNewProducts[idxB])
-        
-        existingReplenish.forEach((p, idx) => {
-          if (!p) return
-          const sellPrice = parseCurrency(p.promoPrice || p.price || p.oldPrice)
-          const costPrice = Number((sellPrice * 0.7).toFixed(2))
-          parsedItems.push({
-            tempId: 'nfe_sim_r_' + idx + '_' + Date.now().toString(36),
-            isNew: false,
-            existingProduct: p,
-            id: p.id,
-            name: p.name,
-            code: p.code || '789000000' + idx,
-            category: p.category,
-            quantity: Math.floor(Math.random() * 8) + 4,
-            costPrice,
-            sellPrice,
-            photo: p.photo || '',
-            photoSuggestions: []
-          })
-        })
-        
-        newItems.forEach((p, idx) => {
-          const suggestedCategory = matchCategory(p.name, products)
-          parsedItems.push({
-            tempId: 'nfe_sim_n_' + idx + '_' + Date.now().toString(36),
-            isNew: true,
-            existingProduct: null,
-            id: null,
-            name: p.name,
-            code: p.code,
-            category: suggestedCategory,
-            quantity: Math.floor(Math.random() * 15) + 5,
-            costPrice: p.cost,
-            sellPrice: Number((p.cost * 1.4).toFixed(2)),
-            photo: '',
-            photoSuggestions: []
-          })
-        })
-      }
+      })
       
       setNfeItems(parsedItems)
       setNfeLoading(false)
@@ -779,7 +739,13 @@ export default function Products({ onBack }) {
   }
 
   async function handleConfirmNfeImport() {
-    const itemsToSave = nfeItems.map(item => {
+    const activeItems = nfeItems.filter(item => !item.ignored)
+    if (activeItems.length === 0) {
+      alert('Selecione pelo menos um item para importar.')
+      return
+    }
+    
+    const itemsToSave = activeItems.map(item => {
       const currentStock = item.existingProduct ? (Number(item.existingProduct.stock) || 0) : 0
       return {
         ...(item.id ? { id: item.id } : {}),
@@ -1391,7 +1357,9 @@ export default function Products({ onBack }) {
             <div className="flex items-center justify-between border-b border-gray-100 pb-3 shrink-0">
               <div>
                 <h3 className="font-black text-gray-900 text-xl flex items-center gap-2">🧾 Revisar Entrada de NFE</h3>
-                <p className="text-xs text-gray-500 mt-0.5">{nfeItems.length} produtos identificados no arquivo XML</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {nfeItems.filter(i => !i.ignored).length} de {nfeItems.length} produtos selecionados para importação
+                </p>
               </div>
               <button onClick={() => { setShowNfeModal(false); setNfeItems([]) }}
                 className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 active:scale-90 text-sm">
@@ -1404,20 +1372,37 @@ export default function Products({ onBack }) {
               {/* Section A: Reposição de Estoque */}
               {nfeItems.some(i => !i.isNew) && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-black text-amber-700 uppercase tracking-widest bg-amber-50 px-3 py-1.5 rounded-xl">🔄 Reposição de Estoque ({nfeItems.filter(i => !i.isNew).length} itens)</h4>
+                  <h4 className="text-xs font-black text-amber-700 uppercase tracking-widest bg-amber-50 px-3 py-1.5 rounded-xl">
+                    🔄 Reposição de Estoque ({nfeItems.filter(i => !i.isNew && !i.ignored).length} de {nfeItems.filter(i => !i.isNew).length} selecionados)
+                  </h4>
                   <div className="space-y-1.5">
                     {nfeItems.filter(i => !i.isNew).map((item, idx) => (
-                      <div key={item.tempId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-gray-50 rounded-2xl border border-gray-200">
-                        <div>
-                          <div className="font-bold text-gray-900 text-sm">{item.name}</div>
-                          <div className="text-[10px] text-gray-500 mt-0.5">
-                            Cód: {item.code} | Custo: {formatCurrency(item.costPrice)} | Estoque Atual: <span className="font-bold">{item.existingProduct?.stock || 0} un</span>
+                      <div key={item.tempId} className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl border transition-all ${
+                        item.ignored 
+                          ? 'bg-gray-100/50 border-gray-200 opacity-60' 
+                          : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <div className="flex items-start gap-3 flex-1">
+                          <input
+                            type="checkbox"
+                            checked={!item.ignored}
+                            onChange={e => {
+                              const checked = e.target.checked
+                              setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, ignored: !checked } : x))
+                            }}
+                            className="w-5 h-5 rounded-lg border-gray-300 text-amber-600 focus:ring-amber-500 mt-0.5 cursor-pointer shrink-0"
+                          />
+                          <div className={item.ignored ? 'line-through text-gray-400' : ''}>
+                            <div className="font-bold text-gray-900 text-sm">{item.name}</div>
+                            <div className="text-[10px] text-gray-500 mt-0.5">
+                              Cód: {item.code} | Custo: {formatCurrency(item.costPrice)} | Estoque Atual: <span className="font-bold">{item.existingProduct?.stock || 0} un</span>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <div className="text-[10px] text-gray-400 font-bold uppercase">Qtd Comprada</div>
-                            <div className="font-black text-gray-900 text-sm">+{item.quantity} un</div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className={`text-right ${item.ignored ? 'text-gray-400' : ''}`}>
+                            <div className="text-[9px] text-gray-400 font-bold uppercase">Qtd Comprada</div>
+                            <div className={`font-black text-sm ${item.ignored ? 'line-through' : 'text-gray-900'}`}>+{item.quantity} un</div>
                           </div>
                           <div className="w-24">
                             <label className="text-[9px] text-gray-400 font-bold uppercase block">Preço Venda</label>
@@ -1425,11 +1410,12 @@ export default function Products({ onBack }) {
                               type="number"
                               step="0.01"
                               value={item.sellPrice}
+                              disabled={item.ignored}
                               onChange={e => {
                                 const val = Number(e.target.value) || 0
                                 setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, sellPrice: val } : x))
                               }}
-                              className="input text-xs h-8 min-h-0 bg-white border-gray-300"
+                              className="input text-xs h-8 min-h-0 bg-white border-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
                             />
                           </div>
                         </div>
@@ -1442,14 +1428,33 @@ export default function Products({ onBack }) {
               {/* Section B: Novos Produtos */}
               {nfeItems.some(i => i.isNew) && (
                 <div className="space-y-2 pt-2">
-                  <h4 className="text-xs font-black text-blue-700 uppercase tracking-widest bg-blue-50 px-3 py-1.5 rounded-xl">✨ Novos Produtos Detectados ({nfeItems.filter(i => i.isNew).length} itens)</h4>
+                  <h4 className="text-xs font-black text-blue-700 uppercase tracking-widest bg-blue-50 px-3 py-1.5 rounded-xl">
+                    ✨ Novos Produtos Detectados ({nfeItems.filter(i => i.isNew && !i.ignored).length} de {nfeItems.filter(i => i.isNew).length} selecionados)
+                  </h4>
                   <div className="space-y-3">
                     {nfeItems.filter(i => i.isNew).map((item, idx) => (
-                      <div key={item.tempId} className="p-4 bg-white rounded-2xl border-2 border-dashed border-blue-200 grid grid-cols-1 md:grid-cols-12 gap-3.5 items-start">
+                      <div key={item.tempId} className={`p-4 rounded-2xl border-2 border-dashed transition-all grid grid-cols-1 md:grid-cols-12 gap-3.5 items-start ${
+                        item.ignored 
+                          ? 'bg-gray-50 border-gray-200 opacity-60' 
+                          : 'bg-white border-blue-200'
+                      }`}>
+                        {/* Checkbox selector */}
+                        <div className="md:col-span-1 flex items-center justify-center pt-2 md:pt-4">
+                          <input
+                            type="checkbox"
+                            checked={!item.ignored}
+                            onChange={e => {
+                              const checked = e.target.checked
+                              setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, ignored: !checked } : x))
+                            }}
+                            className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                        </div>
+
                         {/* Image Selector */}
                         <div className="md:col-span-2 flex flex-col items-center gap-2">
                           {item.photo ? (
-                            <img src={item.photo} alt="" className="w-16 h-16 rounded-xl object-contain bg-slate-50 border p-1" />
+                            <img src={item.photo} alt="" className={`w-16 h-16 rounded-xl object-contain bg-slate-50 border p-1 ${item.ignored ? 'filter grayscale opacity-60' : ''}`} />
                           ) : (
                             <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center text-2xl">📦</div>
                           )}
@@ -1459,8 +1464,9 @@ export default function Products({ onBack }) {
                                 <button
                                   key={sIdx}
                                   type="button"
+                                  disabled={item.ignored}
                                   onClick={() => setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, photo: img } : x))}
-                                  className={`w-6 h-6 rounded border shrink-0 bg-white overflow-hidden p-0.5 ${item.photo === img ? 'border-blue-500' : 'border-gray-200'}`}
+                                  className={`w-6 h-6 rounded border shrink-0 bg-white overflow-hidden p-0.5 ${item.photo === img ? 'border-blue-500' : 'border-gray-200'} disabled:opacity-50`}
                                 >
                                   <img src={img} alt="" className="w-full h-full object-contain" />
                                 </button>
@@ -1470,14 +1476,15 @@ export default function Products({ onBack }) {
                         </div>
 
                         {/* Editable Details */}
-                        <div className="md:col-span-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-left">
+                        <div className="md:col-span-9 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-left">
                           <div className="sm:col-span-2">
                             <label className="text-[9px] text-gray-400 font-bold uppercase">Nome do Novo Produto</label>
                             <input
                               type="text"
                               value={item.name}
+                              disabled={item.ignored}
                               onChange={e => setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, name: e.target.value } : x))}
-                              className="input text-xs h-9 min-h-0 bg-gray-50"
+                              className={`input text-xs h-9 min-h-0 bg-gray-50 ${item.ignored ? 'line-through text-gray-400 disabled:bg-gray-100' : ''}`}
                             />
                           </div>
 
@@ -1485,8 +1492,9 @@ export default function Products({ onBack }) {
                             <label className="text-[9px] text-gray-400 font-bold uppercase block">Prateleira / Categoria</label>
                             <select
                               value={item.category}
+                              disabled={item.ignored}
                               onChange={e => setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, category: e.target.value } : x))}
-                              className="input text-xs h-9 min-h-0 bg-gray-50"
+                              className="input text-xs h-9 min-h-0 bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
                             >
                               <option value="Geral">Geral</option>
                               <option value="Bebidas">Bebidas</option>
@@ -1507,14 +1515,15 @@ export default function Products({ onBack }) {
                                 type="number"
                                 step="0.01"
                                 value={item.sellPrice}
+                                disabled={item.ignored}
                                 onChange={e => {
                                   const val = Number(e.target.value) || 0
                                   setNfeItems(prev => prev.map(x => x.tempId === item.tempId ? { ...x, sellPrice: val } : x))
                                 }}
-                                className="input text-xs h-9 min-h-0 bg-gray-50 pl-7"
+                                className="input text-xs h-9 min-h-0 bg-gray-50 pl-7 disabled:bg-gray-100 disabled:text-gray-400"
                               />
                             </div>
-                            <span className="text-[9px] text-gray-400 mt-0.5 block">Custo NFE: {formatCurrency(item.costPrice)} (+40%)</span>
+                            <span className={`text-[9px] text-gray-400 mt-0.5 block ${item.ignored ? 'line-through' : ''}`}>Custo NFE: {formatCurrency(item.costPrice)} (+40%)</span>
                           </div>
                         </div>
                       </div>
@@ -1529,7 +1538,7 @@ export default function Products({ onBack }) {
                 Cancelar Importação
               </button>
               <button onClick={handleConfirmNfeImport} className="btn btn-success flex-[2] h-12 text-sm shadow-md font-bold">
-                💾 Confirmar Entrada e Atualizar Estoque (+{nfeItems.reduce((s, i) => s + i.quantity, 0)} itens)
+                💾 Confirmar Entrada e Atualizar Estoque (+{nfeItems.filter(i => !i.ignored).reduce((s, i) => s + i.quantity, 0)} itens)
               </button>
             </div>
           </div>
