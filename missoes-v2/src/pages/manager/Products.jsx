@@ -25,6 +25,8 @@ export default function Products({ onBack }) {
   const [sefazProgress, setSefazProgress] = useState('')
   const [showSefazBridgeModal, setShowSefazBridgeModal] = useState(false)
   const [sefazBridgeKey, setSefazBridgeKey] = useState('')
+  const [nfeTextInput, setNfeTextInput] = useState('')
+  const [nfeFileLoading, setNfeFileLoading] = useState(false)
   const [sefazStep, setSefazStep] = useState(0)
   const [showForm, setShowForm] = useState(false)
   const [parentCategory, setParentCategory] = useState('')
@@ -254,6 +256,192 @@ export default function Products({ onBack }) {
     if (matchDigits) return matchDigits[0]
     
     return ''
+  }
+
+  function parseBrazilianNumber(str) {
+    if (!str) return 0
+    const clean = str.replace(/\./g, '').replace(',', '.')
+    return parseFloat(clean) || 0
+  }
+
+  function parseDanfeText(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+    const parsedItems = []
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      
+      const codeMatch = line.match(/(.+?)\(C(?:ó|o)digo\s*:\s*(\d+)\s*\)/i)
+      if (codeMatch) {
+        const name = codeMatch[1].trim()
+        const code = codeMatch[2].trim()
+        
+        let quantity = 1
+        let costPrice = 0.0
+        
+        for (let j = i + 1; j < Math.min(i + 6, lines.length); j++) {
+          const nextLine = lines[j]
+          
+          const qtyMatch = nextLine.match(/Qtde\s*:\s*([\d.,]+)/i)
+          const unitPriceMatch = nextLine.match(/Vl\.\s*Unit(?:\.|val)?\s*:\s*([\d.,]+)/i)
+          
+          if (qtyMatch) {
+            quantity = parseBrazilianNumber(qtyMatch[1].trim())
+          }
+          if (unitPriceMatch) {
+            costPrice = parseBrazilianNumber(unitPriceMatch[1].trim())
+          }
+          
+          if (qtyMatch && unitPriceMatch) {
+            break
+          }
+          if (nextLine.includes('(Código:')) {
+            break
+          }
+        }
+        
+        parsedItems.push({
+          name,
+          code,
+          quantity,
+          costPrice
+        })
+      }
+    }
+    return parsedItems
+  }
+
+  async function extractTextFromPdfFile(file) {
+    if (!window.pdfjsLib) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'
+        script.onload = resolve
+        script.onerror = reject
+        document.head.appendChild(script)
+      })
+    }
+    
+    const pdfjsLib = window.pdfjsLib
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+
+    const arrayBuffer = await file.arrayBuffer()
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+    let fullText = ''
+    
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i)
+      const textContent = await page.getTextContent()
+      const pageText = textContent.items.map(item => item.str).join('\n')
+      fullText += pageText + '\n'
+    }
+    
+    return fullText
+  }
+
+  async function extractTextFromHtmlFile(file) {
+    const text = await file.text()
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(text, 'text/html')
+    return doc.body.innerText || doc.body.textContent || ''
+  }
+
+  function importDanfeItemsList(items) {
+    if (!items || items.length === 0) {
+      alert('Nenhum item válido encontrado no texto ou arquivo enviado.')
+      return
+    }
+    
+    const parsedItems = []
+    
+    items.forEach((item, idx) => {
+      const existing = products.find(p => 
+        (p.code && p.code.trim() === item.code) || 
+        (p.name && p.name.trim().toLowerCase() === item.name.trim().toLowerCase())
+      )
+      
+      const qty = item.qty || item.quantity || 1
+      const cost = item.cost || item.costPrice || 0
+      
+      if (existing) {
+        const sellPrice = parseCurrency(existing.promoPrice || existing.price || existing.oldPrice)
+        parsedItems.push({
+          tempId: 'nfe_text_r_' + idx + '_' + Date.now().toString(36),
+          isNew: false,
+          existingProduct: existing,
+          id: existing.id,
+          name: existing.name,
+          code: existing.code || item.code,
+          category: existing.category,
+          quantity: qty,
+          costPrice: cost,
+          sellPrice,
+          photo: existing.photo || '',
+          photoSuggestions: [],
+          ignored: false
+        })
+      } else {
+        const suggestedCategory = matchCategory(item.name, products)
+        parsedItems.push({
+          tempId: 'nfe_text_n_' + idx + '_' + Date.now().toString(36),
+          isNew: true,
+          existingProduct: null,
+          id: null,
+          name: item.name,
+          code: item.code,
+          category: suggestedCategory,
+          quantity: qty,
+          costPrice: cost,
+          sellPrice: Number((cost * 1.4).toFixed(2)),
+          photo: '',
+          photoSuggestions: [],
+          ignored: false
+        })
+      }
+    })
+    
+    setNfeItems(parsedItems)
+    setShowNfeSelectionModal(false)
+    setShowNfeModal(true)
+    
+    parsedItems.forEach((item, index) => {
+      if (item.isNew && item.name) {
+        fetchNfeImageSuggestions(item.name, index)
+      }
+    })
+  }
+
+  async function handleDanfeTextSubmit() {
+    if (!nfeTextInput.trim()) return
+    const items = parseDanfeText(nfeTextInput)
+    importDanfeItemsList(items)
+    setNfeTextInput('')
+  }
+
+  async function handleDanfeFileUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    
+    setNfeFileLoading(true)
+    try {
+      let text = ''
+      if (file.name.endsWith('.pdf')) {
+        text = await extractTextFromPdfFile(file)
+      } else if (file.name.endsWith('.html') || file.name.endsWith('.htm')) {
+        text = await extractTextFromHtmlFile(file)
+      } else {
+        text = await file.text()
+      }
+      
+      const items = parseDanfeText(text)
+      importDanfeItemsList(items)
+    } catch (err) {
+      console.error(err)
+      alert('Erro ao processar arquivo: ' + err.message)
+    } finally {
+      setNfeFileLoading(false)
+      e.target.value = ''
+    }
   }
 
   async function runSefazLookup(key) {
@@ -1366,11 +1554,12 @@ export default function Products({ onBack }) {
             </div>
 
             {/* Mode Switch Tabs */}
-            <div className="grid grid-cols-3 gap-1.5 bg-gray-100 p-1 rounded-2xl shrink-0">
+            <div className="grid grid-cols-4 gap-1 bg-gray-100 p-1 rounded-2xl shrink-0">
               {[
                 { key: 'xml', label: '📁 XML' },
                 { key: 'qrcode', label: '📷 QR Code' },
-                { key: 'key', label: '🔑 Chave' }
+                { key: 'key', label: '🔑 Chave' },
+                { key: 'text', label: '📄 Texto/PDF' }
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -1483,6 +1672,61 @@ export default function Products({ onBack }) {
                   >
                     🔍 Consultar Nota Fiscal
                   </button>
+                </div>
+              )}
+
+              {nfeInputMode === 'text' && (
+                <div className="space-y-4 w-full flex flex-col justify-start">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                      Cole o texto da nota ou envie o arquivo (PDF/HTML)
+                    </label>
+                    <textarea
+                      rows="4"
+                      placeholder="Cole aqui o texto copiado da página da SEFAZ ou do DANFE..."
+                      value={nfeTextInput}
+                      onChange={e => setNfeTextInput(e.target.value)}
+                      className="input w-full p-3 text-xs bg-gray-50 border-gray-200 rounded-2xl focus:ring-2 focus:ring-brand-500 font-mono resize-none h-24"
+                    />
+                  </div>
+
+                  {nfeTextInput.trim() && (
+                    <button
+                      type="button"
+                      onClick={handleDanfeTextSubmit}
+                      className="btn btn-primary w-full h-11 text-xs font-bold rounded-2xl shadow-md"
+                    >
+                      🚀 Importar Texto Copiado
+                    </button>
+                  )}
+
+                  <div className="relative flex py-1 items-center">
+                    <div className="flex-grow border-t border-gray-200"></div>
+                    <span className="flex-shrink mx-3 text-[10px] font-bold text-gray-450 uppercase">Ou envie o arquivo</span>
+                    <div className="flex-grow border-t border-gray-200"></div>
+                  </div>
+
+                  <label className="flex flex-col items-center justify-center p-5 border-2 border-dashed border-gray-300 hover:border-brand-500 rounded-3xl bg-white hover:bg-brand-50/10 cursor-pointer transition-all text-center group active:scale-98 relative min-h-[90px]">
+                    {nfeFileLoading ? (
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <span className="text-xl animate-spin">⏳</span>
+                        <span className="text-xs font-bold text-gray-500">Lendo arquivo...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="text-2xl mb-1 group-hover:animate-bounce">📄</span>
+                        <span className="text-xs font-bold text-gray-700">Carregar PDF, HTML ou Texto</span>
+                        <span className="text-[10px] text-gray-400 mt-0.5">Selecione o PDF ou HTML salvo da nota</span>
+                      </>
+                    )}
+                    <input 
+                      type="file" 
+                      accept=".pdf,.html,.htm,.txt" 
+                      disabled={nfeFileLoading}
+                      onChange={handleDanfeFileUpload} 
+                      className="hidden" 
+                    />
+                  </label>
                 </div>
               )}
             </div>
