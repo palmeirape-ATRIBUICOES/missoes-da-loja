@@ -58,7 +58,6 @@ export default function PublicStore() {
             <span className="text-5xl">🏪</span>
           </div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{storeEntry.shortName}</h1>
-          <p className="text-gray-500 mt-2">Canal direto com a gerência</p>
         </div>
 
         {step === 'select' && (
@@ -166,10 +165,7 @@ export default function PublicStore() {
           </div>
         )}
       </div>
-      
-      <div className="mt-8 text-center text-xs text-gray-400 font-medium">
-        Desenvolvido com Antigravity • Missões SaaS
-      </div>
+
     </div>
   )
 }

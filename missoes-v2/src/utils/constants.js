@@ -3,7 +3,7 @@ export const STORE_MAP = {
   loja_principal: {
     id: 'loja_principal',
     name: 'Padaria Maná de Deus',
-    shortName: 'Loja Principal',
+    shortName: 'Maná de Deus',
     managerUser: 'GERENTE',
     managerPin: '1234',
     employeesLegacy: ['Sandra', 'Thauane', 'Ingrid', 'Claudia', 'DADA'],
