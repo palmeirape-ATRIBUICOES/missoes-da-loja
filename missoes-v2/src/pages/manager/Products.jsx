@@ -3,7 +3,7 @@ import { useStore } from '../../hooks/useStore'
 import { useAuth } from '../../hooks/useAuth'
 import { formatCurrency, parseCurrency } from '../../utils/constants'
 import { printLabels } from '../../services/printer'
-import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode'
+import { Html5QrcodeScanner, Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 
 export default function Products({ onBack }) {
   const { isManager } = useAuth()
@@ -381,16 +381,20 @@ export default function Products({ onBack }) {
             if (!html5QrCode || !isCurrent) return
             
             try {
-              // Try directly starting with environment and HD constraints (ideal values are soft)
+              // Try directly starting with environment and HD constraints + autofocus
               await html5QrCode.start(
                 {
                   facingMode: 'environment',
                   width: { ideal: 1280 },
-                  height: { ideal: 720 }
+                  height: { ideal: 720 },
+                  advanced: [
+                    { focusMode: 'continuous' }
+                  ]
                 },
                 {
                   fps: 15,
-                  qrbox: { width: 260, height: 260 }
+                  qrbox: { width: 260, height: 260 },
+                  formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
                 },
                 (decodedText) => {
                   const key = extractAccessKey(decodedText)
@@ -430,7 +434,8 @@ export default function Products({ onBack }) {
                   { facingMode: 'environment' },
                   {
                     fps: 10,
-                    qrbox: { width: 250, height: 250 }
+                    qrbox: { width: 250, height: 250 },
+                    formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
                   },
                   (decodedText) => {
                     const key = extractAccessKey(decodedText)
@@ -520,7 +525,7 @@ export default function Products({ onBack }) {
           const costPrice = Number(prod.getElementsByTagName('vUnCom')[0]?.textContent || 0)
           
           const cleanName = cleanProductName(rawName)
-          const matchedProduct = products.find(p => (p.code && p.code === code) || p.name.toLowerCase() === cleanName.toLowerCase())
+          const matchedProduct = products.find(p => (p.code && p.code === code) || String(p.name || '').toLowerCase() === cleanName.toLowerCase())
           const suggestedCategory = matchedProduct ? matchedProduct.category : matchCategory(cleanName, products)
           
           parsedItems.push({
@@ -631,7 +636,7 @@ export default function Products({ onBack }) {
     const scores = {}
     existingProducts.forEach(p => {
       if (!p.category) return
-      const pTokens = p.name.toLowerCase().split(/[^\w]+/).filter(t => t.length > 2)
+      const pTokens = String(p.name || '').toLowerCase().split(/[^\w]+/).filter(t => t.length > 2)
       let matches = 0
       tokens.forEach(t => {
         if (pTokens.includes(t)) matches++
@@ -1440,10 +1445,12 @@ export default function Products({ onBack }) {
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Chave de Acesso (44 dígitos)</label>
                     <input
                       type="text"
-                      maxLength={44}
                       placeholder="Ex: 35210901234567890123550010000123451000123456"
                       value={nfeKeyInput}
-                      onChange={e => setNfeKeyInput(e.target.value.replace(/[^\d]/g, ''))}
+                      onChange={e => {
+                        const cleaned = e.target.value.replace(/[^\d]/g, '')
+                        setNfeKeyInput(cleaned.slice(0, 44))
+                      }}
                       className="input text-center h-12 text-sm bg-gray-50 border-gray-200 tracking-wider font-mono"
                     />
                   </div>
