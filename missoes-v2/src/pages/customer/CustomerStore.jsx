@@ -6,7 +6,7 @@ import { STORE_MAP, formatCurrency, parseCurrency, nowHuman } from '../../utils/
 export default function CustomerStore() {
   const { storeId } = useParams()
   const navigate = useNavigate()
-  const { products, deliverySlotsAll, saveCustomerOrder, updateProductsStock } = useStore()
+  const { products, deliverySlotsAll, saveCustomerOrder, updateProductsStock, customerOrdersAll } = useStore()
 
   // Authentication check
   const [customer, setCustomer] = useState(null)
@@ -65,15 +65,69 @@ export default function CustomerStore() {
     })
   }, [products, selectedCategory, search])
 
-  // Available Slots Filtered
+  // Available Slots Filtered with capacity check
   const availableSlots = useMemo(() => {
-    const todayStr = new Date().toISOString().split('T')[0]
-    return deliverySlotsAll.filter(slot => {
-      // Must be active and for today or future dates
-      const isFutureOrToday = slot.date >= todayStr
-      return slot.active && isFutureOrToday
+    const fixedHours = [
+      '06:00', '06:20', '06:40', '07:00', '07:30', '08:30', 
+      '09:00', '09:30', '10:00', '11:00', '12:00', '13:00', 
+      '14:00', '15:00', '15:30', '16:00', '16:30', '17:00'
+    ]
+
+    const slots = []
+    const now = new Date()
+    
+    // Helper to get local date string YYYY-MM-DD
+    const toLocalDateStr = (d) => {
+      const y = d.getFullYear()
+      const m = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${y}-${m}-${day}`
+    }
+
+    const todayStr = toLocalDateStr(now)
+    
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = toLocalDateStr(tomorrow)
+
+    // 1. Generate slots for Today (only future times)
+    fixedHours.forEach(time => {
+      const [h, m] = time.split(':').map(Number)
+      const slotTimeMs = new Date().setHours(h, m, 0, 0)
+      const minDeliveryTimeMs = Date.now() + 30 * 60 * 1000 // now + 30 mins
+      
+      if (slotTimeMs >= minDeliveryTimeMs) {
+        const label = `${formatDateBr(todayStr)} às ${time}`
+        const count = (customerOrdersAll || []).filter(o => o.slotLabel === label && o.status !== 'cancelled').length
+        slots.push({
+          id: `today_${time}`,
+          date: todayStr,
+          timeStart: time,
+          timeEnd: time,
+          ordersCount: count,
+          isFull: count >= 5,
+          isToday: true
+        })
+      }
     })
-  }, [deliverySlotsAll])
+
+    // 2. Generate slots for Tomorrow
+    fixedHours.forEach(time => {
+      const label = `${formatDateBr(tomorrowStr)} às ${time}`
+      const count = (customerOrdersAll || []).filter(o => o.slotLabel === label && o.status !== 'cancelled').length
+      slots.push({
+        id: `tomorrow_${time}`,
+        date: tomorrowStr,
+        timeStart: time,
+        timeEnd: time,
+        ordersCount: count,
+        isFull: count >= 5,
+        isToday: false
+      })
+    })
+
+    return slots
+  }, [customerOrdersAll])
 
   // Cart operations
   function addToCart(product) {
@@ -446,19 +500,25 @@ export default function CustomerStore() {
                 ⚠️ A loja não possui horários de entrega ativos disponíveis para hoje/futuro. Entre em contato com a gerência.
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {availableSlots.map(slot => {
                   const isSelected = selectedSlot?.id === slot.id
                   return (
                     <button
                       key={slot.id}
                       type="button"
+                      disabled={slot.isFull}
                       onClick={() => setSelectedSlot(slot)}
-                      className={`p-3 rounded-2xl border-2 text-left transition-all active:scale-98
-                        ${isSelected ? 'border-brand-500 bg-brand-50/40 text-brand-950' : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'}`}
+                      className={`p-3 rounded-2xl border border-gray-200 text-left transition-all relative
+                        ${slot.isFull ? 'bg-gray-50 border-gray-100 text-gray-400 cursor-not-allowed' : isSelected ? 'border-brand-500 bg-brand-50/40 text-brand-950 active:scale-98' : 'bg-white hover:border-gray-300 text-gray-700 active:scale-98'}`}
                     >
-                      <div className="font-extrabold text-sm">{formatDateBr(slot.date)}</div>
-                      <div className="text-xs text-gray-500 mt-1 font-semibold">⏰ {slot.timeStart === slot.timeEnd ? slot.timeStart : `${slot.timeStart} às ${slot.timeEnd}`}</div>
+                      <div className="font-extrabold text-[10px] text-gray-400 uppercase tracking-wide">
+                        {slot.isToday ? 'Hoje' : 'Amanhã'} ({formatDateBr(slot.date).substring(0, 5)})
+                      </div>
+                      <div className="text-xs text-gray-900 mt-1 font-extrabold flex items-center justify-between">
+                        <span>⏰ {slot.timeStart}</span>
+                        {slot.isFull && <span className="text-[8px] bg-red-100 text-red-700 px-1 py-0.5 rounded font-black uppercase tracking-wide">Cheio</span>}
+                      </div>
                     </button>
                   )
                 })}

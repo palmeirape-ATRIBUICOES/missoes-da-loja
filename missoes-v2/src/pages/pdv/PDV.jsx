@@ -123,7 +123,7 @@ export default function PDV() {
       customerPhone: '81999998888',
       condo: 'dom_pedro_1',
       deliveryAddress: 'Bloco A, Apto 302, Condomínio Dom Pedro 1',
-      deliverySlot: '12:00',
+      slotLabel: 'Hoje às 12:00',
       createdAtHuman: nowHuman() || new Date().toLocaleString('pt-BR'),
       items: [
         { id: '1', name: 'Pão de Sal (Francês)', quantity: 10, price: 0.60 },
@@ -1119,7 +1119,7 @@ export default function PDV() {
                         <div><strong>WhatsApp:</strong> {order.customerPhone}</div>
                         <div className="md:col-span-2"><strong>Condomínio:</strong> <span className="bg-amber-50 text-amber-800 font-bold px-2 py-0.5 rounded">{condoNames[order.condo] || order.condo || 'Morador Externo'}</span></div>
                         <div className="md:col-span-2"><strong>Endereço:</strong> {order.deliveryAddress}</div>
-                        {order.deliverySlot && <div className="md:col-span-2"><strong>Horário Agendado:</strong> <span className="bg-blue-50 text-blue-800 font-bold px-2 py-0.5 rounded">⏰ {order.deliverySlot}</span></div>}
+                        {(order.slotLabel || order.deliverySlot) && <div className="md:col-span-2"><strong>Horário Agendado:</strong> <span className="bg-blue-50 text-blue-800 font-bold px-2 py-0.5 rounded">⏰ {order.slotLabel || order.deliverySlot}</span></div>}
                       </div>
 
                       {/* Items List */}

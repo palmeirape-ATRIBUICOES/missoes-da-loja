@@ -274,8 +274,9 @@ export function printCustomerOrderReceipt({ storeName, order, customer }) {
     lines.push(`<div><strong>Condomínio:</strong> ${condoLabels[c] || c}</div>`)
   }
   lines.push(`<div><strong>Endereço:</strong> ${order.deliveryAddress || customer?.address || '-'}</div>`)
-  if (order.deliverySlot) {
-    lines.push(`<div><strong>Horário:</strong> ${order.deliverySlot}</div>`)
+  const sched = order.slotLabel || order.deliverySlot
+  if (sched) {
+    lines.push(`<div><strong>Horário:</strong> ${sched}</div>`)
   }
   lines.push(`</div>`)
 
