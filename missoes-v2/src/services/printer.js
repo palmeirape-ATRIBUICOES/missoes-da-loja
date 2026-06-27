@@ -21,14 +21,15 @@ function printHtmlSafely(htmlContent) {
     oldIframe.parentNode.removeChild(oldIframe)
   }
 
-  // Cria um iframe invisível
+  // Cria um iframe posicionado fora da tela (para evitar que navegadores mobile como Chrome e Safari bloqueiem a impressão de elementos com tamanho 0 ou hidden)
   const iframe = document.createElement('iframe')
   iframe.id = 'print-iframe'
   iframe.style.position = 'absolute'
-  iframe.style.width = '0px'
-  iframe.style.height = '0px'
+  iframe.style.left = '-9999px'
+  iframe.style.top = '-9999px'
+  iframe.style.width = '300px'
+  iframe.style.height = '300px'
   iframe.style.border = 'none'
-  iframe.style.visibility = 'hidden'
 
   document.body.appendChild(iframe)
 

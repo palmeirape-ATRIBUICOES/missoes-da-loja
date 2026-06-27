@@ -25,15 +25,16 @@ export default function PDV() {
   const [showDeliveryPanel, setShowDeliveryPanel] = useState(false)
   const [deliveryTab, setDeliveryTab] = useState('pending')
 
-  // Real-time beep sound on new pending order
+  // Real-time beep sound and auto-approve/print on new pending order
   const prevPendingCountRef = useRef(0)
+  const autoProcessedOrdersRef = useRef(new Set())
   const pendingOrders = useMemo(() => {
     return (customerOrdersAll || []).filter(o => o.status === 'pending')
   }, [customerOrdersAll])
 
   useEffect(() => {
     if (pendingOrders.length > prevPendingCountRef.current) {
-      // Play sound alert!
+      // 1. Play sound alert!
       try {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext
         if (AudioContextClass) {
@@ -58,6 +59,16 @@ export default function PDV() {
       } catch (e) {
         console.log('Audio alert blocked or failed', e)
       }
+
+      // 2. Auto-approve and print new incoming orders
+      pendingOrders.forEach(order => {
+        if (!autoProcessedOrdersRef.current.has(order.id)) {
+          autoProcessedOrdersRef.current.add(order.id)
+          handleApproveOrder(order).catch(err => {
+            console.error('Error auto-approving order:', order.id, err)
+          })
+        }
+      })
     }
     prevPendingCountRef.current = pendingOrders.length
   }, [pendingOrders])

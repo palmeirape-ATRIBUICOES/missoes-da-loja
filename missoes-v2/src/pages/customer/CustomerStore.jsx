@@ -29,10 +29,7 @@ export default function CustomerStore() {
   const [checkoutStep, setCheckoutStep] = useState('catalog') // 'catalog' | 'checkout' | 'payment'
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [selectedSlot, setSelectedSlot] = useState(null)
-  const [paymentMethod, setPaymentMethod] = useState('pix') // 'pix' | 'card'
-
-  // Card Simulator State
-  const [cardForm, setCardForm] = useState({ number: '', name: '', expiry: '', cvv: '' })
+  const [paymentMethod, setPaymentMethod] = useState('pix') // 'pix' | 'cartao' | 'dinheiro'
   const [paymentLoading, setPaymentLoading] = useState(false)
 
   const storeEntry = Object.values(STORE_MAP).find(s => s.id === storeId) || STORE_MAP.loja_principal
@@ -201,66 +198,50 @@ export default function CustomerStore() {
       return
     }
 
-    setCheckoutStep('payment')
-  }
-
-  async function simulatePayment() {
-    if (paymentMethod === 'card') {
-      if (!cardForm.number || !cardForm.name || !cardForm.expiry || !cardForm.cvv) {
-        alert('Por favor, preencha todos os dados do cartão de crédito.')
-        return
-      }
-    }
-
     setPaymentLoading(true)
 
-    // Simulate 2 seconds loading
-    setTimeout(async () => {
-      try {
-        const orderId = `order_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
-        const slotLabel = selectedSlot.timeStart === selectedSlot.timeEnd
-          ? `${formatDateBr(selectedSlot.date)} às ${selectedSlot.timeStart}`
-          : `${formatDateBr(selectedSlot.date)} das ${selectedSlot.timeStart} às ${selectedSlot.timeEnd}`
-        
-        const finalOrder = {
-          id: orderId,
-          customerId: customer.id,
-          customerName: customer.name,
-          customerPhone: customer.phone,
-          items: cart.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            photo: item.photo || ''
-          })),
-          total: cartTotal,
-          paymentMethod,
-          paymentStatus: 'paid', // Upfront payment simulator guarantees this
-          slotId: selectedSlot.id,
-          slotLabel,
-          deliveryAddress: deliveryAddress.trim(),
-          status: 'pending',
-          createdAtHuman: nowHuman()
-        }
-
-        await saveCustomerOrder(finalOrder)
-        await updateProductsStock(cart, false)
-
-        // Clear cart
-        setCart([])
-        setCheckoutStep('catalog')
-        setSelectedSlot(null)
-        setCardForm({ number: '', name: '', expiry: '', cvv: '' })
-
-        // Redirect to tracking page
-        navigate(`/cliente/${storeId}/pedido/${orderId}`)
-      } catch (err) {
-        console.error(err)
-        alert('Erro ao registrar o pedido. Tente novamente.')
+    try {
+      const orderId = `order_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+      const slotLabel = `${formatDateBr(selectedSlot.date)} às ${selectedSlot.timeStart}`
+      
+      const finalOrder = {
+        id: orderId,
+        customerId: customer.id,
+        customerName: customer.name,
+        customerPhone: customer.phone,
+        condo: customer.condo || 'none',
+        items: cart.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          photo: item.photo || ''
+        })),
+        total: cartTotal,
+        paymentMethod,
+        paymentStatus: 'pending',
+        slotId: selectedSlot.id,
+        slotLabel,
+        deliveryAddress: deliveryAddress.trim(),
+        status: 'pending',
+        createdAtHuman: nowHuman()
       }
-      setPaymentLoading(false)
-    }, 1800)
+
+      await saveCustomerOrder(finalOrder)
+      await updateProductsStock(cart, false)
+
+      // Clear cart
+      setCart([])
+      setCheckoutStep('catalog')
+      setSelectedSlot(null)
+
+      // Redirect to tracking page
+      navigate(`/cliente/${storeId}/pedido/${orderId}`)
+    } catch (err) {
+      console.error(err)
+      alert('Erro ao registrar o pedido. Tente novamente.')
+    }
+    setPaymentLoading(false)
   }
 
   if (!customer) return null
@@ -528,26 +509,35 @@ export default function CustomerStore() {
 
           {/* Payment Method Selector */}
           <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3">
-            <h4 className="font-extrabold text-gray-950 text-sm flex items-center gap-1.5">💳 Forma de Pagamento Antecipado</h4>
+            <h4 className="font-extrabold text-gray-950 text-sm flex items-center gap-1.5">💳 Forma de Pagamento (No Recebimento)</h4>
             
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setPaymentMethod('pix')}
-                className={`py-4 rounded-2xl border-2 font-bold text-sm text-center transition-all active:scale-98 flex flex-col items-center gap-1
+                className={`py-3 rounded-2xl border-2 font-bold text-xs text-center transition-all active:scale-98 flex flex-col items-center gap-1
                   ${paymentMethod === 'pix' ? 'border-emerald-500 bg-emerald-50/30 text-emerald-950' : 'border-gray-200 bg-white text-gray-700'}`}
               >
-                <span className="text-xl">⚡</span>
+                <span className="text-lg">⚡</span>
                 <span>PIX</span>
               </button>
               <button
                 type="button"
-                onClick={() => setPaymentMethod('card')}
-                className={`py-4 rounded-2xl border-2 font-bold text-sm text-center transition-all active:scale-98 flex flex-col items-center gap-1
-                  ${paymentMethod === 'card' ? 'border-indigo-500 bg-indigo-50/30 text-indigo-950' : 'border-gray-200 bg-white text-gray-700'}`}
+                onClick={() => setPaymentMethod('cartao')}
+                className={`py-3 rounded-2xl border-2 font-bold text-xs text-center transition-all active:scale-98 flex flex-col items-center gap-1
+                  ${paymentMethod === 'cartao' ? 'border-indigo-500 bg-indigo-50/30 text-indigo-950' : 'border-gray-200 bg-white text-gray-700'}`}
               >
-                <span className="text-xl">💳</span>
-                <span>Cartão de Crédito</span>
+                <span className="text-lg">💳</span>
+                <span>Cartão</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('dinheiro')}
+                className={`py-3 rounded-2xl border-2 font-bold text-xs text-center transition-all active:scale-98 flex flex-col items-center gap-1
+                  ${paymentMethod === 'dinheiro' ? 'border-amber-500 bg-amber-50/30 text-amber-950' : 'border-gray-200 bg-white text-gray-700'}`}
+              >
+                <span className="text-lg">💵</span>
+                <span>Dinheiro</span>
               </button>
             </div>
           </div>
@@ -556,176 +546,18 @@ export default function CustomerStore() {
           <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3">
             <h4 className="font-extrabold text-gray-950 text-sm">Resumo do Pedido</h4>
             <div className="flex justify-between items-center text-base">
-              <span className="font-bold text-gray-500">Total a Pagar</span>
+              <span className="font-bold text-gray-500">Total do Pedido</span>
               <span className="font-black text-emerald-600 text-xl">{formatCurrency(cartTotal)}</span>
             </div>
           </div>
 
           <button
             onClick={handleConfirmOrder}
-            className="btn btn-primary w-full h-14 rounded-2xl font-bold text-base shadow-lg"
+            disabled={paymentLoading}
+            className="btn btn-primary w-full h-14 rounded-2xl font-bold text-base shadow-lg transition-all"
           >
-            Ir para o Pagamento
+            {paymentLoading ? '⏳ Enviando Pedido...' : '🚀 Confirmar e Enviar Pedido'}
           </button>
-        </main>
-      )}
-
-      {checkoutStep === 'payment' && (
-        <main className="flex-1 max-w-lg w-full mx-auto p-4 space-y-5 overflow-y-auto animate-slide-up">
-          <button onClick={() => setCheckoutStep('checkout')} className="text-sm text-brand-600 font-extrabold mb-2 flex items-center gap-1">
-            ← Voltar para Revisão
-          </button>
-
-          <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-xl space-y-6 text-center">
-            {paymentMethod === 'pix' ? (
-              <>
-                <div>
-                  <h3 className="text-2xl font-black text-gray-900">Pagamento via Pix</h3>
-                  <p className="text-sm text-gray-500 mt-1">Pague agora para confirmar seu horário e pedido</p>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-3xl border border-gray-100 inline-block mx-auto">
-                  {/* Premium Simulated QR Code using Google Charts API */}
-                  <img
-                    src={`https://chart.googleapis.com/chart?chs=220x220&cht=qr&chl=MDL_PAYMENT_${storeId}_${cartTotal}`}
-                    alt="Pix QR Code"
-                    className="w-48 h-48 bg-white p-2 rounded-2xl shadow-inner"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="text-xs text-gray-400 font-semibold">Chave Pix Copia e Cola:</div>
-                  <div className="flex gap-2 w-full max-w-sm mx-auto">
-                    <input
-                      type="text"
-                      readOnly
-                      value={`00020126580014BR.GOV.BCB.PIX0136mdl_${storeId}_payment_${Date.now()}5204000053039865406${cartTotal.toFixed(2)}5802BR5915PadariaManaDeus6009SaoPaulo62070503***6304`}
-                      className="input h-10 text-xs bg-gray-50 text-gray-400 select-all overflow-hidden text-ellipsis truncate"
-                    />
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`00020126580014BR.GOV.BCB.PIX0136mdl_${storeId}_payment_${Date.now()}5204000053039865406${cartTotal.toFixed(2)}5802BR5915PadariaManaDeus6009SaoPaulo62070503***6304`)
-                        alert('Pix Copia e Cola copiado para a área de transferência!')
-                      }}
-                      className="btn btn-primary h-10 px-3.5 text-xs font-bold shrink-0 rounded-xl"
-                    >
-                      Copiar
-                    </button>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-gray-100">
-                  <div className="text-xs text-gray-400 font-bold mb-3 flex items-center justify-center gap-1">
-                    <span>💡</span> Após realizar o pagamento no seu banco, clique em "Confirmar Pagamento".
-                  </div>
-
-                  <button
-                    onClick={simulatePayment}
-                    disabled={paymentLoading}
-                    className="btn btn-success w-full h-14 rounded-2xl font-bold text-base shadow-md flex items-center justify-center gap-2"
-                  >
-                    {paymentLoading ? '⏳ Confirmando...' : '✅ Confirmar Pagamento Pix'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <h3 className="text-2xl font-black text-gray-900">Cartão de Crédito</h3>
-                  <p className="text-sm text-gray-500 mt-1">Insira os dados do cartão para finalizar</p>
-                </div>
-
-                {/* Animated Simulated Card */}
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-5 rounded-3xl text-white text-left shadow-lg relative overflow-hidden max-w-sm mx-auto aspect-[1.6/1]">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full -mr-8 -mt-8"></div>
-                  <div className="flex justify-between items-start mb-6">
-                    <span className="text-xl">💳</span>
-                    <span className="text-[10px] font-bold tracking-widest bg-white/20 px-2 py-0.5 rounded uppercase">CRÉDITO</span>
-                  </div>
-                  <div className="text-lg font-black tracking-widest mb-4">
-                    {cardForm.number || '•••• •••• •••• ••••'}
-                  </div>
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <div className="text-[8px] text-white/60 font-bold uppercase">Titular do Cartão</div>
-                      <div className="text-xs font-bold uppercase truncate max-w-[150px]">
-                        {cardForm.name || 'Nome do Titular'}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[8px] text-white/60 font-bold uppercase">Validade</div>
-                      <div className="text-xs font-bold">{cardForm.expiry || 'MM/AA'}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card Inputs */}
-                <div className="space-y-3.5 max-w-sm mx-auto text-left">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Número do Cartão</label>
-                    <input
-                      type="text"
-                      maxLength={16}
-                      required
-                      placeholder="1234 5678 1234 5678"
-                      value={cardForm.number}
-                      onChange={e => setCardForm(f => ({ ...f, number: e.target.value.replace(/[^\d]/g, '') }))}
-                      className="input h-11 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nome Impresso no Cartão</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ex: JOÃO DA SILVA"
-                      value={cardForm.name}
-                      onChange={e => setCardForm(f => ({ ...f, name: e.target.value.toUpperCase() }))}
-                      className="input h-11 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Validade (MM/AA)</label>
-                      <input
-                        type="text"
-                        maxLength={5}
-                        required
-                        placeholder="12/29"
-                        value={cardForm.expiry}
-                        onChange={e => setCardForm(f => ({ ...f, expiry: e.target.value }))}
-                        className="input h-11 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CVV (Código)</label>
-                      <input
-                        type="password"
-                        maxLength={3}
-                        required
-                        placeholder="123"
-                        value={cardForm.cvv}
-                        onChange={e => setCardForm(f => ({ ...f, cvv: e.target.value.replace(/[^\d]/g, '') }))}
-                        className="input h-11 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-gray-100 max-w-sm mx-auto">
-                  <button
-                    onClick={simulatePayment}
-                    disabled={paymentLoading}
-                    className="btn btn-success w-full h-14 rounded-2xl font-bold text-base shadow-md flex items-center justify-center gap-2"
-                  >
-                    {paymentLoading ? '⏳ Processando...' : '💳 Pagar com Cartão'}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
         </main>
       )}
     </div>
