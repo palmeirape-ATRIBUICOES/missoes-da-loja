@@ -5,17 +5,7 @@ import { formatCurrency } from '../utils/constants'
  * Evita o uso de window.open que redireciona a tela principal e trava o WebView no Android.
  */
 function printHtmlSafely(htmlContent) {
-  // 1. Tenta usar a ponte de impressão nativa do Android (se disponível no wrapper nativo)
-  if (window.AndroidPrinter && typeof window.AndroidPrinter.printHtml === 'function') {
-    try {
-      window.AndroidPrinter.printHtml(htmlContent)
-      return
-    } catch (e) {
-      console.warn('Falha ao usar a ponte AndroidPrinter nativa, tentando fallback:', e)
-    }
-  }
-
-  // 2. Cria ou recupera a div de impressão
+  // 1. Cria ou recupera a div de impressão
   let printSection = document.getElementById('print-section')
   if (!printSection) {
     printSection = document.createElement('div')
@@ -23,10 +13,10 @@ function printHtmlSafely(htmlContent) {
     document.body.appendChild(printSection)
   }
 
-  // 3. Injeta o conteúdo no container de impressão
+  // 2. Injeta o conteúdo no container de impressão
   printSection.innerHTML = htmlContent
 
-  // 4. Salva o estado original de visibilidade dos elementos filhos do body e oculta-os
+  // 3. Salva o estado original de visibilidade dos elementos filhos do body e oculta-os
   const bodyChildren = Array.from(document.body.children)
   const originalDisplays = new Map()
 
@@ -43,25 +33,45 @@ function printHtmlSafely(htmlContent) {
   printSection.style.margin = '0'
   printSection.style.padding = '0'
 
-  // 5. Dispara a impressão do navegador principal de forma assíncrona
+  const restoreDOM = () => {
+    if (printSection.innerHTML === '') return
+    bodyChildren.forEach(child => {
+      if (child.id !== 'print-section') {
+        child.style.display = originalDisplays.get(child) || ''
+      }
+    })
+    printSection.style.setProperty('display', 'none', 'important')
+    printSection.innerHTML = ''
+    window.removeEventListener('afterprint', restoreDOM)
+  }
+
+  // Registra o evento de conclusão/cancelamento de impressão do navegador
+  window.addEventListener('afterprint', restoreDOM)
+
+  // 4. Dispara a impressão de acordo com o ambiente
   setTimeout(() => {
+    if (window.AndroidPrinter && typeof window.AndroidPrinter.printHtml === 'function') {
+      try {
+        window.AndroidPrinter.printHtml(htmlContent)
+        // No app nativo Android, o evento afterprint do navegador pode não disparar,
+        // então forçamos a restauração do DOM após 4 segundos.
+        setTimeout(restoreDOM, 4000)
+        return
+      } catch (e) {
+        console.warn('Falha ao usar a ponte AndroidPrinter nativa:', e)
+      }
+    }
+
     try {
       window.print()
     } catch (e) {
       console.warn('Impressão direta não suportada no ambiente atual:', e)
+      restoreDOM()
     }
-    
-    // 6. Restaura o estado original do DOM após a abertura do diálogo de impressão (1.5 segundos é seguro)
-    setTimeout(() => {
-      bodyChildren.forEach(child => {
-        if (child.id !== 'print-section') {
-          child.style.display = originalDisplays.get(child) || ''
-        }
-      })
-      printSection.style.setProperty('display', 'none', 'important')
-      printSection.innerHTML = ''
-    }, 1500)
   }, 150)
+
+  // Backup de segurança para restaurar a tela caso ocorra algum travamento (25 segundos)
+  setTimeout(restoreDOM, 25000)
 }
 
 /**

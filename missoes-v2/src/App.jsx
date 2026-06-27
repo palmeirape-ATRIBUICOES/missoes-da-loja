@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { StoreProvider } from './hooks/useStore'
@@ -140,6 +141,34 @@ function AppRoutes() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const CURRENT_VERSION = 'v2.9'
+    const storedVersion = localStorage.getItem('mdl_app_version')
+    if (storedVersion !== CURRENT_VERSION) {
+      const clearCaches = async () => {
+        try {
+          if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations()
+            for (const r of registrations) {
+              await r.unregister()
+            }
+          }
+          if ('caches' in window) {
+            const keys = await caches.keys()
+            for (const k of keys) {
+              await caches.delete(k)
+            }
+          }
+          localStorage.setItem('mdl_app_version', CURRENT_VERSION)
+          window.location.reload(true)
+        } catch (e) {
+          console.error('Failed to clear app cache:', e)
+        }
+      }
+      clearCaches()
+    }
+  }, [])
+
   return (
     <HashRouter>
       <AuthProvider>
