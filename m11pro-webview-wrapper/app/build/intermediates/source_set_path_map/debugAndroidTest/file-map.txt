@@ -1,4 +1,0 @@
-com.palmeirape.missoesloja.test.app-androidTest-0 C:\Users\thiag\OneDrive\Área de Trabalho\missoes-da-loja-main\m11pro-webview-wrapper\app\build\generated\res\resValues\androidTest\debug
-com.palmeirape.missoesloja.test.app-mergeDebugAndroidTestResources-1 C:\Users\thiag\OneDrive\Área de Trabalho\missoes-da-loja-main\m11pro-webview-wrapper\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
-com.palmeirape.missoesloja.test.app-mergeDebugAndroidTestResources-2 C:\Users\thiag\OneDrive\Área de Trabalho\missoes-da-loja-main\m11pro-webview-wrapper\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
-com.palmeirape.missoesloja.test.app-merged_res-3 C:\Users\thiag\OneDrive\Área de Trabalho\missoes-da-loja-main\m11pro-webview-wrapper\app\build\intermediates\merged_res\debugAndroidTest

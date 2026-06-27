@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
+    private static final java.util.Set<WebView> activeWebViews = java.util.Collections.synchronizedSet(new java.util.HashSet<WebView>());
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -92,13 +93,23 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     // Instancia uma WebView em segundo plano temporária para carregar o cupom
-                    WebView tempWebView = new WebView(mContext);
+                    final WebView tempWebView = new WebView(mContext);
+                    activeWebViews.add(tempWebView); // Mantém a referência viva contra Garbage Collector
+                    
                     tempWebView.getSettings().setJavaScriptEnabled(true);
                     tempWebView.setWebViewClient(new WebViewClient() {
                         @Override
                         public void onPageFinished(WebView view, String url) {
                             // Assim que carregar o cupom em HTML, dispara o Job de impressão do Android
                             createWebPrintJob(view);
+                            
+                            // Remove a referência após 15 segundos para liberar memória
+                            new android.os.Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    activeWebViews.remove(tempWebView);
+                                }
+                            }, 15000);
                         }
                     });
                     
