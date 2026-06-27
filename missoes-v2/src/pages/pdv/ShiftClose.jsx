@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useStore } from '../../hooks/useStore'
 import { formatCurrency } from '../../utils/constants'
+import { printShiftReport } from '../../services/printer'
 
 export default function ShiftClose({ onBack }) {
   const { currentUser, store } = useAuth()
@@ -41,7 +42,15 @@ export default function ShiftClose({ onBack }) {
   }
 
   function handlePrint() {
-    window.print()
+    printShiftReport({
+      storeName: store.name || 'MANÁ PANIFICADORA',
+      cashier: currentUser,
+      date: today,
+      sales: mySales,
+      byMethod,
+      totalSales,
+      totalItems
+    })
   }
 
   return (
