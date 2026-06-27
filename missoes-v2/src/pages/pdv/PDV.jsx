@@ -2,14 +2,14 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useStore } from '../../hooks/useStore'
 import { formatCurrency, parseCurrency, nowHuman } from '../../utils/constants'
-import { printReceipt } from '../../services/printer'
+import { printReceipt, printCustomerOrderReceipt } from '../../services/printer'
 import Checkout from './Checkout'
 import ShiftClose from './ShiftClose'
 import CashOps from './CashOps'
 
 export default function PDV() {
   const { currentUser, store, logout, isManager } = useAuth()
-  const { products, savePdvSale, pdvSales, employees, saveProduct } = useStore()
+  const { products, savePdvSale, pdvSales, employees, saveProduct, customerOrdersAll, saveCustomerOrder } = useStore()
 
   const [cart, setCart] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -20,6 +20,126 @@ export default function PDV() {
   const [showMenu, setShowMenu] = useState(false)
   const [lastSale, setLastSale] = useState(null)
   const searchRef = useRef(null)
+
+  // Delivery orders panel states
+  const [showDeliveryPanel, setShowDeliveryPanel] = useState(false)
+  const [deliveryTab, setDeliveryTab] = useState('pending')
+
+  // Real-time beep sound on new pending order
+  const prevPendingCountRef = useRef(0)
+  const pendingOrders = useMemo(() => {
+    return (customerOrdersAll || []).filter(o => o.status === 'pending')
+  }, [customerOrdersAll])
+
+  useEffect(() => {
+    if (pendingOrders.length > prevPendingCountRef.current) {
+      // Play sound alert!
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext
+        if (AudioContextClass) {
+          const ctx = new AudioContextClass()
+          const now = ctx.currentTime
+          const play = (freq, time, dur) => {
+            const osc = ctx.createOscillator()
+            const gain = ctx.createGain()
+            osc.frequency.setValueAtTime(freq, time)
+            gain.gain.setValueAtTime(0, time)
+            gain.gain.linearRampToValueAtTime(0.5, time + 0.05)
+            gain.gain.exponentialRampToValueAtTime(0.001, time + dur)
+            osc.connect(gain)
+            gain.connect(ctx.destination)
+            osc.start(time)
+            osc.stop(time + dur)
+          }
+          play(523.25, now, 0.2) // C5
+          play(659.25, now + 0.15, 0.2) // E5
+          play(783.99, now + 0.3, 0.3) // G5
+        }
+      } catch (e) {
+        console.log('Audio alert blocked or failed', e)
+      }
+    }
+    prevPendingCountRef.current = pendingOrders.length
+  }, [pendingOrders])
+
+  async function handleApproveOrder(order) {
+    try {
+      // 1. Update order status in Firebase
+      await saveCustomerOrder({
+        ...order,
+        status: 'preparing',
+        approvedAtMs: Date.now(),
+        approvedBy: currentUser
+      })
+
+      // 2. Register sale in PDV database
+      const sale = {
+        total: order.total || 0,
+        itemCount: (order.items || []).reduce((sum, item) => sum + (item.quantity || 1), 0),
+        items: (order.items || []).map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          qty: item.quantity || 1
+        })),
+        paymentMethod: order.paymentMethod || 'pix',
+        cashier: currentUser,
+        isDelivery: true,
+        deliveryOrderId: order.id
+      }
+      await savePdvSale(sale)
+
+      // 3. Print receipt (80mm)
+      printCustomerOrderReceipt({
+        storeName: store.name || 'MANÁ PANIFICADORA',
+        order,
+        customer: null
+      })
+    } catch (e) {
+      console.error(e)
+      alert('Erro ao aprovar o pedido.')
+    }
+  }
+
+  async function handleCancelOrder(order) {
+    if (!confirm('Deseja realmente rejeitar/cancelar este pedido?')) return
+    try {
+      await saveCustomerOrder({
+        ...order,
+        status: 'cancelled',
+        cancelledAtMs: Date.now(),
+        cancelledBy: currentUser
+      })
+    } catch (e) {
+      console.error(e)
+      alert('Erro ao cancelar o pedido.')
+    }
+  }
+
+  function handlePrintTestOrder() {
+    const testOrder = {
+      id: 'order_TESTE_80mm',
+      customerName: 'Cliente Teste Dom Pedro',
+      customerPhone: '81999998888',
+      condo: 'dom_pedro_1',
+      deliveryAddress: 'Bloco A, Apto 302, Condomínio Dom Pedro 1',
+      deliverySlot: '12:00',
+      createdAtHuman: nowHuman() || new Date().toLocaleString('pt-BR'),
+      items: [
+        { id: '1', name: 'Pão de Sal (Francês)', quantity: 10, price: 0.60 },
+        { id: '2', name: 'Pão Suíço Doce', quantity: 5, price: 1.50 },
+        { id: '3', name: 'Leite Integral 1L', quantity: 2, price: 5.50 }
+      ],
+      total: 24.50,
+      paymentMethod: 'pix',
+      notes: 'Deixar na portaria do condomínio Dom Pedro 1.'
+    }
+    printCustomerOrderReceipt({
+      storeName: store.name || 'MANÁ PANIFICADORA',
+      order: testOrder,
+      customer: null
+    })
+  }
 
   const stateRef = useRef({ showCheckout, showShift, showCashOps })
   stateRef.current = { showCheckout, showShift, showCashOps }
@@ -387,6 +507,16 @@ export default function PDV() {
             <div className="text-xs text-gray-500">{new Date().toLocaleDateString('pt-BR')}</div>
             <div className="text-xs font-semibold text-brand-600">{pdvSales.length} vendas hoje</div>
           </div>
+
+          <button onClick={() => setShowDeliveryPanel(true)}
+            className={`btn min-h-[40px] px-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all relative no-print ${pendingOrders.length > 0 ? 'animate-pulse' : ''}`}>
+            🛍️ Delivery
+            {pendingOrders.length > 0 && (
+              <span className="bg-red-600 text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shrink-0">
+                {pendingOrders.length}
+              </span>
+            )}
+          </button>
 
           <button onClick={() => setShowMenu(!showMenu)}
             className="touch-target w-10 h-10 rounded-xl bg-gray-100 text-lg">
@@ -900,6 +1030,152 @@ export default function PDV() {
             <div className="text-[10px] text-gray-400 text-center shrink-0 border-t pt-2">
               As buscas são focadas em arquivos PNG de alta definição com fundo branco para garantir um visual limpo em suas etiquetas e PDV.
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delivery Panel Modal */}
+      {showDeliveryPanel && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in no-print">
+          <div className="bg-white rounded-[2.5rem] shadow-elevated border border-gray-200 max-w-3xl w-full flex flex-col max-h-[85vh] animate-scale-up overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0 bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🛍️</span>
+                <div>
+                  <h3 className="font-extrabold text-lg text-gray-900">Gerenciador de Pedidos Delivery</h3>
+                  <p className="text-xs text-gray-500">Monitore, aprove e imprima cupons de entrega em 80mm</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={handlePrintTestOrder}
+                  className="btn btn-ghost text-xs font-bold border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 px-3 py-1.5 min-h-0">
+                  🖨️ Imprimir Cupom Teste (80mm)
+                </button>
+                <button onClick={() => setShowDeliveryPanel(false)}
+                  className="w-10 h-10 rounded-xl bg-gray-200 text-gray-600 hover:bg-gray-300 font-bold active:scale-95 transition-all text-sm flex items-center justify-center">
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="px-6 pt-3 bg-white border-b flex gap-4 shrink-0">
+              <button onClick={() => setDeliveryTab('pending')}
+                className={`pb-3 text-sm font-bold border-b-2 transition-all ${deliveryTab === 'pending' ? 'border-brand-600 text-brand-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
+                Pendentes ({pendingOrders.length})
+              </button>
+              <button onClick={() => setDeliveryTab('all')}
+                className={`pb-3 text-sm font-bold border-b-2 transition-all ${deliveryTab === 'all' ? 'border-brand-600 text-brand-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
+                Todos os Pedidos ({(customerOrdersAll || []).length})
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/50">
+              {(() => {
+                const list = deliveryTab === 'pending' ? pendingOrders : (customerOrdersAll || [])
+                if (list.length === 0) {
+                  return (
+                    <div className="text-center py-16 text-gray-400">
+                      <div className="text-5xl mb-2">🎉</div>
+                      <p className="font-semibold text-base">Nenhum pedido encontrado nesta aba.</p>
+                      <p className="text-xs mt-1">Os novos pedidos enviados por clientes aparecerão aqui em tempo real.</p>
+                    </div>
+                  )
+                }
+
+                return list.map(order => {
+                  const condoNames = {
+                    dom_pedro_1: 'Condomínio Dom Pedro 1',
+                    dom_pedro_2: 'Condomínio Dom Pedro 2',
+                    none: 'Morador Externo'
+                  }
+                  
+                  return (
+                    <div key={order.id} className="p-5 rounded-[2rem] border border-gray-200 bg-white flex flex-col gap-4 shadow-sm hover:border-brand-200 transition-all">
+                      {/* Order Header info */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-150 pb-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-gray-900 text-base">Pedido #{order.id?.substring(order.id.length - 6).toUpperCase()}</span>
+                            {order.status === 'pending' && <span className="bg-amber-100 text-amber-850 text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider animate-pulse">Pendente</span>}
+                            {order.status === 'preparing' && <span className="bg-blue-100 text-blue-800 text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">Preparando</span>}
+                            {order.status === 'completed' && <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">Concluído</span>}
+                            {order.status === 'cancelled' && <span className="bg-red-100 text-red-800 text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">Cancelado</span>}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">{order.createdAtHuman}</div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs text-gray-400 block">Total do Pedido</span>
+                          <span className="font-black text-lg text-emerald-600">{formatCurrency(order.total || 0)}</span>
+                        </div>
+                      </div>
+
+                      {/* Customer Delivery info */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-gray-700 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <div><strong>Cliente:</strong> {order.customerName}</div>
+                        <div><strong>WhatsApp:</strong> {order.customerPhone}</div>
+                        <div className="md:col-span-2"><strong>Condomínio:</strong> <span className="bg-amber-50 text-amber-800 font-bold px-2 py-0.5 rounded">{condoNames[order.condo] || order.condo || 'Morador Externo'}</span></div>
+                        <div className="md:col-span-2"><strong>Endereço:</strong> {order.deliveryAddress}</div>
+                        {order.deliverySlot && <div className="md:col-span-2"><strong>Horário Agendado:</strong> <span className="bg-blue-50 text-blue-800 font-bold px-2 py-0.5 rounded">⏰ {order.deliverySlot}</span></div>}
+                      </div>
+
+                      {/* Items List */}
+                      <div className="space-y-1 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Itens do Pedido</span>
+                        {(order.items || []).map((item, idx) => (
+                          <div key={idx} className="flex justify-between text-xs text-gray-700 font-semibold">
+                            <span>{item.name} <span className="text-gray-400">x{item.quantity || 1}</span></span>
+                            <span>{formatCurrency((item.price || 0) * (item.quantity || 1))}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Payment & Notes */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-700 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <div>
+                          <strong>Pagamento:</strong> <span className="font-bold uppercase bg-gray-200 text-gray-800 px-2 py-0.5 rounded">{order.paymentMethod}</span>
+                          {order.changeNeeded && order.changeNeeded > 0 && <span className="ml-2">Troco para: <strong>{formatCurrency(order.changeNeeded + order.total)}</strong> (Troco: <strong>{formatCurrency(order.changeNeeded)}</strong>)</span>}
+                        </div>
+                        {order.notes && <div className="italic text-gray-500 w-full mt-1">Obs: "{order.notes}"</div>}
+                      </div>
+
+                      {/* Actions */}
+                      {order.status === 'pending' && (
+                        <div className="flex gap-2 justify-end">
+                          <button onClick={() => handleCancelOrder(order)}
+                            className="btn btn-ghost text-red-600 border-red-200 bg-red-50 text-xs font-bold px-4 py-2 min-h-0">
+                            ✕ Rejeitar Pedido
+                          </button>
+                          <button onClick={() => handleApproveOrder(order)}
+                            className="btn btn-success text-xs font-bold px-6 py-2 min-h-0 shadow-sm">
+                            🖨️ Confirmar e Imprimir (80mm)
+                          </button>
+                        </div>
+                      )}
+
+                      {order.status !== 'pending' && (
+                        <div className="flex justify-end">
+                          <button onClick={() => {
+                            printCustomerOrderReceipt({
+                              storeName: store.name,
+                              order,
+                              customer: null
+                            })
+                          }} className="btn btn-ghost text-gray-700 text-xs font-bold px-4 py-2 min-h-0">
+                            🖨️ Re-imprimir Via (80mm)
+                          </button>
+                        </div>
+                      )}
+
+                    </div>
+                  )
+                })
+              })()}
+            </div>
+
           </div>
         </div>
       )}

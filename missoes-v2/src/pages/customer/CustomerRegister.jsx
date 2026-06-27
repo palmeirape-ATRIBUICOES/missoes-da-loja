@@ -13,10 +13,12 @@ export default function CustomerRegister() {
     phone: '',
     email: '',
     address: '',
-    password: ''
+    password: '',
+    condo: 'dom_pedro_1'
   })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [registeredCondo, setRegisteredCondo] = useState('')
 
   const storeEntry = Object.values(STORE_MAP).find(s => s.id === storeId) || STORE_MAP.loja_principal
 
@@ -44,6 +46,7 @@ export default function CustomerRegister() {
         return
       }
 
+      const isCondo = form.condo === 'dom_pedro_1' || form.condo === 'dom_pedro_2'
       await saveCustomer({
         id: cleanedPhone,
         name: form.name.trim(),
@@ -51,10 +54,12 @@ export default function CustomerRegister() {
         email: form.email.trim().toLowerCase(),
         address: form.address.trim(),
         password: form.password,
-        status: 'pending', // Requires manager approval
+        condo: form.condo,
+        status: isCondo ? 'approved' : 'pending',
         createdAt: new Date().toISOString()
       })
 
+      setRegisteredCondo(form.condo)
       setSuccess(true)
     } catch (err) {
       console.error(err)
@@ -64,18 +69,34 @@ export default function CustomerRegister() {
   }
 
   if (success) {
+    const isCondoApproved = registeredCondo === 'dom_pedro_1' || registeredCondo === 'dom_pedro_2'
     return (
       <div className="min-h-screen flex items-center justify-center p-4"
         style={{ background: 'radial-gradient(circle at 50% 30%, rgba(124,58,237,0.08), transparent 70%), #f8fafc' }}>
         <div className="bg-white max-w-md w-full p-8 rounded-[2.5rem] shadow-xl border border-gray-100 text-center animate-slide-up">
-          <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-4xl mx-auto mb-5 animate-bounce">
-            ⏳
-          </div>
-          <h2 className="text-2xl font-black text-gray-900 mb-3">Cadastro Realizado!</h2>
-          <p className="text-gray-500 text-sm leading-relaxed mb-6">
-            Seu cadastro foi enviado para a gerência da loja <strong>{storeEntry.shortName}</strong>. 
-            Você receberá permissão para comprar assim que sua conta for ativada pelo gerente!
-          </p>
+          {isCondoApproved ? (
+            <>
+              <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-5 animate-bounce">
+                ✅
+              </div>
+              <h2 className="text-2xl font-black text-gray-900 mb-3">Cadastro Ativado!</h2>
+              <p className="text-gray-500 text-sm leading-relaxed mb-6 font-semibold">
+                Seu cadastro foi ativado automaticamente por residir no <strong>{registeredCondo === 'dom_pedro_1' ? 'Condomínio Dom Pedro 1' : 'Condomínio Dom Pedro 2'}</strong>. 
+                Você já pode fazer login e realizar seus pedidos imediatamente!
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-4xl mx-auto mb-5 animate-bounce">
+                ⏳
+              </div>
+              <h2 className="text-2xl font-black text-gray-900 mb-3">Cadastro Enviado!</h2>
+              <p className="text-gray-500 text-sm leading-relaxed mb-6 font-semibold">
+                Como você mora fora do Condomínio Dom Pedro, seu cadastro foi enviado para a gerência da loja <strong>{storeEntry.shortName}</strong> para análise. 
+                Você receberá permissão para comprar assim que for ativado!
+              </p>
+            </>
+          )}
           <button onClick={() => navigate(`/cliente/${storeId}/login`)}
             className="btn btn-primary w-full h-14 rounded-2xl text-base font-bold shadow-md">
             Ir para a Tela de Login
@@ -135,6 +156,19 @@ export default function CustomerRegister() {
                 onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                 className="input h-12 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl"
               />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Você mora em condomínio parceiro?</label>
+              <select
+                value={form.condo}
+                onChange={e => setForm(f => ({ ...f, condo: e.target.value }))}
+                className="input h-12 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl font-semibold"
+              >
+                <option value="dom_pedro_1">Condomínio Dom Pedro 1</option>
+                <option value="dom_pedro_2">Condomínio Dom Pedro 2</option>
+                <option value="none">Não moro em condomínio parceiro</option>
+              </select>
             </div>
 
             <div className="space-y-1">
