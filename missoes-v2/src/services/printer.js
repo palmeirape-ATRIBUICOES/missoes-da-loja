@@ -15,38 +15,7 @@ function printHtmlSafely(htmlContent) {
     }
   }
 
-  // 2. Cria ou recupera a folha de estilo de impressão
-  const styleId = 'print-section-style'
-  let styleEl = document.getElementById(styleId)
-  if (!styleEl) {
-    styleEl = document.createElement('style')
-    styleEl.id = styleId
-    styleEl.innerHTML = `
-      #print-section {
-        display: none;
-      }
-      @media print {
-        body > *:not(#print-section) {
-          display: none !important;
-        }
-        #print-section, #print-section * {
-          display: block !important;
-          visibility: visible !important;
-        }
-        #print-section {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-          margin: 0;
-          padding: 0;
-        }
-      }
-    `
-    document.head.appendChild(styleEl)
-  }
-
-  // 3. Cria ou recupera a div de impressão
+  // 2. Cria ou recupera a div de impressão
   let printSection = document.getElementById('print-section')
   if (!printSection) {
     printSection = document.createElement('div')
@@ -54,8 +23,25 @@ function printHtmlSafely(htmlContent) {
     document.body.appendChild(printSection)
   }
 
-  // 4. Injeta o conteúdo no container de impressão
+  // 3. Injeta o conteúdo no container de impressão
   printSection.innerHTML = htmlContent
+
+  // 4. Salva o estado original de visibilidade dos elementos filhos do body e oculta-os
+  const bodyChildren = Array.from(document.body.children)
+  const originalDisplays = new Map()
+
+  bodyChildren.forEach(child => {
+    if (child.id !== 'print-section') {
+      originalDisplays.set(child, child.style.display)
+      child.style.setProperty('display', 'none', 'important')
+    }
+  })
+
+  // Torna a seção de impressão visível e ajusta margens
+  printSection.style.setProperty('display', 'block', 'important')
+  printSection.style.width = '80mm'
+  printSection.style.margin = '0'
+  printSection.style.padding = '0'
 
   // 5. Dispara a impressão do navegador principal de forma assíncrona
   setTimeout(() => {
@@ -65,11 +51,17 @@ function printHtmlSafely(htmlContent) {
       console.warn('Impressão direta não suportada no ambiente atual:', e)
     }
     
-    // Limpa a seção após a abertura do diálogo de impressão
+    // 6. Restaura o estado original do DOM após a abertura do diálogo de impressão (1.5 segundos é seguro)
     setTimeout(() => {
+      bodyChildren.forEach(child => {
+        if (child.id !== 'print-section') {
+          child.style.display = originalDisplays.get(child) || ''
+        }
+      })
+      printSection.style.setProperty('display', 'none', 'important')
       printSection.innerHTML = ''
-    }, 2000)
-  }, 100)
+    }, 1500)
+  }, 150)
 }
 
 /**
