@@ -147,7 +147,7 @@ export default function CustomerOrderDetails() {
         </div>
 
         {/* Support Direct Chat */}
-        <a href={`https://wa.me/${storeEntry.employeesLegacy?.[0] || '5581999998888'}?text=Olá,%20gostaria%20de%20saber%20mais%2520sobre%20meu%2520pedido%20%23${order.id.slice(-6).toUpperCase()}`}
+        <a href={`https://wa.me/${storeEntry.whatsapp || '5521964422488'}?text=Olá,%20gostaria%20de%20saber%20mais%20sobre%20meu%20pedido%20%23${order.id.slice(-6).toUpperCase()}`}
           target="_blank" rel="noreferrer"
           className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-14 rounded-2xl flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all">
           <span>💬</span> Falar com a Padaria

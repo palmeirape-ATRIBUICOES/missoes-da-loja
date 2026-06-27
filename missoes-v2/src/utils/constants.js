@@ -7,6 +7,7 @@ export const STORE_MAP = {
     managerUser: 'GERENTE',
     managerPin: '1234',
     employeesLegacy: ['Sandra', 'Thauane', 'Ingrid', 'Claudia', 'DADA'],
+    whatsapp: '5521964422488',
     theme: { accent: '#7c3aed', bg: '#f5f3ff' }
   },
   loja_bogados: {
@@ -16,6 +17,7 @@ export const STORE_MAP = {
     managerUser: 'BOGADOS - GERENTE',
     managerPin: '1234',
     employeesLegacy: ['bogados'],
+    whatsapp: '5521964422488',
     theme: { accent: '#0891b2', bg: '#ecfeff' }
   }
 }

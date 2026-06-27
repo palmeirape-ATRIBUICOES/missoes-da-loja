@@ -270,7 +270,17 @@ export default function CustomerStore() {
             </button>
           )}
 
-          <button onClick={handleLogout} className="text-xs bg-gray-100 hover:bg-gray-200 font-bold px-3 py-2 rounded-xl text-gray-600 active:scale-95 transition-all">
+          <a
+            href={`https://wa.me/${storeEntry.whatsapp || '5521964422488'}?text=Olá,%20gostaria%20de%20falar%20com%20a%20padaria.`}
+            target="_blank"
+            rel="noreferrer"
+            className="w-10 h-10 rounded-xl bg-green-50 hover:bg-green-100 text-green-600 flex items-center justify-center text-lg active:scale-95 transition-all"
+            title="Falar com a Padaria"
+          >
+            💬
+          </a>
+
+          <button onClick={handleLogout} className="text-xs bg-gray-100 hover:bg-gray-200 font-bold px-3 py-2 rounded-xl text-gray-600 active:scale-95 transition-all font-sans">
             Sair
           </button>
         </div>
