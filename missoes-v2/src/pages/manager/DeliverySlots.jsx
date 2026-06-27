@@ -98,25 +98,34 @@ export default function DeliverySlots({ onBack }) {
                     className="input text-sm h-11 bg-gray-50"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase">Hora de Início</label>
-                  <input
-                    type="time"
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase">Horário Fixo da Entrega</label>
+                  <select
                     required
                     value={form.timeStart}
-                    onChange={e => setForm(f => ({ ...f, timeStart: e.target.value }))}
+                    onChange={e => setForm(f => ({ ...f, timeStart: e.target.value, timeEnd: e.target.value }))}
                     className="input text-sm h-11 bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase">Hora de Término</label>
-                  <input
-                    type="time"
-                    required
-                    value={form.timeEnd}
-                    onChange={e => setForm(f => ({ ...f, timeEnd: e.target.value }))}
-                    className="input text-sm h-11 bg-gray-50"
-                  />
+                  >
+                    <option value="">Selecione um horário...</option>
+                    <option value="06:00">06:00</option>
+                    <option value="06:20">06:20</option>
+                    <option value="06:40">06:40</option>
+                    <option value="07:00">07:00</option>
+                    <option value="07:30">07:30</option>
+                    <option value="08:30">08:30</option>
+                    <option value="09:00">09:00</option>
+                    <option value="09:30">09:30</option>
+                    <option value="10:00">10:00</option>
+                    <option value="11:00">11:00</option>
+                    <option value="12:00">12:00</option>
+                    <option value="13:00">13:00</option>
+                    <option value="14:00">14:00</option>
+                    <option value="15:00">15:00</option>
+                    <option value="15:30">15:30</option>
+                    <option value="16:00">16:00</option>
+                    <option value="16:30">16:30</option>
+                    <option value="17:00">17:00</option>
+                  </select>
                 </div>
               </div>
 
@@ -168,7 +177,7 @@ export default function DeliverySlots({ onBack }) {
                   <div className="flex items-center gap-2">
                     <span className="text-lg font-black text-gray-900">{formatDateBr(slot.date)}</span>
                     <span className="text-sm font-semibold bg-gray-100 text-gray-700 px-2 py-0.5 rounded-lg">
-                      ⏰ {slot.timeStart} às {slot.timeEnd}
+                      ⏰ {slot.timeStart === slot.timeEnd ? slot.timeStart : `${slot.timeStart} às ${slot.timeEnd}`}
                     </span>
                     {slot.active ? (
                       <span className="text-[9px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Disponível</span>

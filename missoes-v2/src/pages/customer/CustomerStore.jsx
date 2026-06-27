@@ -164,7 +164,9 @@ export default function CustomerStore() {
     setTimeout(async () => {
       try {
         const orderId = `order_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
-        const slotLabel = `${formatDateBr(selectedSlot.date)} das ${selectedSlot.timeStart} às ${selectedSlot.timeEnd}`
+        const slotLabel = selectedSlot.timeStart === selectedSlot.timeEnd
+          ? `${formatDateBr(selectedSlot.date)} às ${selectedSlot.timeStart}`
+          : `${formatDateBr(selectedSlot.date)} das ${selectedSlot.timeStart} às ${selectedSlot.timeEnd}`
         
         const finalOrder = {
           id: orderId,
@@ -456,7 +458,7 @@ export default function CustomerStore() {
                         ${isSelected ? 'border-brand-500 bg-brand-50/40 text-brand-950' : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'}`}
                     >
                       <div className="font-extrabold text-sm">{formatDateBr(slot.date)}</div>
-                      <div className="text-xs text-gray-500 mt-1 font-semibold">⏰ {slot.timeStart} às {slot.timeEnd}</div>
+                      <div className="text-xs text-gray-500 mt-1 font-semibold">⏰ {slot.timeStart === slot.timeEnd ? slot.timeStart : `${slot.timeStart} às ${slot.timeEnd}`}</div>
                     </button>
                   )
                 })}
