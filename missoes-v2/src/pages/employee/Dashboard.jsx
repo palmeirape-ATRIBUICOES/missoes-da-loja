@@ -98,6 +98,13 @@ export default function EmployeeDashboard() {
               <div className="font-semibold text-sm text-gray-900">Abrir PDV</div>
             </button>
           )}
+
+          {currentEmp?.canAccessBakery && (
+            <button onClick={() => navigate('/funcionario/padaria')} className="card p-4 text-center hover:bg-gray-100 active:scale-95 transition-transform">
+              <div className="text-2xl mb-2">🍞</div>
+              <div className="font-semibold text-sm text-gray-900">Produção Diária</div>
+            </button>
+          )}
         </div>
       </main>
     </div>

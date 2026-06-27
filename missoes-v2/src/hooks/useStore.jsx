@@ -39,6 +39,7 @@ export function StoreProvider({ children }) {
   const [customersAll, setCustomersAll] = useState([])
   const [deliverySlotsAll, setDeliverySlotsAll] = useState([])
   const [customerOrdersAll, setCustomerOrdersAll] = useState([])
+  const [bakeryOrdersAll, setBakeryOrdersAll] = useState([])
   const [loading, setLoading] = useState(true)
   // Refs
   const cfgRef = (name) => doc(db, 'stores', storeId, 'config', name)
@@ -208,6 +209,12 @@ export function StoreProvider({ children }) {
     const ordersQ = query(colRef('state/customer_orders/items'), orderBy('createdAt', 'desc'))
     unsubs.push(onSnapshot(ordersQ, (qs) => {
       setCustomerOrdersAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
+    }))
+
+    // Bakery orders
+    const bakeryQ = query(colRef('bakery_orders'), orderBy('createdAt', 'desc'), limit(150))
+    unsubs.push(onSnapshot(bakeryQ, (qs) => {
+      setBakeryOrdersAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
     }))
 
     setLoading(false)
@@ -399,6 +406,33 @@ export function StoreProvider({ children }) {
     await setDoc(cfgRef('products'), { items: next, updatedAt: serverTimestamp() }, { merge: false })
   }
 
+  async function saveBakeryOrder(order) {
+    const ref = order.id ? doc(db, 'stores', storeId, 'bakery_orders', order.id) : doc(colRef('bakery_orders'))
+    const newId = order.id || ref.id
+    await setDoc(ref, {
+      ...order,
+      id: newId,
+      updatedAt: serverTimestamp(),
+      ...(order.id ? {} : { createdAt: serverTimestamp(), createdAtHuman: nowHuman() })
+    }, { merge: true })
+  }
+
+  async function deleteBakeryOrder(id) {
+    await deleteDoc(doc(db, 'stores', storeId, 'bakery_orders', id))
+  }
+
+  async function incrementEmployeePoints(user, amount) {
+    const ref = stateRef('scores')
+    const snap = await getDoc(ref)
+    const data = snap.exists() ? snap.data() : { monthScores: {} }
+    const mk = monthKey()
+    if (!data.monthScores) data.monthScores = {}
+    if (!data.monthScores[mk]) data.monthScores[mk] = {}
+    const current = Number(data.monthScores[mk][user] || 0)
+    data.monthScores[mk][user] = current + amount
+    await setDoc(ref, data, { merge: true })
+  }
+
   return (
     <StoreContext.Provider value={{
       currentWeekKey, setCurrentWeekKey,
@@ -418,6 +452,7 @@ export function StoreProvider({ children }) {
       saveDeliverySlot, deleteDeliverySlot,
       saveCustomerOrder, deleteCustomerOrder,
       saveMultipleProducts, updateProductsStock,
+      bakeryOrdersAll, saveBakeryOrder, deleteBakeryOrder, incrementEmployeePoints,
       cfgRef, stateRef, colRef
     }}>
       {children}

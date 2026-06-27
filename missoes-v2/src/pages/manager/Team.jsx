@@ -42,6 +42,11 @@ export default function Team({ onBack }) {
     await saveEmployees(next)
   }
 
+  async function toggleBakeryPermission(name) {
+    const next = employees.map(e => e.name === name ? { ...e, canAccessBakery: !e.canAccessBakery } : e)
+    await saveEmployees(next)
+  }
+
   async function removeEmployee(name) {
     if (!confirm(`Remover ${name} da equipe?`)) return
     const next = employees.filter(e => e.name !== name)
@@ -101,6 +106,9 @@ export default function Team({ onBack }) {
                     {emp.canAccessPdv && (
                       <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">🖥️ PDV</span>
                     )}
+                    {emp.canAccessBakery && (
+                      <span className="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-semibold">🍞 Padeiro</span>
+                    )}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     ⭐ {getMonthPoints(emp.name)} pontos este mês
@@ -122,6 +130,11 @@ export default function Team({ onBack }) {
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold active:scale-95 transition-all
                       ${emp.canAccessPdv ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
                     {emp.canAccessPdv ? '🔓 PDV' : '🔒 PDV'}
+                  </button>
+                  <button onClick={() => toggleBakeryPermission(emp.name)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold active:scale-95 transition-all
+                      ${emp.canAccessBakery ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>
+                    {emp.canAccessBakery ? '🔓 Padeiro' : '🔒 Padeiro'}
                   </button>
                   <button onClick={() => { setEditingPin(emp.name); setPinValue('') }}
                     className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-50 text-purple-600 active:scale-95">

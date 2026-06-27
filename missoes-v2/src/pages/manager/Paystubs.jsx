@@ -641,6 +641,7 @@ export default function Paystubs({ onBack }) {
           }
           .ref-info {
             text-align: right;
+            padding-right: 6px;
           }
           .ref-label {
             font-size: 7.5pt;
@@ -857,7 +858,7 @@ export default function Paystubs({ onBack }) {
               border: 1px solid #cbd5e1;
               border-radius: 8px;
               box-shadow: none;
-              padding: 8px 18px;
+              padding: 8px 24px 8px 18px;
               page-break-inside: avoid;
             }
             .scissors-line {
@@ -1273,7 +1274,7 @@ export default function Paystubs({ onBack }) {
               border: 1px solid #cbd5e1;
               border-radius: 8px;
               box-shadow: none;
-              padding: 8px 18px;
+              padding: 8px 24px 8px 18px;
               page-break-inside: avoid;
             }
             .scissors-line {

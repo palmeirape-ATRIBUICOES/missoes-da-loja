@@ -22,10 +22,24 @@ import CustomerOrderDetails from './pages/customer/CustomerOrderDetails'
 import Customers from './pages/manager/Customers'
 import DeliverySlots from './pages/manager/DeliverySlots'
 import CustomerOrders from './pages/manager/CustomerOrders'
+import Bakery from './pages/manager/Bakery'
 
 import { useStore } from './hooks/useStore'
 
 function ProductsPage() { const n = useNavigate(); return <Products onBack={() => n('/gerente')} /> }
+function BakeryPage() { const n = useNavigate(); return <Bakery onBack={() => n('/gerente')} /> }
+function BakeryPageFunc() {
+  const n = useNavigate()
+  const { currentUser, isManager } = useAuth()
+  const { employees } = useStore()
+  const currentEmp = employees.find(e => e.name === currentUser)
+  const hasAccess = isManager || currentEmp?.canAccessBakery
+
+  if (!hasAccess) {
+    return <Navigate to="/funcionario" replace />
+  }
+  return <Bakery onBack={() => n('/funcionario')} />
+}
 function CustomersPage() { const n = useNavigate(); return <Customers onBack={() => n('/gerente')} /> }
 function DeliverySlotsPage() { const n = useNavigate(); return <DeliverySlots onBack={() => n('/gerente')} /> }
 function CustomerOrdersPage() { const n = useNavigate(); return <CustomerOrders onBack={() => n('/gerente')} /> }
@@ -115,8 +129,10 @@ function AppRoutes() {
         <Route path="/gerente/clientes" element={isManager ? <CustomersPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/entregas" element={isManager ? <DeliverySlotsPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/pedidos-clientes" element={isManager ? <CustomerOrdersPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/padaria" element={isManager ? <BakeryPage /> : <Navigate to="/funcionario" />} />
         <Route path="/funcionario" element={!isManager ? <EmployeeDashboard /> : <Navigate to="/gerente" />} />
         <Route path="/funcionario/produtos" element={!isManager ? <ProductsPageFunc /> : <Navigate to="/gerente" />} />
+        <Route path="/funcionario/padaria" element={!isManager ? <BakeryPageFunc /> : <Navigate to="/gerente" />} />
         <Route path="*" element={<Navigate to={location.pathname.startsWith('/pdv') ? '/pdv' : (isManager ? '/gerente' : '/funcionario')} />} />
       </Routes>
     </StoreProvider>
