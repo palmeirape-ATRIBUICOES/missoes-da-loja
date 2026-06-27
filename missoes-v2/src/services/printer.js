@@ -13,10 +13,34 @@ function printHtmlSafely(htmlContent) {
     document.body.appendChild(printSection)
   }
 
-  // 2. Injeta o conteúdo no container de impressão
-  printSection.innerHTML = htmlContent
+  // 2. Cria a folha de estilo para ocultar o botão durante a impressão
+  const styleId = 'print-section-style'
+  let styleEl = document.getElementById(styleId)
+  if (!styleEl) {
+    styleEl = document.createElement('style')
+    styleEl.id = styleId
+    styleEl.innerHTML = `
+      @media print {
+        .no-print {
+          display: none !important;
+        }
+      }
+    `
+    document.head.appendChild(styleEl)
+  }
 
-  // 3. Salva o estado original de visibilidade dos elementos filhos do body e oculta-os
+  // 3. Injeta o cupom + o botão de retorno no container
+  printSection.innerHTML = `
+    ${htmlContent}
+    <div class="no-print" style="padding: 24px 16px; text-align: center; background: #f8fafc; border-top: 1px solid #e2e8f0; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 20px;">
+      <button id="btn-restore-dom" style="background: #7c3aed; color: #fff; border: none; padding: 14px 28px; font-size: 16px; font-weight: 800; border-radius: 16px; cursor: pointer; box-shadow: 0 4px 12px rgba(124,58,237,0.3); transition: all 0.2s; width: 100%; max-width: 280px; active: scale-95;">
+        ← Voltar para o Caixa
+      </button>
+      <span style="font-size: 11px; color: #64748b; font-weight: 600;">(Retorna automaticamente em 10 segundos)</span>
+    </div>
+  `
+
+  // 4. Salva o estado original de visibilidade dos elementos filhos do body e oculta-os
   const bodyChildren = Array.from(document.body.children)
   const originalDisplays = new Map()
 
@@ -27,14 +51,17 @@ function printHtmlSafely(htmlContent) {
     }
   })
 
-  // Torna a seção de impressão visível e ajusta margens
+  // Torna a seção de impressão visível
   printSection.style.setProperty('display', 'block', 'important')
   printSection.style.width = '80mm'
-  printSection.style.margin = '0'
+  printSection.style.margin = '0 auto'
   printSection.style.padding = '0'
 
+  let domRestored = false
   const restoreDOM = () => {
-    if (printSection.innerHTML === '') return
+    if (domRestored) return
+    domRestored = true
+
     bodyChildren.forEach(child => {
       if (child.id !== 'print-section') {
         child.style.display = originalDisplays.get(child) || ''
@@ -42,19 +69,22 @@ function printHtmlSafely(htmlContent) {
     })
     printSection.style.setProperty('display', 'none', 'important')
     printSection.innerHTML = ''
-    window.removeEventListener('afterprint', restoreDOM)
   }
 
-  // Registra o evento de conclusão/cancelamento de impressão do navegador
-  window.addEventListener('afterprint', restoreDOM)
+  // Associa a restauração ao clique do botão
+  setTimeout(() => {
+    const btn = document.getElementById('btn-restore-dom')
+    if (btn) {
+      btn.onclick = restoreDOM
+    }
+  }, 50)
 
-  // 4. Dispara a impressão de acordo com o ambiente
+  // 5. Dispara a impressão de acordo com o ambiente
   setTimeout(() => {
     if (window.AndroidPrinter && typeof window.AndroidPrinter.printHtml === 'function') {
       try {
         window.AndroidPrinter.printHtml(htmlContent)
-        // No app nativo Android, o evento afterprint do navegador pode não disparar,
-        // então forçamos a restauração do DOM após 4 segundos.
+        // No app nativo Android, forçamos a restauração do DOM após 4 segundos.
         setTimeout(restoreDOM, 4000)
         return
       } catch (e) {
@@ -68,10 +98,10 @@ function printHtmlSafely(htmlContent) {
       console.warn('Impressão direta não suportada no ambiente atual:', e)
       restoreDOM()
     }
-  }, 150)
+  }, 250)
 
-  // Backup de segurança para restaurar a tela caso ocorra algum travamento (25 segundos)
-  setTimeout(restoreDOM, 25000)
+  // Backup de segurança para restaurar a tela após 10 segundos (tempo suficiente para o Android gerar o PDF no spooler)
+  setTimeout(restoreDOM, 10000)
 }
 
 /**
