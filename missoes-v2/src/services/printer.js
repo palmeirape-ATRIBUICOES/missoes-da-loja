@@ -11,48 +11,65 @@ function printHtmlSafely(htmlContent) {
       window.AndroidPrinter.printHtml(htmlContent)
       return
     } catch (e) {
-      console.warn('Falha ao usar a ponte AndroidPrinter nativa, tentando fallback de iframe:', e)
+      console.warn('Falha ao usar a ponte AndroidPrinter nativa, tentando fallback:', e)
     }
   }
 
-  // 2. Fallback de Iframe oculto para navegadores web tradicionais (Desktop, iOS/iPads)
-  const oldIframe = document.getElementById('print-iframe')
-  if (oldIframe) {
-    oldIframe.parentNode.removeChild(oldIframe)
+  // 2. Cria ou recupera a folha de estilo de impressão
+  const styleId = 'print-section-style'
+  let styleEl = document.getElementById(styleId)
+  if (!styleEl) {
+    styleEl = document.createElement('style')
+    styleEl.id = styleId
+    styleEl.innerHTML = `
+      #print-section {
+        display: none;
+      }
+      @media print {
+        body > *:not(#print-section) {
+          display: none !important;
+        }
+        #print-section, #print-section * {
+          display: block !important;
+          visibility: visible !important;
+        }
+        #print-section {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          margin: 0;
+          padding: 0;
+        }
+      }
+    `
+    document.head.appendChild(styleEl)
   }
 
-  // Cria um iframe posicionado fora da tela (para evitar que navegadores mobile como Chrome e Safari bloqueiem a impressão de elementos com tamanho 0 ou hidden)
-  const iframe = document.createElement('iframe')
-  iframe.id = 'print-iframe'
-  iframe.style.position = 'absolute'
-  iframe.style.left = '-9999px'
-  iframe.style.top = '-9999px'
-  iframe.style.width = '300px'
-  iframe.style.height = '300px'
-  iframe.style.border = 'none'
+  // 3. Cria ou recupera a div de impressão
+  let printSection = document.getElementById('print-section')
+  if (!printSection) {
+    printSection = document.createElement('div')
+    printSection.id = 'print-section'
+    document.body.appendChild(printSection)
+  }
 
-  document.body.appendChild(iframe)
+  // 4. Injeta o conteúdo no container de impressão
+  printSection.innerHTML = htmlContent
 
-  const doc = iframe.contentWindow.document || iframe.contentDocument
-  doc.open()
-  doc.write(htmlContent)
-  doc.close()
-
-  // Dispara a impressão de forma assíncrona para garantir o carregamento do conteúdo
+  // 5. Dispara a impressão do navegador principal de forma assíncrona
   setTimeout(() => {
     try {
-      iframe.contentWindow.focus()
-      iframe.contentWindow.print()
+      window.print()
     } catch (e) {
       console.warn('Impressão direta não suportada no ambiente atual:', e)
     }
-    // Remove o iframe do DOM após a conclusão/fechamento da impressão
+    
+    // Limpa a seção após a abertura do diálogo de impressão
     setTimeout(() => {
-      if (iframe.parentNode) {
-        iframe.parentNode.removeChild(iframe)
-      }
-    }, 1500)
-  }, 500)
+      printSection.innerHTML = ''
+    }, 2000)
+  }, 100)
 }
 
 /**
