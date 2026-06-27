@@ -224,6 +224,7 @@ export default function CustomerStore() {
         slotLabel,
         deliveryAddress: deliveryAddress.trim(),
         status: 'pending',
+        createdAt: Date.now(),
         createdAtHuman: nowHuman()
       }
 
