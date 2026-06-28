@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { STORE_MAP } from '../utils/constants'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
 async function sha256(str) {
@@ -16,9 +16,39 @@ export default function Login({ mode = 'app' }) {
   const [users, setUsers] = useState([])
   const [selectedUser, setSelectedUser] = useState('')
   const [pin, setPin] = useState('')
+  const [newPin, setNewPin] = useState('')
+  const [newPinConfirm, setNewPinConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState('store')
+
+  async function handleChangePin() {
+    if (!newPin || newPin.length < 4) {
+      return setError('O PIN deve conter pelo menos 4 números.')
+    }
+    if (newPin === '1234') {
+      return setError('Escolha um PIN diferente da senha padrão 1234.')
+    }
+    if (newPin !== newPinConfirm) {
+      return setError('Os PINs digitados não são iguais.')
+    }
+    
+    setLoading(true)
+    setError('')
+    try {
+      const hashedPin = await sha256(newPin)
+      await setDoc(doc(db, 'stores', store.id, 'users', selectedUser), {
+        pin: newPin,
+        pinHash: hashedPin,
+        changed: true
+      })
+      login(selectedUser, storeKey)
+    } catch (e) {
+      console.error(e)
+      setError('Erro ao salvar novo PIN.')
+    }
+    setLoading(false)
+  }
 
   const store = STORE_MAP[storeKey]
 
@@ -47,37 +77,56 @@ export default function Login({ mode = 'app' }) {
     if (!pin) return setError('Digite o PIN.')
     setLoading(true)
     setError('')
-
+ 
     try {
       // 1. Fetch store document to get the up-to-date managerPin dynamically
       const storeDoc = await getDoc(doc(db, 'stores', store.id))
       const currentManagerPin = (storeDoc.exists() && storeDoc.data().managerPin) 
         ? storeDoc.data().managerPin 
-        : store.managerPin
-
+        : '366724'
+ 
       // 2. Fetch the user's specific PIN
       const pinDoc = await getDoc(doc(db, 'stores', store.id, 'users', selectedUser))
       
       let savedPin = ''
       let savedPinHash = ''
-      if (pinDoc.exists()) {
-        savedPin = pinDoc.data().pin || ''
-        savedPinHash = pinDoc.data().pinHash || ''
-      } else if (selectedUser === store.managerUser) {
-        savedPin = currentManagerPin
-      }
+      let isDefaultPin = false
 
+      if (selectedUser === store.managerUser) {
+        savedPin = currentManagerPin
+      } else {
+        if (pinDoc.exists()) {
+          savedPin = pinDoc.data().pin || ''
+          savedPinHash = pinDoc.data().pinHash || ''
+          if (savedPin === '1234' || (!savedPin && !savedPinHash)) {
+            isDefaultPin = true
+          }
+        } else {
+          savedPin = '1234'
+          isDefaultPin = true
+        }
+      }
+ 
       // Check validation: match either cleartext, hash, or manager bypass override
       const hashedEnteredPin = await sha256(pin)
       const isMatch = (pin === savedPin) || 
                       (savedPinHash && hashedEnteredPin === savedPinHash) ||
                       (pin === currentManagerPin)
-
+ 
       if (!isMatch) {
         setError('PIN incorreto.')
         setLoading(false)
         return
       }
+
+      if (isDefaultPin && selectedUser !== store.managerUser) {
+        setNewPin('')
+        setNewPinConfirm('')
+        setStep('change_pin')
+        setLoading(false)
+        return
+      }
+
       login(selectedUser, storeKey)
     } catch (e) {
       console.error(e)
@@ -200,6 +249,62 @@ export default function Login({ mode = 'app' }) {
               className="btn btn-primary w-full text-lg h-14 disabled:opacity-50">
               {loading ? 'Verificando...' : 'Entrar'}
             </button>
+          </div>
+        )}
+
+        {/* Step: Change PIN */}
+        {step === 'change_pin' && (
+          <div className="space-y-4 animate-fade-in text-left">
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 mx-auto rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mb-2">
+                🔒
+              </div>
+              <h3 className="text-lg font-black text-gray-900">Escolha seu PIN único</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Como este é seu primeiro acesso, altere a senha padrão <strong>1234</strong> para um novo PIN numérico exclusivo.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-1">Novo PIN (Apenas Números)</label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={8}
+                  placeholder="Novo PIN (ex: 4321)"
+                  value={newPin}
+                  onChange={e => setNewPin(e.target.value.replace(/\D/g, ''))}
+                  className="input text-center text-lg font-bold tracking-widest focus:border-brand-500 rounded-xl"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-1">Confirme seu Novo PIN</label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={8}
+                  placeholder="Confirme o novo PIN"
+                  value={newPinConfirm}
+                  onChange={e => setNewPinConfirm(e.target.value.replace(/\D/g, ''))}
+                  className="input text-center text-lg font-bold tracking-widest focus:border-brand-500 rounded-xl"
+                />
+              </div>
+
+              <button onClick={handleChangePin} disabled={loading}
+                className="btn btn-primary w-full text-lg h-14 mt-4">
+                {loading ? 'Salvando...' : 'Salvar Novo PIN e Acessar'}
+              </button>
+
+              <button onClick={() => { setError(''); setStep('user'); setPin('') }}
+                className="btn btn-ghost w-full text-xs font-bold text-gray-500">
+                Cancelar
+              </button>
+            </div>
           </div>
         )}
 

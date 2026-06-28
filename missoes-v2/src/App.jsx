@@ -142,7 +142,7 @@ function AppRoutes() {
 
 export default function App() {
   useEffect(() => {
-    const CURRENT_VERSION = 'v3.1'
+    const CURRENT_VERSION = 'v3.2'
     const storedVersion = localStorage.getItem('mdl_app_version')
     if (storedVersion !== CURRENT_VERSION) {
       const clearCaches = async () => {
@@ -167,6 +167,33 @@ export default function App() {
       }
       clearCaches()
     }
+  }, [])
+
+  useEffect(() => {
+    const runMigration = async () => {
+      const migDone = localStorage.getItem('mdl_mig_pins_done_v4')
+      if (migDone) return
+      try {
+        const { collection, getDocs, doc, setDoc, deleteDoc } = await import('firebase/firestore')
+        const { db } = await import('./config/firebase')
+        const stores = ['loja_principal', 'loja_bogados']
+        for (const storeId of stores) {
+          // 1. Reset manager pin on store document
+          await setDoc(doc(db, 'stores', storeId), { managerPin: '366724' }, { merge: true })
+          
+          // 2. Delete all employee pin overrides so they default to 1234
+          const usersSnap = await getDocs(collection(db, 'stores', storeId, 'users'))
+          for (const uDoc of usersSnap.docs) {
+            await deleteDoc(doc(db, 'stores', storeId, 'users', uDoc.id))
+          }
+        }
+        localStorage.setItem('mdl_mig_pins_done_v4', 'true')
+        console.log('Migration of pins completed successfully!')
+      } catch (e) {
+        console.error('Migration failed:', e)
+      }
+    }
+    runMigration()
   }, [])
 
   return (
