@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useStore } from '../../hooks/useStore'
 import { formatCurrency, STORE_MAP } from '../../utils/constants'
@@ -5,7 +6,8 @@ import { formatCurrency, STORE_MAP } from '../../utils/constants'
 export default function CustomerOrderDetails() {
   const { storeId, orderId } = useParams()
   const navigate = useNavigate()
-  const { customerOrdersAll } = useStore()
+  const { customerOrdersAll, saveCustomerOrder } = useStore()
+  const [chatMessage, setChatMessage] = useState('')
 
   const order = customerOrdersAll.find(o => o.id === orderId)
   const storeEntry = Object.values(STORE_MAP).find(s => s.id === storeId) || STORE_MAP.loja_principal
@@ -24,6 +26,25 @@ export default function CustomerOrderDetails() {
         </div>
       </div>
     )
+  }
+
+  async function handleSendChatMessage() {
+    if (!chatMessage.trim()) return
+    try {
+      const updatedChat = [...(order.chat || []), {
+        sender: 'customer',
+        text: chatMessage.trim(),
+        timestamp: Date.now()
+      }]
+      await saveCustomerOrder({
+        ...order,
+        chat: updatedChat
+      })
+      setChatMessage('')
+    } catch (e) {
+      console.error(e)
+      alert('Erro ao enviar mensagem.')
+    }
   }
 
   // Stepper calculations
@@ -146,11 +167,57 @@ export default function CustomerOrderDetails() {
           </div>
         </div>
 
+        {/* Chat / Instructions Section */}
+        <div className="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm space-y-4 text-left">
+          <h4 className="font-extrabold text-gray-950 text-sm flex items-center gap-1.5">
+            💬 Instruções e Conversa com a Padaria
+          </h4>
+          
+          {/* Chat Messages */}
+          <div className="space-y-2.5 max-h-48 overflow-y-auto rounded-2xl bg-gray-50 border border-gray-100 p-3 flex flex-col">
+            {(!order.chat || order.chat.length === 0) ? (
+              <p className="text-xs text-gray-400 font-bold text-center py-4">Nenhuma instrução enviada ainda. Escreva abaixo!</p>
+            ) : (
+              order.chat.map((msg, idx) => {
+                const isCustomer = msg.sender === 'customer'
+                return (
+                  <div key={idx} className={`flex flex-col ${isCustomer ? 'items-end' : 'items-start'} mb-1.5`}>
+                    <span className="text-[9px] text-gray-400 font-bold mb-0.5">{isCustomer ? 'Você' : 'Padaria'}</span>
+                    <div className={`p-3 rounded-2xl text-xs font-semibold max-w-[85%]
+                      ${isCustomer ? 'bg-brand-500 text-white rounded-tr-none' : 'bg-gray-200 text-gray-800 rounded-tl-none'}`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+
+          {/* Send Input */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Digite uma instrução ou mensagem..."
+              value={chatMessage}
+              onChange={e => setChatMessage(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleSendChatMessage() }}
+              className="input h-11 text-xs bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl flex-1"
+            />
+            <button
+              onClick={handleSendChatMessage}
+              className="btn btn-primary h-11 px-4 text-xs font-bold rounded-xl shrink-0"
+            >
+              Enviar
+            </button>
+          </div>
+        </div>
+
         {/* Support Direct Chat */}
         <a href={`https://wa.me/${storeEntry.whatsapp || '5521964422488'}?text=Olá,%20gostaria%20de%20saber%20mais%20sobre%20meu%20pedido%20%23${order.id.slice(-6).toUpperCase()}`}
           target="_blank" rel="noreferrer"
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-14 rounded-2xl flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all">
-          <span>💬</span> Falar com a Padaria
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-14 rounded-2xl flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all text-sm">
+          <span>📱</span> Chamar no WhatsApp (Segunda Opção)
         </a>
       </main>
     </div>

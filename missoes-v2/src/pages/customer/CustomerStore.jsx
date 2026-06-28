@@ -12,12 +12,10 @@ export default function CustomerStore() {
   const [customer, setCustomer] = useState(null)
   useEffect(() => {
     const session = localStorage.getItem(`mdl_customer_${storeId}`)
-    if (!session) {
-      navigate(`/cliente/${storeId}/login`)
-    } else {
+    if (session) {
       setCustomer(JSON.parse(session))
     }
-  }, [storeId, navigate])
+  }, [storeId])
 
   // Catalog State
   const [search, setSearch] = useState('')
@@ -41,19 +39,25 @@ export default function CustomerStore() {
     }
   }, [customer])
 
-  // Extract categories
+  // Extract categories (only for in-stock products)
   const categories = useMemo(() => {
     const set = new Set()
     products.forEach(p => {
-      const parent = (p.category || '').split('>')[0]?.trim()
-      if (parent) set.add(parent)
+      const stock = p.stock !== undefined ? Number(p.stock) : 0
+      if (stock > 0) {
+        const parent = (p.category || '').split('>')[0]?.trim()
+        if (parent) set.add(parent)
+      }
     })
     return ['all', ...Array.from(set)]
   }, [products])
 
-  // Filter products
+  // Filter products (exclude out of stock)
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
+      const stock = p.stock !== undefined ? Number(p.stock) : 0
+      if (stock <= 0) return false
+
       const parentCat = (p.category || '').split('>')[0]?.trim() || 'Geral'
       const matchesCat = selectedCategory === 'all' || parentCat === selectedCategory
       const matchesSearch = p.name?.toLowerCase().includes(search.toLowerCase()) || 
@@ -128,6 +132,12 @@ export default function CustomerStore() {
 
   // Cart operations
   function addToCart(product) {
+    if (!customer) {
+      alert('Para adicionar itens ao carrinho, é necessário fazer login ou cadastrar-se!')
+      navigate(`/cliente/${storeId}/login`)
+      return
+    }
+
     const stockAvailable = product.stock !== undefined ? Number(product.stock) : 0
     if (stockAvailable <= 0) {
       alert('Desculpe, este produto está temporariamente esgotado.')
@@ -245,7 +255,7 @@ export default function CustomerStore() {
     setPaymentLoading(false)
   }
 
-  if (!customer) return null
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -255,7 +265,7 @@ export default function CustomerStore() {
           <h2 className="font-black text-gray-900 text-lg flex items-center gap-1.5">
             <span>🏪</span> {storeEntry.shortName}
           </h2>
-          <p className="text-xs text-gray-500">Olá, {customer.name.split(' ')[0]}</p>
+          <p className="text-xs text-gray-500">Olá, {customer ? customer.name.split(' ')[0] : 'Visitante'}</p>
         </div>
         
         <div className="flex items-center gap-2">
@@ -280,9 +290,15 @@ export default function CustomerStore() {
             💬
           </a>
 
-          <button onClick={handleLogout} className="text-xs bg-gray-100 hover:bg-gray-200 font-bold px-3 py-2 rounded-xl text-gray-600 active:scale-95 transition-all font-sans">
-            Sair
-          </button>
+          {customer ? (
+            <button onClick={handleLogout} className="text-xs bg-gray-100 hover:bg-gray-200 font-bold px-3 py-2 rounded-xl text-gray-600 active:scale-95 transition-all font-sans">
+              Sair
+            </button>
+          ) : (
+            <button onClick={() => navigate(`/cliente/${storeId}/login`)} className="text-xs bg-brand-500 hover:bg-brand-600 text-white font-bold px-3 py-2 rounded-xl active:scale-95 transition-all font-sans">
+              Entrar
+            </button>
+          )}
         </div>
       </header>
 

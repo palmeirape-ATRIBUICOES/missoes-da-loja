@@ -19,6 +19,7 @@ export default function PDV() {
   const [showCashOps, setShowCashOps] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [lastSale, setLastSale] = useState(null)
+  const [pdvChatReply, setPdvChatReply] = useState('')
   const searchRef = useRef(null)
 
   // Delivery orders panel states
@@ -124,6 +125,25 @@ export default function PDV() {
     } catch (e) {
       console.error(e)
       alert('Erro ao cancelar o pedido.')
+    }
+  }
+
+  async function handleSendPdvChatReply(order) {
+    if (!pdvChatReply.trim()) return
+    try {
+      const updatedChat = [...(order.chat || []), {
+        sender: 'loja',
+        text: pdvChatReply.trim(),
+        timestamp: Date.now()
+      }]
+      await saveCustomerOrder({
+        ...order,
+        chat: updatedChat
+      })
+      setPdvChatReply('')
+    } catch (e) {
+      console.error(e)
+      alert('Erro ao enviar resposta.')
     }
   }
 
@@ -1151,6 +1171,50 @@ export default function PDV() {
                           {order.changeNeeded && order.changeNeeded > 0 && <span className="ml-2">Troco para: <strong>{formatCurrency(order.changeNeeded + order.total)}</strong> (Troco: <strong>{formatCurrency(order.changeNeeded)}</strong>)</span>}
                         </div>
                         {order.notes && <div className="italic text-gray-500 w-full mt-1">Obs: "{order.notes}"</div>}
+                      </div>
+
+                      {/* Chat / Instructions from customer */}
+                      <div className="space-y-3 bg-gray-50 p-4 rounded-2xl border border-gray-100 text-left">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Conversa / Instruções com o Cliente</span>
+                        
+                        {/* Messages Log */}
+                        <div className="space-y-2 max-h-36 overflow-y-auto p-2 bg-white rounded-xl border border-gray-100 flex flex-col">
+                          {(!order.chat || order.chat.length === 0) ? (
+                            <p className="text-[11px] text-gray-400 italic text-center py-2">Nenhuma mensagem ou instrução.</p>
+                          ) : (
+                            order.chat.map((msg, mIdx) => {
+                              const isStore = msg.sender === 'loja'
+                              return (
+                                <div key={mIdx} className={`flex flex-col ${isStore ? 'items-end' : 'items-start'} mb-1`}>
+                                  <span className="text-[8px] text-gray-400 font-bold mb-0.5">{isStore ? 'Você' : 'Cliente'}</span>
+                                  <div className={`p-2 rounded-xl text-[11px] font-semibold max-w-[85%]
+                                    ${isStore ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-gray-100 text-gray-800 rounded-tl-none'}`}
+                                  >
+                                    {msg.text}
+                                  </div>
+                                </div>
+                              )
+                            })
+                          )}
+                        </div>
+
+                        {/* Reply box */}
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Responder para o cliente..."
+                            value={pdvChatReply}
+                            onChange={e => setPdvChatReply(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleSendPdvChatReply(order) }}
+                            className="input h-9 text-xs bg-white border-gray-200 focus:border-indigo-500 rounded-xl flex-1"
+                          />
+                          <button
+                            onClick={() => handleSendPdvChatReply(order)}
+                            className="btn btn-primary h-9 px-3 text-xs font-bold rounded-xl shrink-0"
+                          >
+                            Enviar
+                          </button>
+                        </div>
                       </div>
 
                       {/* Actions */}
