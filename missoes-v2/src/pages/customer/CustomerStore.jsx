@@ -20,8 +20,15 @@ export default function CustomerStore() {
   // Catalog State
   const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [cart, setCart] = useState([])
+  const [cart, setCart] = useState(() => {
+    const saved = localStorage.getItem(`mdl_cart_${storeId}`)
+    return saved ? JSON.parse(saved) : []
+  })
   const [isCartOpen, setIsCartOpen] = useState(false)
+
+  useEffect(() => {
+    localStorage.setItem(`mdl_cart_${storeId}`, JSON.stringify(cart))
+  }, [cart, storeId])
 
   // Checkout Flow State
   const [checkoutStep, setCheckoutStep] = useState('catalog') // 'catalog' | 'checkout' | 'payment'
@@ -132,11 +139,6 @@ export default function CustomerStore() {
 
   // Cart operations
   function addToCart(product) {
-    if (!customer) {
-      alert('Para adicionar itens ao carrinho, é necessário fazer login ou cadastrar-se!')
-      navigate(`/cliente/${storeId}/login`)
-      return
-    }
 
     const stockAvailable = product.stock !== undefined ? Number(product.stock) : 0
     if (stockAvailable <= 0) {
@@ -451,6 +453,11 @@ export default function CustomerStore() {
                   <button
                     disabled={cart.length === 0}
                     onClick={() => {
+                      if (!customer) {
+                        alert('Para finalizar o seu pedido, é necessário fazer login ou criar uma conta!')
+                        navigate(`/cliente/${storeId}/login`)
+                        return
+                      }
                       setIsCartOpen(false)
                       setCheckoutStep('checkout')
                     }}
