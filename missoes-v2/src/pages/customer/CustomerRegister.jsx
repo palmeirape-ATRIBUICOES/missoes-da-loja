@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useStore } from '../../hooks/useStore'
 import { STORE_MAP } from '../../utils/constants'
@@ -8,7 +8,7 @@ export default function CustomerRegister() {
   const navigate = useNavigate()
   const { saveCustomer, customersAll } = useStore()
   
-  const isBogados = storeId === 'loja_bogados'
+  const isBogados = (storeId || '').toLowerCase().includes('bogados')
 
   const [form, setForm] = useState({
     name: '',
@@ -21,6 +21,13 @@ export default function CustomerRegister() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [registeredCondo, setRegisteredCondo] = useState('')
+
+  // Sync condo selection when storeId parameter resolves
+  useEffect(() => {
+    if (isBogados) {
+      setForm(f => ({ ...f, condo: 'none' }))
+    }
+  }, [storeId, isBogados])
 
   const storeEntry = Object.values(STORE_MAP).find(s => s.id === storeId) || STORE_MAP.loja_principal
 
