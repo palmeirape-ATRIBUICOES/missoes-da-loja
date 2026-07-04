@@ -8,13 +8,15 @@ export default function CustomerRegister() {
   const navigate = useNavigate()
   const { saveCustomer, customersAll } = useStore()
   
+  const isBogados = storeId === 'loja_bogados'
+
   const [form, setForm] = useState({
     name: '',
     phone: '',
     email: '',
     address: '',
     password: '',
-    condo: 'dom_pedro_1'
+    condo: isBogados ? 'none' : 'dom_pedro_1'
   })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -46,7 +48,6 @@ export default function CustomerRegister() {
         return
       }
 
-      const isCondo = form.condo === 'dom_pedro_1' || form.condo === 'dom_pedro_2'
       await saveCustomer({
         id: cleanedPhone,
         name: form.name.trim(),
@@ -54,13 +55,22 @@ export default function CustomerRegister() {
         email: form.email.trim().toLowerCase(),
         address: form.address.trim(),
         password: form.password,
-        condo: form.condo,
-        status: isCondo ? 'approved' : 'pending',
+        condo: isBogados ? 'none' : form.condo,
+        status: 'active', // Automatic approval/activation
         createdAt: new Date().toISOString()
       })
 
-      setRegisteredCondo(form.condo)
-      setSuccess(true)
+      // Save customer session in localStorage for immediate access
+      localStorage.setItem(`mdl_customer_${storeId}`, JSON.stringify({
+        id: cleanedPhone,
+        name: form.name.trim(),
+        phone: cleanedPhone,
+        address: form.address.trim(),
+        email: form.email.trim().toLowerCase()
+      }))
+
+      // Redirect immediately to store catalog
+      navigate(`/cliente/${storeId}/loja`)
     } catch (err) {
       console.error(err)
       alert('Erro ao realizar o cadastro. Tente novamente.')
@@ -158,18 +168,20 @@ export default function CustomerRegister() {
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Você mora em condomínio parceiro?</label>
-              <select
-                value={form.condo}
-                onChange={e => setForm(f => ({ ...f, condo: e.target.value }))}
-                className="input h-12 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl font-semibold"
-              >
-                <option value="dom_pedro_1">Condomínio Dom Pedro 1</option>
-                <option value="dom_pedro_2">Condomínio Dom Pedro 2</option>
-                <option value="none">Não moro em condomínio parceiro</option>
-              </select>
-            </div>
+            {!isBogados && (
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Você mora em condomínio parceiro?</label>
+                <select
+                  value={form.condo}
+                  onChange={e => setForm(f => ({ ...f, condo: e.target.value }))}
+                  className="input h-12 text-sm bg-gray-50 border-gray-200 focus:border-brand-500 rounded-xl font-semibold"
+                >
+                  <option value="dom_pedro_1">Condomínio Dom Pedro 1</option>
+                  <option value="dom_pedro_2">Condomínio Dom Pedro 2</option>
+                  <option value="none">Não moro em condomínio parceiro</option>
+                </select>
+              </div>
+            )}
 
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Endereço Completo de Entrega</label>
