@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from '../../hooks/useStore'
 import { useAuth } from '../../hooks/useAuth'
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { nowHuman, normalizeWeekKeyLoose } from '../../utils/constants'
 
@@ -295,6 +295,51 @@ function GlobalReviewCard({ globalDoc }) {
   const { updateGlobal, deleteGlobalDoc } = useStore()
   const responses = globalDoc.responses || []
 
+  const [localQtys, setLocalQtys] = useState(() => {
+    const map = {}
+    responses.forEach((res, idx) => {
+      map[idx] = res.qtyToBuy || ''
+    })
+    return map
+  })
+
+  useEffect(() => {
+    const map = {}
+    responses.forEach((res, idx) => {
+      map[idx] = res.qtyToBuy || ''
+    })
+    setLocalQtys(map)
+  }, [responses])
+
+  function handleQtyChange(idx, val) {
+    setLocalQtys(prev => ({ ...prev, [idx]: val }))
+  }
+
+  async function handleQtyBlur(idx) {
+    const val = localQtys[idx] || ''
+    if ((responses[idx].qtyToBuy || '') === val) return
+    const next = [...responses]
+    next[idx].qtyToBuy = val
+    await updateGlobal(globalDoc.id, { responses: next })
+  }
+
+  function handleExportWhatsApp() {
+    const itemsToBuy = responses.filter(res => res.qtyToBuy && res.qtyToBuy.trim() !== '')
+    if (itemsToBuy.length === 0) {
+      alert('Nenhuma quantidade para comprar foi preenchida ainda!')
+      return
+    }
+
+    let text = `🛒 *LISTA DE COMPRAS - ${globalDoc.name.toUpperCase()}*\n`
+    text += `Semana: ${globalDoc.weekKey}\n\n`
+    itemsToBuy.forEach(res => {
+      text += `• *${res.itemName}*: ${res.qtyToBuy}\n`
+    })
+    
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
+    window.open(url, '_blank')
+  }
+
   // Sort: items with managerStatus placed at the bottom
   const sorted = [...responses].sort((a, b) => {
     if (a.managerStatus && !b.managerStatus) return 1
@@ -314,19 +359,23 @@ function GlobalReviewCard({ globalDoc }) {
 
   return (
     <div className={`card p-4 border-l-4 ${globalDoc.status === 'completed' ? 'border-l-emerald-500 opacity-70' : 'border-l-orange-500'}`}>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3 border-b border-gray-100 pb-3">
         <div>
-          <div className="font-bold text-gray-900 text-lg">{globalDoc.name}</div>
-          <div className="text-xs text-gray-500 flex items-center gap-2 flex-wrap">
+          <div className="font-bold text-gray-950 text-lg">{globalDoc.name}</div>
+          <div className="text-xs text-gray-500 flex items-center gap-2 flex-wrap font-semibold">
             <span>Concluída por {globalDoc.completedBy} • {globalDoc.completedAtHuman}</span>
             <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">
               Semana {globalDoc.weekKey}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 justify-end">
+          <button onClick={handleExportWhatsApp}
+            className="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 transition-all active:scale-95 flex items-center gap-1">
+            💬 Exportar via WhatsApp
+          </button>
           {globalDoc.status === 'review' && (
-            <button onClick={archive} className="btn btn-ghost text-xs px-2.5 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50">
+            <button onClick={archive} className="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 transition-all active:scale-95">
               📦 Arquivar
             </button>
           )}
@@ -336,51 +385,67 @@ function GlobalReviewCard({ globalDoc }) {
                 await deleteGlobalDoc(globalDoc.id)
               }
             }} 
-            className="btn btn-ghost text-xs text-red-600 px-2.5 py-1.5 border border-red-100 rounded-lg hover:bg-red-50"
+            className="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-all active:scale-95"
           >
             🗑 Excluir
           </button>
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {sorted.map((res, i) => {
           const originalIndex = responses.indexOf(res)
           return (
-            <div key={i} className={`p-3 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-2
+            <div key={i} className={`p-3 rounded-2xl border flex flex-col gap-2.5 text-left
               ${res.managerStatus ? 'bg-gray-50 border-gray-200' : 'bg-white border-blue-100'}`}>
               
-              <div className="min-w-0">
-                <div className={`font-semibold text-sm ${res.managerStatus ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
-                  {res.itemName}
-                </div>
-                {res.employeeNote && (
-                  <div className="text-xs text-blue-700 font-medium mt-0.5">
-                    ↳ {res.employeeNote}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className={`font-extrabold text-sm ${res.managerStatus ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                    {res.itemName}
                   </div>
-                )}
+                  {res.employeeNote && (
+                    <div className="text-xs text-blue-700 font-bold mt-1 bg-blue-50 px-2.5 py-1 rounded-lg inline-block">
+                      ↳ {res.employeeNote}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 justify-end">
+                  {res.managerStatus === 'comprado' && <span className="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">✅ Comprado</span>}
+                  {res.managerStatus === 'falta' && <span className="text-xs font-extrabold text-red-600 bg-red-50 px-2 py-0.5 rounded">❌ Em Falta</span>}
+                  
+                  {!res.managerStatus && (
+                    <>
+                      <button onClick={() => setItemStatus(originalIndex, 'comprado')} 
+                        className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-black active:scale-95 transition-all">
+                        Comprado
+                      </button>
+                      <button onClick={() => setItemStatus(originalIndex, 'falta')} 
+                        className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-xs font-black active:scale-95 transition-all">
+                        Falta
+                      </button>
+                    </>
+                  )}
+                  {res.managerStatus && (
+                    <button onClick={() => setItemStatus(originalIndex, null)} className="text-xs text-gray-400 font-bold underline active:opacity-60">Desfazer</button>
+                  )}
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                {res.managerStatus === 'comprado' && <span className="text-xs font-bold text-emerald-600">✅ Comprado</span>}
-                {res.managerStatus === 'falta' && <span className="text-xs font-bold text-red-600">❌ Em Falta</span>}
-                
-                {!res.managerStatus && (
-                  <>
-                    <button onClick={() => setItemStatus(originalIndex, 'comprado')} 
-                      className="px-3 py-1.5 rounded bg-emerald-50 text-emerald-700 text-xs font-bold active:scale-95">
-                      Comprado
-                    </button>
-                    <button onClick={() => setItemStatus(originalIndex, 'falta')} 
-                      className="px-3 py-1.5 rounded bg-red-50 text-red-700 text-xs font-bold active:scale-95">
-                      Falta
-                    </button>
-                  </>
-                )}
-                {res.managerStatus && (
-                  <button onClick={() => setItemStatus(originalIndex, null)} className="text-xs text-gray-400 underline">Desfazer</button>
-                )}
+              {/* Quantidade a comprar input */}
+              <div className="flex items-center gap-2 border-t border-dashed border-gray-150 pt-2 shrink-0">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Quant. a Comprar:</span>
+                <input
+                  type="text"
+                  placeholder="Ex: 5 caixas, 20 un..."
+                  value={localQtys[originalIndex] || ''}
+                  onChange={e => handleQtyChange(originalIndex, e.target.value)}
+                  onBlur={() => handleQtyBlur(originalIndex)}
+                  className="input h-8 text-xs bg-gray-50 border-gray-200 focus:border-brand-500 rounded-lg px-2 max-w-[180px] font-semibold"
+                />
               </div>
+
             </div>
           )
         })}

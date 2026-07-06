@@ -165,9 +165,12 @@ export default function Tasks({ onBack }) {
                         className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0 active:scale-90">
                         ✅
                       </button>
-                      <div className="min-w-0">
-                        <div className="font-medium text-gray-700 line-through text-sm">{task.title}</div>
-                        <div className="text-[10px] text-gray-400">{task.completedBy} • {task.completedAt}</div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <div className="font-semibold text-gray-700 line-through text-sm">{task.title}</div>
+                        {task.description && <div className="text-xs text-gray-400 mt-0.5 line-through font-semibold">{task.description}</div>}
+                        <div className="text-[10px] text-gray-400 font-bold mt-1">
+                          Atribuído: {task.assignedTo || 'Todos'} • Feito por: {task.completedBy} em {task.completedAt}
+                        </div>
                       </div>
                     </div>
                   </div>

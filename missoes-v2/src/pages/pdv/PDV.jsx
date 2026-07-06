@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useStore } from '../../hooks/useStore'
 import { formatCurrency, parseCurrency, nowHuman } from '../../utils/constants'
@@ -8,6 +9,7 @@ import ShiftClose from './ShiftClose'
 import CashOps from './CashOps'
 
 export default function PDV() {
+  const navigate = useNavigate()
   const { currentUser, store, logout, isManager } = useAuth()
   const { products, savePdvSale, pdvSales, employees, saveProduct, customerOrdersAll, saveCustomerOrder } = useStore()
 
@@ -583,6 +585,15 @@ export default function PDV() {
                 </div>
               </div>
               <div className="border-t my-1" />
+              {isManager && (
+                <>
+                  <button onClick={() => navigate('/gerente')}
+                    className="w-full text-left px-4 py-3 rounded-xl hover:bg-brand-50 text-sm font-semibold flex items-center gap-3 text-brand-600 active:scale-95 transition-all">
+                    👑 Painel do Gerente
+                  </button>
+                  <div className="border-t my-1" />
+                </>
+              )}
               <button onClick={logout}
                 className="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 text-sm font-semibold flex items-center gap-3 text-red-600 active:scale-95 transition-all">
                 🚪 Sair do Caixa
