@@ -63,12 +63,7 @@ export default function PublicStore() {
         {step === 'select' && (
           <div className="space-y-4 animate-slide-up" style={{ animationDelay: '0.1s' }}>
             <button onClick={() => {
-              const session = localStorage.getItem(`mdl_customer_${storeId}`)
-              if (session) {
-                navigate(`/cliente/${storeId}/loja`)
-              } else {
-                navigate(`/cliente/${storeId}/login`)
-              }
+              navigate(`/cliente/${storeId}/loja`)
             }}
               className="w-full bg-brand-500 hover:bg-brand-600 text-white p-6 rounded-3xl shadow-md border-0 transition-all flex items-center gap-4 text-left active:scale-95">
               <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">🛍️</div>
