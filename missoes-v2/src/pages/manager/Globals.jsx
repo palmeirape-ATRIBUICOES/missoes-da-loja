@@ -294,6 +294,7 @@ export default function Globals({ onBack }) {
 function GlobalReviewCard({ globalDoc }) {
   const { updateGlobal, deleteGlobalDoc } = useStore()
   const responses = globalDoc.responses || []
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   const [localQtys, setLocalQtys] = useState(() => {
     const map = {}
@@ -359,9 +360,15 @@ function GlobalReviewCard({ globalDoc }) {
 
   return (
     <div className={`card p-4 border-l-4 ${globalDoc.status === 'completed' ? 'border-l-emerald-500 opacity-70' : 'border-l-orange-500'}`}>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3 border-b border-gray-100 pb-3">
+      <div 
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3 border-b border-gray-100 pb-3 cursor-pointer select-none"
+      >
         <div>
-          <div className="font-bold text-gray-950 text-lg">{globalDoc.name}</div>
+          <div className="font-bold text-gray-950 text-lg flex items-center gap-2">
+            <span className="text-gray-400 text-sm">{isCollapsed ? '▶' : '▼'}</span>
+            <span>{globalDoc.name}</span>
+          </div>
           <div className="text-xs text-gray-500 flex items-center gap-2 flex-wrap font-semibold">
             <span>Concluída por {globalDoc.completedBy} • {globalDoc.completedAtHuman}</span>
             <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">
@@ -369,7 +376,7 @@ function GlobalReviewCard({ globalDoc }) {
             </span>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5 justify-end">
+        <div onClick={e => e.stopPropagation()} className="flex flex-wrap items-center gap-1.5 justify-end">
           <button onClick={handleExportWhatsApp}
             className="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 transition-all active:scale-95 flex items-center gap-1">
             💬 Exportar via WhatsApp
@@ -392,64 +399,66 @@ function GlobalReviewCard({ globalDoc }) {
         </div>
       </div>
 
-      <div className="space-y-3">
-        {sorted.map((res, i) => {
-          const originalIndex = responses.indexOf(res)
-          return (
-            <div key={i} className={`p-3 rounded-2xl border flex flex-col gap-2.5 text-left
-              ${res.managerStatus ? 'bg-gray-50 border-gray-200' : 'bg-white border-blue-100'}`}>
-              
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <div className={`font-extrabold text-sm ${res.managerStatus ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
-                    {res.itemName}
-                  </div>
-                  {res.employeeNote && (
-                    <div className="text-xs text-blue-700 font-bold mt-1 bg-blue-50 px-2.5 py-1 rounded-lg inline-block">
-                      ↳ {res.employeeNote}
+      {!isCollapsed && (
+        <div className="space-y-3">
+          {sorted.map((res, i) => {
+            const originalIndex = responses.indexOf(res)
+            return (
+              <div key={i} className={`p-3 rounded-2xl border flex flex-col gap-2.5 text-left
+                ${res.managerStatus ? 'bg-gray-50 border-gray-200' : 'bg-white border-blue-100'}`}>
+                
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className={`font-extrabold text-sm ${res.managerStatus ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                      {res.itemName}
                     </div>
-                  )}
+                    {res.employeeNote && (
+                      <div className="text-xs text-blue-700 font-bold mt-1 bg-blue-50 px-2.5 py-1 rounded-lg inline-block">
+                        ↳ {res.employeeNote}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 justify-end">
+                    {res.managerStatus === 'comprado' && <span className="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">✅ Comprado</span>}
+                    {res.managerStatus === 'falta' && <span className="text-xs font-extrabold text-red-600 bg-red-50 px-2 py-0.5 rounded">❌ Em Falta</span>}
+                    
+                    {!res.managerStatus && (
+                      <>
+                        <button onClick={() => setItemStatus(originalIndex, 'comprado')} 
+                          className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-black active:scale-95 transition-all">
+                          Comprado
+                        </button>
+                        <button onClick={() => setItemStatus(originalIndex, 'falta')} 
+                          className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-xs font-black active:scale-95 transition-all">
+                          Falta
+                        </button>
+                      </>
+                    )}
+                    {res.managerStatus && (
+                      <button onClick={() => setItemStatus(originalIndex, null)} className="text-xs text-gray-400 font-bold underline active:opacity-60">Desfazer</button>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 justify-end">
-                  {res.managerStatus === 'comprado' && <span className="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">✅ Comprado</span>}
-                  {res.managerStatus === 'falta' && <span className="text-xs font-extrabold text-red-600 bg-red-50 px-2 py-0.5 rounded">❌ Em Falta</span>}
-                  
-                  {!res.managerStatus && (
-                    <>
-                      <button onClick={() => setItemStatus(originalIndex, 'comprado')} 
-                        className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-black active:scale-95 transition-all">
-                        Comprado
-                      </button>
-                      <button onClick={() => setItemStatus(originalIndex, 'falta')} 
-                        className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-xs font-black active:scale-95 transition-all">
-                        Falta
-                      </button>
-                    </>
-                  )}
-                  {res.managerStatus && (
-                    <button onClick={() => setItemStatus(originalIndex, null)} className="text-xs text-gray-400 font-bold underline active:opacity-60">Desfazer</button>
-                  )}
+                {/* Quantidade a comprar input */}
+                <div className="flex items-center gap-2 border-t border-dashed border-gray-150 pt-2 shrink-0">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Quant. a Comprar:</span>
+                  <input
+                    type="text"
+                    placeholder="Ex: 5 caixas, 20 un..."
+                    value={localQtys[originalIndex] || ''}
+                    onChange={e => handleQtyChange(originalIndex, e.target.value)}
+                    onBlur={() => handleQtyBlur(originalIndex)}
+                    className="input h-8 text-xs bg-gray-50 border-gray-200 focus:border-brand-500 rounded-lg px-2 max-w-[180px] font-semibold"
+                  />
                 </div>
-              </div>
 
-              {/* Quantidade a comprar input */}
-              <div className="flex items-center gap-2 border-t border-dashed border-gray-150 pt-2 shrink-0">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Quant. a Comprar:</span>
-                <input
-                  type="text"
-                  placeholder="Ex: 5 caixas, 20 un..."
-                  value={localQtys[originalIndex] || ''}
-                  onChange={e => handleQtyChange(originalIndex, e.target.value)}
-                  onBlur={() => handleQtyBlur(originalIndex)}
-                  className="input h-8 text-xs bg-gray-50 border-gray-200 focus:border-brand-500 rounded-lg px-2 max-w-[180px] font-semibold"
-                />
               </div>
-
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

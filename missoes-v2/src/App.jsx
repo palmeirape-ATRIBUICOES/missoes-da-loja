@@ -142,7 +142,7 @@ function AppRoutes() {
 
 export default function App() {
   useEffect(() => {
-    const CURRENT_VERSION = 'v3.7'
+    const CURRENT_VERSION = 'v3.8'
     const storedVersion = localStorage.getItem('mdl_app_version')
     if (storedVersion !== CURRENT_VERSION) {
       const clearCaches = async () => {
