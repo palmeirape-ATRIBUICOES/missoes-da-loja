@@ -24,11 +24,14 @@ import Customers from './pages/manager/Customers'
 import DeliverySlots from './pages/manager/DeliverySlots'
 import CustomerOrders from './pages/manager/CustomerOrders'
 import Bakery from './pages/manager/Bakery'
+import ShoppingLists from './pages/manager/ShoppingLists'
 
 import { useStore } from './hooks/useStore'
 
 function ProductsPage() { const n = useNavigate(); return <Products onBack={() => n('/gerente')} /> }
 function BakeryPage() { const n = useNavigate(); return <Bakery onBack={() => n('/gerente')} /> }
+function ShoppingListsPage() { const n = useNavigate(); return <ShoppingLists onBack={() => n('/gerente')} /> }
+function ShoppingListsPageFunc() { const n = useNavigate(); return <ShoppingLists onBack={() => n('/funcionario')} /> }
 function BakeryPageFunc() {
   const n = useNavigate()
   const { currentUser, isManager } = useAuth()
@@ -131,9 +134,11 @@ function AppRoutes() {
         <Route path="/gerente/entregas" element={isManager ? <DeliverySlotsPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/pedidos-clientes" element={isManager ? <CustomerOrdersPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/padaria" element={isManager ? <BakeryPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/compras" element={isManager ? <ShoppingListsPage /> : <Navigate to="/funcionario" />} />
         <Route path="/funcionario" element={!isManager ? <EmployeeDashboard /> : <Navigate to="/gerente" />} />
         <Route path="/funcionario/produtos" element={!isManager ? <ProductsPageFunc /> : <Navigate to="/gerente" />} />
         <Route path="/funcionario/padaria" element={!isManager ? <BakeryPageFunc /> : <Navigate to="/gerente" />} />
+        <Route path="/funcionario/compras" element={!isManager ? <ShoppingListsPageFunc /> : <Navigate to="/gerente" />} />
         <Route path="*" element={<Navigate to={location.pathname.startsWith('/pdv') ? '/pdv' : (isManager ? '/gerente' : '/funcionario')} />} />
       </Routes>
     </StoreProvider>
@@ -142,7 +147,7 @@ function AppRoutes() {
 
 export default function App() {
   useEffect(() => {
-    const CURRENT_VERSION = 'v3.8'
+    const CURRENT_VERSION = 'v3.9'
     const storedVersion = localStorage.getItem('mdl_app_version')
     if (storedVersion !== CURRENT_VERSION) {
       const clearCaches = async () => {

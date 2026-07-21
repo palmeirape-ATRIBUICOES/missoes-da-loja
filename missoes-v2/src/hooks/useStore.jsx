@@ -40,6 +40,7 @@ export function StoreProvider({ children }) {
   const [deliverySlotsAll, setDeliverySlotsAll] = useState([])
   const [customerOrdersAll, setCustomerOrdersAll] = useState([])
   const [bakeryOrdersAll, setBakeryOrdersAll] = useState([])
+  const [shoppingListsAll, setShoppingListsAll] = useState([])
   const [loading, setLoading] = useState(true)
   // Refs
   const cfgRef = (name) => doc(db, 'stores', storeId, 'config', name)
@@ -215,6 +216,12 @@ export function StoreProvider({ children }) {
     const bakeryQ = query(colRef('bakery_orders'), orderBy('createdAt', 'desc'), limit(150))
     unsubs.push(onSnapshot(bakeryQ, (qs) => {
       setBakeryOrdersAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
+    }))
+
+    // Shopping lists
+    const shoppingQ = query(colRef('shopping_lists'), orderBy('createdAt', 'desc'), limit(150))
+    unsubs.push(onSnapshot(shoppingQ, (qs) => {
+      setShoppingListsAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
     }))
 
     setLoading(false)
@@ -421,6 +428,21 @@ export function StoreProvider({ children }) {
     await deleteDoc(doc(db, 'stores', storeId, 'bakery_orders', id))
   }
 
+  async function saveShoppingList(list) {
+    const ref = list.id ? doc(db, 'stores', storeId, 'shopping_lists', list.id) : doc(colRef('shopping_lists'))
+    const newId = list.id || ref.id
+    await setDoc(ref, {
+      ...list,
+      id: newId,
+      updatedAt: serverTimestamp(),
+      ...(list.id ? {} : { createdAt: serverTimestamp(), createdAtHuman: nowHuman(), createdBy: currentUser })
+    }, { merge: true })
+  }
+
+  async function deleteShoppingList(id) {
+    await deleteDoc(doc(db, 'stores', storeId, 'shopping_lists', id))
+  }
+
   async function incrementEmployeePoints(user, amount) {
     const ref = stateRef('scores')
     const snap = await getDoc(ref)
@@ -453,6 +475,7 @@ export function StoreProvider({ children }) {
       saveCustomerOrder, deleteCustomerOrder,
       saveMultipleProducts, updateProductsStock,
       bakeryOrdersAll, saveBakeryOrder, deleteBakeryOrder, incrementEmployeePoints,
+      shoppingListsAll, saveShoppingList, deleteShoppingList,
       cfgRef, stateRef, colRef
     }}>
       {children}

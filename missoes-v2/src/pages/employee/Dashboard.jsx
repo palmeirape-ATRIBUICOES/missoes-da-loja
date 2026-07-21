@@ -85,6 +85,11 @@ export default function EmployeeDashboard() {
             <div className="font-semibold text-sm text-gray-900">Minhas Tarefas</div>
           </button>
           
+          <button onClick={() => navigate('/funcionario/compras')} className="card p-4 text-center hover:bg-gray-100 active:scale-95 transition-transform">
+            <div className="text-2xl mb-2">🛒</div>
+            <div className="font-semibold text-sm text-gray-900">Lista de Compras</div>
+          </button>
+
           {currentEmp?.canEditPrices && (
             <button onClick={() => navigate('/funcionario/produtos')} className="card p-4 text-center hover:bg-gray-100 active:scale-95 transition-transform">
               <div className="text-2xl mb-2">📦</div>

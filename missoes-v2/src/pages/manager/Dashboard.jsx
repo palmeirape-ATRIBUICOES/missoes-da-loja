@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 export default function ManagerDashboard() {
   const { currentUser, store, logout } = useAuth()
-  const { currentWeekKey, globalsWeek, globalsOpen, tasksAll, activeEmployees, products, pdvSales, feedbackAll, contrachequesAll, customersAll, customerOrdersAll } = useStore()
+  const { currentWeekKey, globalsWeek, globalsOpen, tasksAll, activeEmployees, products, pdvSales, feedbackAll, contrachequesAll, customersAll, customerOrdersAll, shoppingListsAll } = useStore()
   const navigate = useNavigate()
 
   const todaySales = pdvSales.filter(s => {
@@ -16,6 +16,7 @@ export default function ManagerDashboard() {
 
   const tabs = [
     { key: 'pdv', icon: '🖥️', label: 'Abrir PDV', color: 'from-emerald-500 to-emerald-600', action: () => navigate('/pdv') },
+    { key: 'compras', icon: '🛒', label: 'Lista de Compras', color: 'from-emerald-600 to-teal-700', badge: (shoppingListsAll || []).filter(l => l.status !== 'completed').length, action: () => navigate('/gerente/compras') },
     { key: 'pedidos-clientes', icon: '🛍️', label: 'Pedidos Clientes', color: 'from-fuchsia-600 to-pink-700', badge: (customerOrdersAll || []).filter(o => o.status === 'pending' || o.status === 'preparing').length, action: () => navigate('/gerente/pedidos-clientes') },
     { key: 'clientes', icon: '👥', label: 'Clientes', color: 'from-violet-600 to-indigo-700', badge: (customersAll || []).filter(c => c.status === 'pending').length, action: () => navigate('/gerente/clientes') },
     { key: 'entregas', icon: '📅', label: 'Horários Entrega', color: 'from-teal-500 to-emerald-600', action: () => navigate('/gerente/entregas') },
