@@ -219,9 +219,13 @@ export function StoreProvider({ children }) {
     }))
 
     // Shopping lists
-    const shoppingQ = query(colRef('shopping_lists'), orderBy('createdAt', 'desc'), limit(150))
+    const shoppingQ = query(colRef('shopping_lists'))
     unsubs.push(onSnapshot(shoppingQ, (qs) => {
-      setShoppingListsAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
+      const docs = qs.docs.map(d => ({ id: d.id, ...d.data() }))
+      docs.sort((a, b) => (b.updatedAtMs || 0) - (a.updatedAtMs || 0))
+      setShoppingListsAll(docs)
+    }, (err) => {
+      console.warn('shopping_lists snapshot error:', err)
     }))
 
     setLoading(false)
@@ -429,14 +433,36 @@ export function StoreProvider({ children }) {
   }
 
   async function saveShoppingList(list) {
-    const ref = list.id ? doc(db, 'stores', storeId, 'shopping_lists', list.id) : doc(colRef('shopping_lists'))
-    const newId = list.id || ref.id
+    const listId = list.id || ('shop_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6))
+    const ref = doc(db, 'stores', storeId, 'shopping_lists', listId)
+
+    const now = Date.now()
+    const cleanData = JSON.parse(JSON.stringify({
+      title: list.title || 'Nova Lista',
+      category: list.category || 'Geral',
+      notes: list.notes || '',
+      items: (list.items || []).map(i => ({
+        id: i.id || ('item_' + Math.random().toString(36).slice(2, 6)),
+        name: i.name || '',
+        qty: i.qty || '1 un',
+        bought: !!i.bought,
+        ...(i.productId ? { productId: i.productId } : {})
+      })),
+      status: list.status || 'pending',
+      updatedAtMs: now,
+      updatedBy: currentUser || 'Usuário',
+      createdAtHuman: list.createdAtHuman || nowHuman(),
+      createdBy: list.createdBy || currentUser || 'Usuário',
+      id: listId
+    }))
+
     await setDoc(ref, {
-      ...list,
-      id: newId,
+      ...cleanData,
       updatedAt: serverTimestamp(),
-      ...(list.id ? {} : { createdAt: serverTimestamp(), createdAtHuman: nowHuman(), createdBy: currentUser })
+      ...(list.id ? {} : { createdAt: serverTimestamp() })
     }, { merge: true })
+
+    return listId
   }
 
   async function deleteShoppingList(id) {

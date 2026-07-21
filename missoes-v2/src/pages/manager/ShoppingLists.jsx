@@ -115,28 +115,56 @@ export default function ShoppingLists({ onBack }) {
     setItems(prev => prev.map((item, i) => i === idx ? { ...item, qty } : item))
   }
 
+  const [isSaving, setIsSaving] = useState(false)
+
   async function handleSaveList() {
     if (!listTitle.trim()) {
       alert('Por favor, informe o título da lista de compras!')
       return
     }
-    if (items.length === 0) {
+
+    let currentItems = [...items]
+
+    // Auto-add manual item if user typed name but forgot to click "+ Incluir"
+    if (manualName.trim()) {
+      const autoItem = {
+        id: 'item_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
+        name: manualName.trim(),
+        qty: manualQty.trim() || '1 un',
+        bought: false
+      }
+      currentItems.push(autoItem)
+      setItems(currentItems)
+      setManualName('')
+      setManualQty('1 un')
+    }
+
+    if (currentItems.length === 0) {
       alert('Adicione pelo menos 1 item à lista antes de salvar!')
       return
     }
 
-    const payload = {
-      ...(editingId ? { id: editingId } : {}),
-      title: listTitle.trim(),
-      category: listCategory,
-      notes: listNotes.trim(),
-      items,
-      status: 'pending',
-      updatedBy: currentUser
-    }
+    setIsSaving(true)
+    try {
+      const payload = {
+        ...(editingId ? { id: editingId } : {}),
+        title: listTitle.trim(),
+        category: listCategory || 'Geral',
+        notes: listNotes.trim(),
+        items: currentItems,
+        status: 'pending',
+        updatedBy: currentUser || 'Gerente'
+      }
 
-    await saveShoppingList(payload)
-    resetForm()
+      await saveShoppingList(payload)
+      alert('✅ Lista de Compras salva com sucesso!')
+      resetForm()
+    } catch (err) {
+      console.error('Erro ao salvar lista de compras:', err)
+      alert('Ocorreu um erro ao salvar a lista: ' + (err.message || 'Tente novamente.'))
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   async function toggleItemBought(listDoc, itemIdx) {
@@ -429,10 +457,11 @@ export default function ShoppingLists({ onBack }) {
             {/* Form Footer */}
             <div className="flex gap-2 pt-2 border-t border-gray-100">
               <button
+                disabled={isSaving}
                 onClick={handleSaveList}
-                className="btn btn-success flex-1 h-12 rounded-xl text-base font-extrabold shadow-md"
+                className="btn btn-success flex-1 h-12 rounded-xl text-base font-extrabold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                💾 Salvar Lista de Compras
+                {isSaving ? '⏳ Salvando Lista...' : '💾 Salvar Lista de Compras'}
               </button>
               <button
                 onClick={resetForm}
