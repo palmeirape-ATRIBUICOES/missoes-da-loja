@@ -19,6 +19,16 @@ export const STORE_MAP = {
     employeesLegacy: ['bogados'],
     whatsapp: '5521964422488',
     theme: { accent: '#0891b2', bg: '#ecfeff' }
+  },
+  loja_bar: {
+    id: 'loja_bar',
+    name: 'Bar',
+    shortName: 'Bar',
+    managerUser: 'BAR - GERENTE',
+    managerPin: '1234',
+    employeesLegacy: ['Rafael'],
+    whatsapp: '5521964422488',
+    theme: { accent: '#ea580c', bg: '#fff7ed' }
   }
 }
 

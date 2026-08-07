@@ -266,6 +266,7 @@
       <select id="storeSelect" class="w-full border p-2 rounded">
         <option value="loja_principal">Padaria MANÁ DE DEUS</option>
         <option value="loja_bogados">Bogados</option>
+        <option value="loja_bar">Bar</option>
       </select>
       <p class="text-xs text-gray-500 mt-1">
         Bogados é um sistema separado (usuários não misturam).
@@ -1662,7 +1663,7 @@
   function printQRPoster(){
     const baseUrl = window.location.origin + window.location.pathname;
     const fbUrl = baseUrl + "?feedback=1&loja=" + storeKey;
-    const storeName = (storeKey === "loja_bogados") ? "Bogados" : "Padaria MAN\u00c1 DE DEUS";
+    const storeName = getStoreDisplayName(storeKey);
     const win = window.open("", "_blank");
     win.document.write(`<html><head><title>QR Code</title>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
@@ -1955,19 +1956,34 @@
     return `${y}-W${w}`;
   }
 
-  // ====== LOJAS / SEPARAÇÃO BOGADOS ======
+  // ====== LOJAS ======
   const STORE_MAP = {
     loja_principal: {
       id: "loja_principal",
+      name: "Padaria MANÁ DE DEUS",
       managerUser: "GERENTE",
       employeesLegacy: ["Sandra","Thauane","Ingrid","Claudia","DADA"]
     },
     loja_bogados: {
       id: "loja_bogados",
+      name: "Bogados",
       managerUser: "BOGADOS - GERENTE",
-      employeesLegacy: ["bogados"] // apenas 1 funcionário
+      employeesLegacy: ["bogados"]
+    },
+    loja_bar: {
+      id: "loja_bar",
+      name: "Bar",
+      managerUser: "BAR - GERENTE",
+      employeesLegacy: ["Rafael"]
     }
   };
+
+  function getStoreDisplayName(key = storeKey) {
+    if (STORE_MAP[key] && STORE_MAP[key].name) return STORE_MAP[key].name;
+    if (key === "loja_bogados") return "Bogados";
+    if (key === "loja_bar") return "Bar";
+    return "Padaria MANÁ DE DEUS";
+  }
 
   let storeKey = "loja_principal"; // chave do select
   let STORE_ID = STORE_MAP[storeKey].id;
@@ -2340,8 +2356,17 @@
     bogados: {}
   };
 
+  const defaultDataBar = {
+    Rafael: {
+      "Abertura & Estoque": ["Conferir freezer de cervejas", "Gelar refrigerantes", "Conferir estoque de bebidas"],
+      "Atendimento & Limpeza": ["Organizar mesas e cadeiras", "Limpar balcão", "Fechamento do caixa"]
+    }
+  };
+
   function defaultDataForStore(){
-    return storeKey === "loja_bogados" ? defaultDataBogados : defaultDataPrincipal;
+    if (storeKey === "loja_bogados") return defaultDataBogados;
+    if (storeKey === "loja_bar") return defaultDataBar;
+    return defaultDataPrincipal;
   }
 
   // ===== PIN =====
@@ -3434,7 +3459,7 @@
   // ===== Render gerente (✅ CORRIGIDO: sempre renderiza a lista de GLOBAIS, mesmo minimizada) =====
   function renderManager(){
     $("weekKeyLabelGer").innerText = currentWeekKey;
-    $("storeLabelGer").innerText = (storeKey === "loja_bogados") ? "Bogados" : "Loja Principal";
+    $("storeLabelGer").innerText = getStoreDisplayName(storeKey);
 
     renderListsDropdown();
 
@@ -4390,7 +4415,7 @@ function printProductLabels() {
     return;
   }
 
-  const storeName = (storeKey === "loja_bogados") ? "Bogados" : "Padaria MAN\u00c1 DE DEUS";
+  const storeName = getStoreDisplayName(storeKey);
   const today = new Date().toLocaleDateString("pt-BR");
   const win = window.open("", "_blank");
 
@@ -4933,7 +4958,7 @@ function printProductLabels() {
   }
   
   function printContracheque(cc) {
-    const storeName = (storeKey === "loja_bogados") ? "Bogados" : "Padaria MANÁ DE DEUS";
+    const storeName = getStoreDisplayName(storeKey);
     const fmt = (v) => Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const fmtDate = (d) => {
       if (!d) return "-";
