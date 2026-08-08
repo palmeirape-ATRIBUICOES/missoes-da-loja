@@ -224,7 +224,10 @@ export default function PDV() {
   const [imageSearchQuery, setImageSearchQuery] = useState('')
 
   async function handleSearchProductImage(query) {
-    if (!query || !query.trim()) return
+    if (!query || !query.trim()) {
+      alert('Por favor, digite o nome do produto primeiro para buscar a foto!')
+      return
+    }
     setImageSearchQuery(query.trim())
     setShowImageSearchModal(true)
     await searchGoogleImages(query.trim())
@@ -994,13 +997,23 @@ export default function PDV() {
                     <span className="text-[10px] text-green-700 font-semibold flex items-center gap-1">✨ Foto adicionada!</span>
                   </div>
                 ) : (
-                  <input 
-                    type="text" 
-                    placeholder="Cole o link da foto ou busque no Google..." 
-                    value={qpPhoto}
-                    onChange={e => setQpPhoto(e.target.value)}
-                    className="input text-xs h-10 min-h-0 bg-white" 
-                  />
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Cole o link da foto..." 
+                      value={qpPhoto}
+                      onChange={e => setQpPhoto(e.target.value)}
+                      className="input text-xs h-11 min-h-0 bg-white flex-1" 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSearchProductImage(qpName)}
+                      className="btn btn-primary px-3.5 h-11 min-h-0 text-xs font-bold rounded-xl shrink-0 flex items-center gap-1 bg-gradient-to-r from-brand-600 to-brand-700 text-white shadow-sm active:scale-95 transition-all"
+                      title="Buscar foto no Google"
+                    >
+                      🔍 Buscar
+                    </button>
+                  </div>
                 )}
               </div>
 

@@ -6,5 +6,10 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/missoes-da-loja/',
   server: { port: 3000, open: true },
-  build: { outDir: 'dist', sourcemap: false }
+  build: {
+    outDir: 'dist',
+    target: ['es2015', 'safari12'],
+    cssTarget: 'safari12',
+    sourcemap: false
+  }
 })
