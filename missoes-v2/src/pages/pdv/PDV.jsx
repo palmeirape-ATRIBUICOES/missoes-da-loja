@@ -22,6 +22,7 @@ export default function PDV() {
   const [showMenu, setShowMenu] = useState(false)
   const [lastSale, setLastSale] = useState(null)
   const [pdvChatReply, setPdvChatReply] = useState('')
+  const [mobileTab, setMobileTab] = useState('catalog')
   const searchRef = useRef(null)
 
   // Delivery orders panel states
@@ -460,6 +461,7 @@ export default function PDV() {
 
   function clearCart() {
     setCart([])
+    setMobileTab('catalog')
   }
 
   async function finalizeSale(paymentMethod, amountPaid, change) {
@@ -604,9 +606,9 @@ export default function PDV() {
       </header>
 
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         {/* Left: Products */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className={`flex-1 flex flex-col overflow-hidden ${mobileTab === 'cart' ? 'hidden md:flex' : 'flex'}`}>
           {/* Search Bar */}
           <div className="p-3 bg-white border-b border-gray-200 shrink-0 flex gap-2 items-center">
             <div className="relative flex-1">
@@ -683,7 +685,7 @@ export default function PDV() {
           </div>
 
           {/* Product Grid */}
-          <div className="flex-1 overflow-auto p-3">
+          <div className={`flex-1 overflow-auto p-3 ${cart.length > 0 ? 'pb-24 md:pb-3' : ''}`}>
             {filteredProducts.length === 0 ? (
               <div className="flex items-center justify-center h-full text-gray-400">
                 <div className="text-center">
@@ -728,15 +730,35 @@ export default function PDV() {
               </div>
             )}
           </div>
+
+          {/* Mobile Floating Cart Button */}
+          {cart.length > 0 && (
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 shadow-lg z-35 flex items-center justify-between animate-slide-up no-print">
+              <div className="text-left">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Total</span>
+                <span className="text-lg font-black text-gray-950 leading-none">{formatCurrency(cartTotal)}</span>
+              </div>
+              <button onClick={() => setMobileTab('cart')}
+                className="btn btn-primary px-5 py-2.5 rounded-xl font-bold bg-gradient-to-r from-brand-600 to-brand-700 text-white shadow-md active:scale-95 transition-all text-sm">
+                🛒 Ver Carrinho ({cartCount}) →
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right: Cart Panel */}
-        <div className="w-80 lg:w-96 bg-white border-l border-gray-200 flex flex-col shrink-0">
+        <div className={`w-full md:w-80 lg:w-96 bg-white border-l border-gray-200 flex flex-col shrink-0 ${mobileTab === 'catalog' ? 'hidden md:flex' : 'flex'}`}>
           {/* Cart Header */}
           <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-            <div>
-              <div className="font-bold text-gray-900 text-sm">Carrinho</div>
-              <div className="text-xs text-gray-500">{cartCount} {cartCount === 1 ? 'item' : 'itens'}</div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setMobileTab('catalog')}
+                className="md:hidden w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center font-bold text-gray-700 active:scale-90 transition-all text-sm shrink-0">
+                ←
+              </button>
+              <div>
+                <div className="font-bold text-gray-900 text-sm">Carrinho</div>
+                <div className="text-xs text-gray-500">{cartCount} {cartCount === 1 ? 'item' : 'itens'}</div>
+              </div>
             </div>
             {cart.length > 0 && (
               <button onClick={clearCart}

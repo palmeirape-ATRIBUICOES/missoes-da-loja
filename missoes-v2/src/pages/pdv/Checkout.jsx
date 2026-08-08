@@ -148,10 +148,22 @@ export default function Checkout({ cart, total, onFinalize, onBack }) {
               </div>
             </div>
           )}
+
+          {/* Mobile Confirmation Button */}
+          <div className="md:hidden mt-6 border-t border-gray-200 pt-4 max-w-lg mx-auto">
+            <button onClick={handleFinalize}
+              disabled={!canFinalize || processing}
+              className={`w-full h-14 rounded-2xl font-extrabold text-lg transition-all active:scale-[0.97]
+                ${canFinalize && !processing
+                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+              {processing ? '⏳ Processando...' : '✅ CONFIRMAR VENDA'}
+            </button>
+          </div>
         </div>
 
-        {/* Right: Order Summary */}
-        <div className="w-80 bg-white border-l border-gray-200 flex flex-col shrink-0">
+        {/* Right: Order Summary (Desktop Only) */}
+        <div className="hidden md:flex w-80 bg-white border-l border-gray-200 flex-col shrink-0">
           <div className="px-4 py-3 border-b border-gray-200">
             <div className="font-bold text-sm text-gray-900">Resumo</div>
           </div>
