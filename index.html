@@ -244,7 +244,13 @@
       </div>
     </div>
 
-    <div id="topPointsBox" class="hidden items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
+    <div class="flex items-center gap-2">
+      <button id="btnOpenTransmissao" class="text-xs bg-red-50 hover:bg-red-100 text-red-700 font-semibold px-3 py-1.5 rounded-lg border border-red-200 flex items-center gap-1.5 transition shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+        📡 Transmissão
+      </button>
+
+      <div id="topPointsBox" class="hidden items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 17.27l5.18 3.04-1.39-5.99 4.64-4.02-6.12-.53L12 4l-2.31 5.77-6.12.53 4.64 4.02-1.39 5.99L12 17.27z"/>
       </svg>
@@ -252,6 +258,7 @@
         <div class="font-semibold leading-4">Pontos do mês</div>
         <div class="text-lg font-bold leading-5"><span id="monthPointsTop">0</span></div>
       </div>
+    </div>
     </div>
   </div>
 </header>
@@ -303,7 +310,22 @@
     </div>
   </div>
 
-  <div id="loginErrorBox" class="hidden mt-4 text-xs bg-red-50 border border-red-200 text-red-900 rounded p-2"></div>
+    <div id="loginErrorBox" class="hidden mt-4 text-xs bg-red-50 border border-red-200 text-red-900 rounded p-2"></div>
+
+  <!-- Atalho direto para Transmissão no iPhone / Dispositivo -->
+  <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-red-50/50 p-3 rounded-xl border border-red-100">
+    <div class="flex items-center gap-2.5">
+      <span class="text-xl">📹</span>
+      <div>
+        <div class="text-xs font-bold text-gray-800">Usar este aparelho como Câmera / Transmissor</div>
+        <div class="text-[11px] text-gray-500">Inicie a transmissão de vídeo e áudio para o painel remoto.</div>
+      </div>
+    </div>
+    <button id="btnLoginStartTx" class="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs px-3.5 py-2 rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition shrink-0">
+      <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+      Abrir Transmissão
+    </button>
+  </div>
 </section>
 
 <!-- FUNCIONÁRIO -->
@@ -468,6 +490,27 @@
     </div>
   </div>
 
+  <!-- Card de Iniciar Transmissão (Funcionário) -->
+  <div class="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200/80 rounded-xl p-4 shadow-sm mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-red-100 border border-red-200 flex items-center justify-center shrink-0 text-red-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-gray-800 text-sm">Transmissão ao Vivo do Aparelho</h3>
+          <p class="text-xs text-gray-500">Transmita câmera e microfone deste aparelho para acompanhamento no painel do gerente.</p>
+        </div>
+      </div>
+      <button id="btnFuncStartTx" class="bg-red-600 hover:bg-red-700 text-white font-medium text-xs px-4 py-2 rounded-lg flex items-center justify-center gap-1.5 shadow transition shrink-0">
+        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+        Abrir Transmissão
+      </button>
+    </div>
+  </div>
+
   <div id="tasks" class="space-y-4"></div>
 </section>
 
@@ -506,6 +549,7 @@
     <button class="ger-tab" data-tab="listas">📝 Listas</button>
     <button class="ger-tab" data-tab="feedback">💬 Feedback</button>
     <button class="ger-tab" data-tab="contracheques">💵 Contracheques</button>
+    <button class="ger-tab" data-tab="transmissoes">📡 Transmissões</button>
     <button class="ger-tab" data-tab="config">⚙️ Config</button>
   </div>
 
@@ -1548,7 +1592,7 @@
   // =========================
   // ✅ ANTI-CACHE (PWA / SW)
   // =========================
-  const BUILD_ID = "2026-05-14-push-notif";
+  const BUILD_ID = "2026-11-01-webrtc-v1";
   console.log("BUILD_ID", BUILD_ID);
   let swReg = null;
 
@@ -6524,6 +6568,11 @@ function printProductLabels() {
       show("transmissao");
     });
 
+    $("btnLoginStartTx")?.addEventListener("click", () => {
+      initDeviceNameInput();
+      show("transmissao");
+    });
+
     $("btnManagerOpenBroadcaster")?.addEventListener("click", () => {
       initDeviceNameInput();
       show("transmissao");
@@ -6545,6 +6594,17 @@ function printProductLabels() {
   }
 
   setupTransmissaoListeners();
+
+  // Detecta URL param ?modo=transmissao ou hash #transmissao
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("modo") === "transmissao" || window.location.hash === "#transmissao") {
+      setTimeout(() => {
+        initDeviceNameInput();
+        show("transmissao");
+      }, 200);
+    }
+  } catch(e){}
 
   $("btnPrintPrices")?.addEventListener("click", printProductLabels);
   
