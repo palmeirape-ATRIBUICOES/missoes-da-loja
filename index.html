@@ -1211,9 +1211,274 @@
       </button>
     </div>
   </div>
+  <!-- PANEL: TRANSMISSÕES AO VIVO -->
+  <div class="ger-panel" data-panel="transmissoes">
+    <!-- Top banner -->
+    <div class="bg-white p-4 rounded-xl shadow mb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b pb-3 mb-4">
+        <div>
+          <h3 class="font-semibold text-lg text-gray-800 flex items-center gap-2">
+            📡 Transmissões ao Vivo & Monitoramento
+          </h3>
+          <p class="text-xs text-gray-500">Acompanhe as câmeras transmitidas em tempo real pelos aparelhos autorizados desta loja.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btnManagerOpenBroadcaster" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+            📹 Transmitir Deste Aparelho
+          </button>
+          <button id="btnRefreshStreams" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-3 py-2 rounded-lg transition">
+            🔄 Atualizar
+          </button>
+        </div>
+      </div>
 
+      <!-- Player de Visualização Ao Vivo (WebRTC Viewer) -->
+      <div id="rxPlayerContainer" class="hidden mb-6 bg-gray-900 rounded-xl overflow-hidden border border-gray-800 shadow-xl">
+        <div class="bg-gray-950 px-4 py-2.5 flex items-center justify-between text-white text-xs border-b border-gray-800">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white animate-pulse shrink-0">
+              ● AO VIVO
+            </span>
+            <span id="rxPlayerDeviceName" class="font-semibold text-gray-200 truncate">Aparelho</span>
+            <span id="rxPlayerPingText" class="text-gray-400 text-[11px] shrink-0">• Último ping: há 1s</span>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button id="btnRxAudioToggle" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-2.5 py-1 rounded text-xs flex items-center gap-1 transition">
+              🔊 Ouvir Áudio
+            </button>
+            <button id="btnRxFullscreen" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-2.5 py-1 rounded text-xs transition">
+              ⛶ Tela Cheia
+            </button>
+            <button id="btnRxClosePlayer" class="bg-gray-800 hover:bg-red-600 text-gray-200 hover:text-white px-2 py-1 rounded text-xs transition">
+              ✕ Fechar
+            </button>
+          </div>
+        </div>
+
+        <div class="relative bg-black aspect-video flex items-center justify-center">
+          <video id="rxRemoteVideo" autoplay playsinline class="w-full h-full object-contain"></video>
+          
+          <!-- Overlay de Carregando / Conectando -->
+          <div id="rxLoadingOverlay" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white text-xs gap-2">
+            <div class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <div id="rxLoadingText">Conectando WebRTC ao aparelho...</div>
+          </div>
+
+          <!-- Overlay de Sinal Perdido / Desconectado (Evita tela congelada ser confundida com live!) -->
+          <div id="rxDisconnectedOverlay" class="hidden absolute inset-0 bg-red-950/90 backdrop-blur-sm flex flex-col items-center justify-center text-white p-6 text-center">
+            <span class="text-3xl mb-2">⚠️</span>
+            <h4 class="font-bold text-sm text-red-200 mb-1">TRANSMISSÃO INTERROMPIDA / SINAL PERDIDO</h4>
+            <p class="text-xs text-red-300 max-w-sm">O aparelho transmissor parou de enviar sinais (o app pode ter sido minimizado, a tela bloqueada ou a conexão caiu).</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-950 px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400 border-t border-gray-800">
+          <div class="text-[11px]">
+            🔒 Conexão WebRTC P2P Criptografada • Sem gravação permanente
+          </div>
+          <div>
+            <button id="btnRxRemoteEnd" class="text-red-400 hover:text-red-300 hover:underline font-semibold text-xs flex items-center gap-1">
+              ⏹️ Encerrar Sessão Deste Aparelho Remotamente
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Sessões Ativas e Aparelhos -->
+      <div>
+        <h4 class="font-semibold text-sm text-gray-700 mb-3 flex items-center justify-between">
+          <span>Aparelhos & Transmissões Ativas</span>
+          <span id="streamsCountBadge" class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-normal">0 transmissões</span>
+        </h4>
+
+        <div id="streamsList" class="space-y-3">
+          <div class="text-center p-6 text-gray-400 text-xs">
+            Nenhuma transmissão ativa no momento. Inicie uma transmissão pelo PWA no iPhone ou outro aparelho.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordion: Configuração de Conexão WebRTC (STUN / TURN) -->
+    <div class="bg-white p-4 rounded-xl shadow mb-4">
+      <details class="group">
+        <summary class="font-semibold text-sm text-gray-800 cursor-pointer flex items-center justify-between">
+          <span class="flex items-center gap-1.5">
+            ⚙️ Configuração de Conexão WebRTC (STUN / TURN)
+          </span>
+          <span class="text-xs text-blue-600 group-open:rotate-180 transition-transform">▼</span>
+        </summary>
+        <div class="pt-3 text-xs text-gray-600 space-y-3 border-t mt-3">
+          <p>
+            O WebRTC conecta diretamente os aparelhos utilizando servidores <b>STUN</b> (descoberta de IP público). Para conexões entre redes 4G/5G com operadoras diferentes ou Wi-Fi corporativo restrito, configure opcionalmente um servidor <b>TURN</b> (relay de tráfego).
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label class="font-bold text-gray-700 block mb-1">Servidor STUN Principal</label>
+              <input id="cfgWebrtcStun" type="text" class="w-full border rounded p-1.5 text-xs bg-gray-50" value="stun:stun.l.google.com:19302" />
+            </div>
+            <div>
+              <label class="font-bold text-gray-700 block mb-1">Servidor TURN (URL Opcional)</label>
+              <input id="cfgWebrtcTurnUrl" type="text" class="w-full border rounded p-1.5 text-xs" placeholder="Ex: turn:turn.exemplo.com:3478" />
+            </div>
+            <div>
+              <label class="font-bold text-gray-700 block mb-1">Usuário TURN</label>
+              <input id="cfgWebrtcTurnUser" type="text" class="w-full border rounded p-1.5 text-xs" placeholder="Usuário" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="font-bold text-gray-700 block mb-1">Senha / Credencial TURN</label>
+              <input id="cfgWebrtcTurnPass" type="password" class="w-full border rounded p-1.5 text-xs" placeholder="Senha ou auth token" />
+            </div>
+            <div class="flex items-end">
+              <button id="btnSaveWebrtcCfg" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-3 rounded text-xs transition">
+                Salvar Config WebRTC
+              </button>
+            </div>
+          </div>
+          <div class="p-2.5 bg-gray-50 rounded text-[11px] text-gray-500">
+            💡 Dica: Sem servidor TURN configurado, os servidores STUN do Google são utilizados automaticamente, cobrindo a maioria das redes Wi-Fi e residenciais. Para redes 4G sob CGNAT duplo, recomenda-se obter credenciais TURN gratuitas em serviços como Metered.ca ou Twilio.
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
 
 </section>
+
+<!-- SEÇÃO DE TRANSMISSÃO AO VIVO DO DISPOSITIVO (PWA BROADCASTER) -->
+<section id="transmissao" class="hidden max-w-2xl mx-auto space-y-4">
+  <!-- Top bar da transmissão -->
+  <div class="bg-white p-4 rounded-xl shadow flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <button id="btnBackFromTx" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+        ← Voltar
+      </button>
+      <div>
+        <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+          📡 Transmissão do Aparelho
+        </h2>
+        <p class="text-xs text-gray-500">Transmita vídeo e áudio em tempo real para o painel remoto</p>
+      </div>
+    </div>
+    <div id="txStatusBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-600">
+      ⚪ Pronto
+    </div>
+  </div>
+
+  <!-- Card Principal de Transmissão -->
+  <div class="bg-white p-4 rounded-xl shadow space-y-4">
+    <!-- Caixa de vídeo (Preview local / Ao vivo) -->
+    <div class="relative bg-black rounded-xl overflow-hidden aspect-[4/3] flex items-center justify-center border border-gray-800 shadow-inner">
+      <video id="txLocalVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+      
+      <!-- Overlay quando câmera desligada -->
+      <div id="txVideoPlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 bg-gray-900/90 p-4 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-gray-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        <p class="text-sm font-semibold text-gray-200">Câmera desativada</p>
+        <p class="text-xs text-gray-400 mt-1 max-w-xs">Configure o aparelho abaixo e clique em Iniciar Transmissão.</p>
+      </div>
+
+      <!-- Badge piscante de gravação/live -->
+      <div id="txLiveIndicator" class="hidden absolute top-3 left-3 bg-red-600/90 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-lg items-center gap-1.5 animate-pulse">
+        <span class="w-2 h-2 rounded-full bg-white"></span>
+        AO VIVO
+      </div>
+
+      <!-- Badge de câmera ativa -->
+      <div id="txFacingIndicator" class="hidden absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-[11px] font-medium px-2 py-0.5 rounded shadow">
+        📷 Câmera Traseira
+      </div>
+
+      <!-- Badge de Screen Wake Lock -->
+      <div id="txWakeLockBadge" class="hidden absolute bottom-3 left-3 bg-emerald-900/80 backdrop-blur-sm text-emerald-200 text-[10px] font-semibold px-2 py-0.5 rounded-full items-center gap-1 shadow">
+        🔒 Tela Mantida Acesa
+      </div>
+    </div>
+
+    <!-- Controles de Configuração do Dispositivo -->
+    <div id="txConfigControls" class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t">
+      <div>
+        <label class="text-xs font-bold text-gray-600 block mb-1">Nome deste Aparelho</label>
+        <input id="txDeviceName" type="text" class="w-full border rounded-lg p-2 text-sm bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500" placeholder="Ex: iPhone do Thiago, Balcão 1" />
+        <p class="text-[10px] text-gray-400 mt-0.5">Identifica seu aparelho no painel do gerente.</p>
+      </div>
+
+      <div>
+        <label class="text-xs font-bold text-gray-600 block mb-1">Seleção de Câmera</label>
+        <select id="txCameraSelect" class="w-full border rounded-lg p-2 text-sm bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500">
+          <option value="environment" selected>Câmera Traseira (Principal)</option>
+          <option value="user">Câmera Frontal (Selfie)</option>
+        </select>
+        <p class="text-[10px] text-gray-400 mt-0.5">Alterne conforme o posicionamento do aparelho.</p>
+      </div>
+
+      <div class="sm:col-span-2 flex items-center justify-between p-2.5 bg-gray-50 rounded-lg border">
+        <div class="flex items-center gap-2">
+          <span class="text-base">🎙️</span>
+          <div>
+            <div class="text-xs font-bold text-gray-700">Microfone (Áudio)</div>
+            <div class="text-[11px] text-gray-500">Transmitir o som ambiente junto com o vídeo.</div>
+          </div>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="txAudioEnabled" class="sr-only peer" checked>
+          <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Botões de Ação -->
+    <div class="space-y-2 pt-2">
+      <button id="btnStartTx" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl shadow transition duration-150 flex items-center justify-center gap-2 text-sm">
+        <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
+        ▶️ Iniciar Transmissão ao Vivo
+      </button>
+
+      <!-- Botões ativos durante transmissão -->
+      <div id="txActiveButtons" class="hidden grid grid-cols-2 gap-2">
+        <button id="btnSwitchCamera" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2.5 px-3 rounded-xl transition text-xs flex items-center justify-center gap-1.5 border">
+          🔄 Alternar Câmera
+        </button>
+        <button id="btnStopTx" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-3 rounded-xl shadow transition text-xs flex items-center justify-center gap-1.5">
+          ⏹️ Encerrar Transmissão
+        </button>
+      </div>
+    </div>
+
+    <!-- Indicador de Status / Log -->
+    <div id="txStatusBox" class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-start gap-2">
+      <span class="text-sm">ℹ️</span>
+      <div id="txStatusText">Pronto para iniciar. Ao clicar em Iniciar, permita o acesso à câmera e microfone quando solicitado pelo navegador.</div>
+    </div>
+
+    <!-- Erros de permissão / alertas -->
+    <div id="txAlertBox" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-900 space-y-1">
+      <div class="font-bold flex items-center gap-1.5 text-red-700">
+        <span>⚠️</span> <span id="txAlertTitle">Erro</span>
+      </div>
+      <div id="txAlertMsg"></div>
+    </div>
+  </div>
+
+  <!-- Card de Termos, Segurança & Limitações do iOS -->
+  <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-4 text-xs text-amber-900 space-y-2">
+    <div class="font-bold text-amber-950 flex items-center gap-1.5 text-xs">
+      <span>🛡️</span> Segurança, Privacidade & Limitações do Aparelho (iOS / Safari)
+    </div>
+    <ul class="space-y-1.5 text-[11px] text-amber-800 list-disc list-inside">
+      <li><b>Sem acesso permanente:</b> Instalar o PWA <u>não concede acesso permanente</u> à câmera ou ao microfone. A captura é solicitada via API oficial do navegador somente ao iniciar a sessão.</li>
+      <li><b>Primeiro plano obrigatório:</b> O funcionamento depende do PWA permanecer <u>aberto em primeiro plano</u> com a tela desbloqueada.</li>
+      <li><b>Interrupções do sistema:</b> Bloquear a tela, trocar de aplicativo, receber chamadas ou perder o sinal de internet suspenderá a transmissão pelo iOS.</li>
+      <li><b>Screen Wake Lock:</b> O PWA tenta manter a tela acesa enquanto você transmite para evitar que o aparelho bloqueie sozinho.</li>
+      <li><b>Sem comando remoto oculto:</b> O painel remoto <u>não</u> pode ligar sua câmera por comando remoto sem o seu consentimento e ação local explícita.</li>
+      <li><b>Conexão segura:</b> O vídeo e áudio trafegam via WebRTC criptografado ponto a ponto diretamente entre os dispositivos. Não há gravação em servidores.</li>
+    </ul>
+  </div>
+</section>
+
 
 <!-- Toast (sem alert bugado) -->
 <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 hidden z-50">
@@ -1851,7 +2116,7 @@
   window.addEventListener("unhandledrejection", (e)=> fatal("Falha ao conectar no banco.", e?.reason || e));
 
   function show(section){
-    ["login","funcionario","gerente"].forEach(s => $(s).classList.add("hidden"));
+    ["login","funcionario","gerente","transmissao"].forEach(s => $(s)?.classList.add("hidden"));
     $(section).classList.remove("hidden");
     updateTopBar();
   }
@@ -2034,6 +2299,13 @@
   const metaRef    = () => doc(db,"stores",STORE_ID,"meta","app");
   const userRef    = (user) => doc(db,"stores",STORE_ID,"users",user);
   const colContracheques = () => collection(db, "stores", STORE_ID, "state", "contracheques", "items");
+  const colStreams = () => collection(db, "stores", STORE_ID, "state", "streams", "sessions");
+  const streamDocRef = (id) => doc(db, "stores", STORE_ID, "state", "streams", "sessions", id);
+  const streamOfferRef = (id) => doc(db, "stores", STORE_ID, "state", "streams", "sessions", id, "signaling", "offer");
+  const streamAnswerRef = (id) => doc(db, "stores", STORE_ID, "state", "streams", "sessions", id, "signaling", "answer");
+  const streamBroadcasterCandidatesCol = (id) => collection(db, "stores", STORE_ID, "state", "streams", "sessions", id, "broadcaster_candidates");
+  const streamViewerCandidatesCol = (id) => collection(db, "stores", STORE_ID, "state", "streams", "sessions", id, "viewer_candidates");
+  const cfgWebRtcRef = () => doc(db, "stores", STORE_ID, "config", "webrtc");
   const escalaRef  = (wk) => doc(db,"stores",STORE_ID,"state","escala_"+wk);
 
   // collections
@@ -2058,6 +2330,17 @@
     const topTitle = $("topTitle");
     const topSubtitle = $("topSubtitle");
     const pointsBox = $("topPointsBox");
+
+    const btnTx = $("btnOpenTransmissao");
+    if (btnTx) {
+      if (currentUser) {
+        btnTx.classList.remove("hidden");
+        btnTx.classList.add("flex");
+      } else {
+        btnTx.classList.add("hidden");
+        btnTx.classList.remove("flex");
+      }
+    }
 
     if (!currentUser){
       topTitle.innerText = "Entrar";
@@ -4044,6 +4327,8 @@
   }
 
   function doLogout(){
+    try { stopBroadcasting(); } catch(e){}
+    try { closeViewer(); } catch(e){}
     currentUser = "";
     clearSession();
     show("login");
@@ -4051,6 +4336,8 @@
 
   // ===== Loja selector =====
   $("storeSelect").addEventListener("change", async ()=>{
+    try { stopBroadcasting(); } catch(e){}
+    try { closeViewer(); } catch(e){}
     storeKey = $("storeSelect").value;
     STORE_ID = STORE_MAP[storeKey].id;
     clearSession();
@@ -4323,6 +4610,25 @@
         renderContrachequeFilters();
         renderContrachequesUI();
       });
+
+      // ✅ TRANSMISSÕES Snapshot Listener
+      if (unsubscribeStreams) {
+        unsubscribeStreams();
+        unsubscribeStreams = null;
+      }
+      unsubscribeStreams = onSnapshot(query(colStreams(), orderBy("createdAt", "desc"), limit(25)), (qs)=>{
+        activeStreamsAll = qs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderStreamsList();
+      });
+
+      // Carregar configurações WebRTC salvas
+      try {
+        const webrtcSnap = await getDoc(cfgWebRtcRef());
+        if (webrtcSnap.exists()) {
+          webrtcConfig = { ...webrtcConfig, ...webrtcSnap.data() };
+          populateWebRtcConfigInputs();
+        }
+      } catch(e) { console.warn("Erro ao carregar config webrtc:", e); }
 
       // setup tabs
       setupGerTabs();
@@ -5433,6 +5739,812 @@ function printProductLabels() {
 
   // Initialize listeners
   setupContrachequeListeners();
+
+  
+  // ==========================================
+  // 📡 WEBRTC LIVE TRANSMISSION & MONITORING
+  // ==========================================
+
+  let txLocalStream = null;
+  let txPeerConnection = null;
+  let txSessionId = null;
+  let txWakeLock = null;
+  let txHeartbeatInterval = null;
+  let txUnsubSession = null;
+  let txUnsubAnswer = null;
+  let txUnsubViewerCandidates = null;
+  let txCurrentFacingMode = "environment"; // default back camera
+  let txIsBroadcasting = false;
+
+  let rxPeerConnection = null;
+  let rxActiveSessionId = null;
+  let rxUnsubBroadcasterCandidates = null;
+  let rxHeartbeatCheckInterval = null;
+  let rxLastPingTime = 0;
+
+  let activeStreamsAll = [];
+  let unsubscribeStreams = null;
+  let webrtcConfig = {
+    stun: "stun:stun.l.google.com:19302",
+    turnUrl: "",
+    turnUser: "",
+    turnPass: ""
+  };
+
+  function getIceServers() {
+    const servers = [
+      { urls: webrtcConfig.stun || "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
+      { urls: "stun:stun2.l.google.com:19302" }
+    ];
+    if (webrtcConfig.turnUrl && webrtcConfig.turnUrl.trim()) {
+      const turnObj = { urls: webrtcConfig.turnUrl.trim() };
+      if (webrtcConfig.turnUser && webrtcConfig.turnUser.trim()) {
+        turnObj.username = webrtcConfig.turnUser.trim();
+      }
+      if (webrtcConfig.turnPass && webrtcConfig.turnPass.trim()) {
+        turnObj.credential = webrtcConfig.turnPass.trim();
+      }
+      servers.push(turnObj);
+    }
+    return servers;
+  }
+
+  function getOrCreateDeviceId() {
+    let id = localStorage.getItem("tx_device_id");
+    if (!id) {
+      id = "dev_" + Math.random().toString(36).substring(2, 10) + "_" + Date.now().toString(36);
+      localStorage.setItem("tx_device_id", id);
+    }
+    return id;
+  }
+
+  function initDeviceNameInput() {
+    const devInput = $("txDeviceName");
+    if (!devInput) return;
+    const saved = localStorage.getItem("tx_device_name");
+    if (saved) {
+      devInput.value = saved;
+    } else {
+      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      devInput.value = isIos ? `iPhone de ${currentUser || 'Usuário'}` : `Dispositivo de ${currentUser || 'Usuário'}`;
+    }
+  }
+
+  // --- Screen Wake Lock ---
+  async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      try {
+        txWakeLock = await navigator.wakeLock.request('screen');
+        txWakeLock.addEventListener('release', () => {
+          console.log('[WakeLock] Bloqueio de tela liberado.');
+          updateWakeLockUI(false);
+        });
+        console.log('[WakeLock] Bloqueio de tela ativado.');
+        updateWakeLockUI(true);
+      } catch (err) {
+        console.warn('[WakeLock] Não foi possível ativar:', err);
+        updateWakeLockUI(false);
+      }
+    } else {
+      console.log('[WakeLock] Não suportado neste navegador.');
+      updateWakeLockUI(false);
+    }
+  }
+
+  function releaseWakeLock() {
+    if (txWakeLock) {
+      try { txWakeLock.release(); } catch(e){}
+      txWakeLock = null;
+    }
+    updateWakeLockUI(false);
+  }
+
+  function updateWakeLockUI(active) {
+    const badge = $("txWakeLockBadge");
+    if (!badge) return;
+    if (active) {
+      badge.classList.remove("hidden");
+      badge.classList.add("flex");
+      badge.innerHTML = "🔒 Tela Mantida Acesa";
+      badge.className = "absolute bottom-3 left-3 bg-emerald-900/80 backdrop-blur-sm text-emerald-200 text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 shadow";
+    } else {
+      badge.classList.remove("hidden");
+      badge.classList.add("flex");
+      badge.innerHTML = "⚠️ Wake Lock Inativo";
+      badge.className = "absolute bottom-3 left-3 bg-amber-900/80 backdrop-blur-sm text-amber-200 text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 shadow";
+    }
+  }
+
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible' && txIsBroadcasting) {
+      console.log('[WakeLock] Re-solicitando Wake Lock pós-visibilidade...');
+      await requestWakeLock();
+    }
+  });
+
+  // --- Broadcaster UI State ---
+  function setTxStatus(msg, isLive = false) {
+    if ($("txStatusText")) $("txStatusText").innerText = msg;
+    const badge = $("txStatusBadge");
+    if (!badge) return;
+    if (isLive) {
+      badge.innerText = "🟢 Transmitindo";
+      badge.className = "text-xs font-bold px-3 py-1 rounded-full bg-red-100 text-red-700 animate-pulse";
+    } else {
+      badge.innerText = "⚪ Pronto";
+      badge.className = "text-xs font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-600";
+    }
+  }
+
+  function showTxAlert(title, msg) {
+    const box = $("txAlertBox");
+    if (!box) return;
+    box.classList.remove("hidden");
+    if ($("txAlertTitle")) $("txAlertTitle").innerText = title;
+    if ($("txAlertMsg")) $("txAlertMsg").innerHTML = msg;
+  }
+
+  function hideTxAlert() {
+    const box = $("txAlertBox");
+    if (box) box.classList.add("hidden");
+  }
+
+  function updateFacingModeUI() {
+    const ind = $("txFacingIndicator");
+    if (!ind) return;
+    ind.innerText = txCurrentFacingMode === "user" ? "📷 Câmera Frontal" : "📷 Câmera Traseira";
+  }
+
+  // --- Broadcaster Core ---
+  async function startBroadcasting() {
+    hideTxAlert();
+
+    // Check secure context
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      showTxAlert("Contexto Inseguro (HTTPS Necessário)", "A captura de câmera e microfone exige uma conexão segura (HTTPS). No iOS Safari e navegadores modernos, a API de mídia é bloqueada sob HTTP.");
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showTxAlert("API Indisponível", "Seu navegador não suporta a API de captura de mídia (navigator.mediaDevices.getUserMedia). Atualize seu sistema ou use o Safari no iOS.");
+      return;
+    }
+
+    const devName = $("txDeviceName")?.value.trim() || `iPhone de ${currentUser || 'Usuário'}`;
+    localStorage.setItem("tx_device_name", devName);
+    txCurrentFacingMode = $("txCameraSelect")?.value || "environment";
+    const audioEnabled = $("txAudioEnabled")?.checked ?? true;
+
+    setTxStatus("Solicitando permissão de câmera e microfone...");
+
+    try {
+      txLocalStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: txCurrentFacingMode },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: audioEnabled
+      });
+    } catch (err) {
+      console.error("[Broadcaster] Erro ao obter mídia:", err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        showTxAlert("Permissão Negada", "O acesso à câmera e/ou microfone foi negado. <br>• <b>No iOS Safari:</b> Toque no ícone 'aA' à esquerda da barra de endereço > 'Ajustes do Site' > permita Câmera e Microfone.<br>• Depois recarregue a página.");
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        showTxAlert("Dispositivo Não Encontrado", "Nenhuma câmera ou microfone compatível foi detectado no aparelho.");
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        showTxAlert("Câmera Bloqueada", "A câmera já está sendo utilizada por outro aplicativo ou processo.");
+      } else {
+        showTxAlert("Erro de Captura", err.message || "Não foi possível iniciar a captura.");
+      }
+      setTxStatus("Falha na captura.");
+      return;
+    }
+
+    // Attach to local preview
+    const videoEl = $("txLocalVideo");
+    if (videoEl) {
+      videoEl.srcObject = txLocalStream;
+      videoEl.play().catch(e => console.warn("Local play warn:", e));
+    }
+    $("txVideoPlaceholder")?.classList.add("hidden");
+    $("txLiveIndicator")?.classList.remove("hidden");
+    $("txLiveIndicator")?.classList.add("flex");
+    $("txFacingIndicator")?.classList.remove("hidden");
+    $("txConfigControls")?.classList.add("hidden");
+    $("btnStartTx")?.classList.add("hidden");
+    $("txActiveButtons")?.classList.remove("hidden");
+    $("txActiveButtons")?.classList.add("grid");
+
+    updateFacingModeUI();
+    txIsBroadcasting = true;
+
+    // Wake lock
+    await requestWakeLock();
+
+    // Listen for track termination by OS/hardware
+    txLocalStream.getVideoTracks().forEach(track => {
+      track.onended = () => {
+        if (txIsBroadcasting) {
+          toast("Captura de câmera interrompida pelo sistema.");
+          stopBroadcasting();
+        }
+      };
+    });
+
+    setTxStatus("Inicializando sinalização WebRTC...");
+
+    try {
+      // 1. Create session doc in Firestore
+      const sessPayload = {
+        storeId: STORE_ID,
+        deviceName: devName,
+        deviceId: getOrCreateDeviceId(),
+        createdBy: currentUser || "Usuário",
+        facingMode: txCurrentFacingMode,
+        hasAudio: audioEnabled,
+        status: "broadcasting",
+        createdAt: serverTimestamp(),
+        lastPing: Date.now()
+      };
+      const sessDoc = await addDoc(colStreams(), sessPayload);
+      txSessionId = sessDoc.id;
+      console.log("[Broadcaster] Sessão criada no Firestore:", txSessionId);
+
+      // 2. Initialize RTCPeerConnection
+      txPeerConnection = new RTCPeerConnection({ iceServers: getIceServers() });
+
+      // Add tracks
+      txLocalStream.getTracks().forEach(track => {
+        txPeerConnection.addTrack(track, txLocalStream);
+      });
+
+      // Handle ICE candidates
+      txPeerConnection.onicecandidate = async (event) => {
+        if (event.candidate && txSessionId) {
+          try {
+            await addDoc(streamBroadcasterCandidatesCol(txSessionId), event.candidate.toJSON());
+          } catch(e) {
+            console.warn("Erro ao salvar broadcaster candidate:", e);
+          }
+        }
+      };
+
+      txPeerConnection.onconnectionstatechange = () => {
+        const state = txPeerConnection?.connectionState;
+        console.log("[Broadcaster] Connection state:", state);
+        if (state === 'connected') {
+          setTxStatus("Visualizador conectado! Transmitindo ao vivo.", true);
+        } else if (state === 'disconnected') {
+          setTxStatus("Visualizador desconectado. Aguardando reconexão...", true);
+        } else if (state === 'failed') {
+          setTxStatus("Falha na conexão WebRTC. Verifique configurações STUN/TURN.", true);
+        }
+      };
+
+      // 3. Create Offer
+      const offer = await txPeerConnection.createOffer();
+      await txPeerConnection.setLocalDescription(offer);
+
+      await setDoc(streamOfferRef(txSessionId), {
+        sdp: offer.sdp,
+        type: offer.type,
+        createdAt: Date.now()
+      });
+
+      setTxStatus("Aguardando visualizador no painel do gerente...", true);
+
+      // 4. Listen for Answer
+      txUnsubAnswer = onSnapshot(streamAnswerRef(txSessionId), async (snap) => {
+        if (snap.exists() && txPeerConnection && !txPeerConnection.currentRemoteDescription) {
+          const answerData = snap.data();
+          try {
+            await txPeerConnection.setRemoteDescription(new RTCSessionDescription(answerData));
+            console.log("[Broadcaster] Answer aplicado com sucesso!");
+          } catch(e) {
+            console.warn("[Broadcaster] Erro ao setRemoteDescription:", e);
+          }
+        }
+      });
+
+      // 5. Listen for Viewer ICE candidates
+      txUnsubViewerCandidates = onSnapshot(streamViewerCandidatesCol(txSessionId), (snap) => {
+        snap.docChanges().forEach(async (change) => {
+          if (change.type === 'added' && txPeerConnection) {
+            try {
+              const candidate = new RTCIceCandidate(change.doc.data());
+              await txPeerConnection.addIceCandidate(candidate);
+            } catch(e) {
+              console.warn("[Broadcaster] Erro ao addIceCandidate viewer:", e);
+            }
+          }
+        });
+      });
+
+      // 6. Listen for Remote Termination by manager
+      txUnsubSession = onSnapshot(streamDocRef(txSessionId), (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data.status === 'ended_remotely') {
+            toast("Transmissão encerrada remotamente pelo painel.");
+            stopBroadcasting(true);
+          }
+        }
+      });
+
+      // 7. Heartbeat
+      txHeartbeatInterval = setInterval(async () => {
+        if (txSessionId && txIsBroadcasting) {
+          try {
+            await updateDoc(streamDocRef(txSessionId), { lastPing: Date.now() });
+          } catch(e) {
+            console.warn("[Broadcaster] Erro no heartbeat:", e);
+          }
+        }
+      }, 4000);
+
+    } catch(err) {
+      console.error("[Broadcaster] Falha ao configurar WebRTC:", err);
+      showTxAlert("Falha na Sinalização", "Erro ao conectar com o serviço de sinalização: " + err.message);
+      stopBroadcasting();
+    }
+  }
+
+  async function stopBroadcasting(isRemote = false) {
+    txIsBroadcasting = false;
+
+    // Clear heartbeat
+    if (txHeartbeatInterval) {
+      clearInterval(txHeartbeatInterval);
+      txHeartbeatInterval = null;
+    }
+
+    // Unsub listeners
+    if (txUnsubAnswer) { txUnsubAnswer(); txUnsubAnswer = null; }
+    if (txUnsubViewerCandidates) { txUnsubViewerCandidates(); txUnsubViewerCandidates = null; }
+    if (txUnsubSession) { txUnsubSession(); txUnsubSession = null; }
+
+    // Update session doc in Firestore
+    if (txSessionId && !isRemote) {
+      try {
+        await updateDoc(streamDocRef(txSessionId), {
+          status: 'ended',
+          endedAt: Date.now()
+        });
+      } catch(e) { console.warn("Erro ao atualizar status de encerramento:", e); }
+    }
+    txSessionId = null;
+
+    // Close peer connection
+    if (txPeerConnection) {
+      try { txPeerConnection.close(); } catch(e){}
+      txPeerConnection = null;
+    }
+
+    // Release camera and mic tracks
+    if (txLocalStream) {
+      txLocalStream.getTracks().forEach(t => {
+        try { t.stop(); } catch(e){}
+      });
+      txLocalStream = null;
+    }
+
+    const videoEl = $("txLocalVideo");
+    if (videoEl) {
+      videoEl.srcObject = null;
+    }
+
+    // Release wake lock
+    releaseWakeLock();
+
+    // Reset UI
+    $("txVideoPlaceholder")?.classList.remove("hidden");
+    $("txLiveIndicator")?.classList.add("hidden");
+    $("txFacingIndicator")?.classList.add("hidden");
+    $("txConfigControls")?.classList.remove("hidden");
+    $("btnStartTx")?.classList.remove("hidden");
+    $("txActiveButtons")?.classList.add("hidden");
+    $("txActiveButtons")?.classList.remove("grid");
+
+    setTxStatus("Transmissão encerrada.");
+  }
+
+  async function switchCamera() {
+    if (!txIsBroadcasting || !txLocalStream) return;
+    txCurrentFacingMode = txCurrentFacingMode === "user" ? "environment" : "user";
+    setTxStatus("Alternando câmera...");
+
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: txCurrentFacingMode },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: $("txAudioEnabled")?.checked ?? true
+      });
+
+      const newVideoTrack = newStream.getVideoTracks()[0];
+      if (txPeerConnection) {
+        const sender = txPeerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+        if (sender) {
+          await sender.replaceTrack(newVideoTrack);
+        }
+      }
+
+      const oldVideoTrack = txLocalStream.getVideoTracks()[0];
+      if (oldVideoTrack) oldVideoTrack.stop();
+      txLocalStream.removeTrack(oldVideoTrack);
+      txLocalStream.addTrack(newVideoTrack);
+
+      const videoEl = $("txLocalVideo");
+      if (videoEl) videoEl.srcObject = txLocalStream;
+
+      updateFacingModeUI();
+      setTxStatus("Câmera alternada com sucesso.", true);
+      toast("Câmera alternada.");
+    } catch(err) {
+      console.error("[Broadcaster] Erro ao alternar câmera:", err);
+      toast("Não foi possível alternar a câmera.");
+      setTxStatus("Erro ao alternar câmera.", true);
+    }
+  }
+
+  // --- Viewer (Gerente Panel) ---
+  function renderStreamsList() {
+    const listWrap = $("streamsList");
+    const countBadge = $("streamsCountBadge");
+    if (!listWrap) return;
+
+    const streams = activeStreamsAll || [];
+    if (countBadge) {
+      const activeCount = streams.filter(s => s.status === 'broadcasting' && (Date.now() - (s.lastPing || 0)) <= 15000).length;
+      countBadge.innerText = `${activeCount} ao vivo (${streams.length} total)`;
+    }
+
+    if (!streams.length) {
+      listWrap.innerHTML = `
+        <div class="text-center p-6 text-gray-400 text-xs bg-gray-50 rounded-xl border border-dashed">
+          Nenhuma transmissão recente registrada nesta loja. Inicie uma transmissão pelo PWA em qualquer aparelho.
+        </div>`;
+      return;
+    }
+
+    listWrap.innerHTML = "";
+    const now = Date.now();
+
+    streams.forEach(s => {
+      const pingDiff = now - (s.lastPing || 0);
+      const isLive = s.status === 'broadcasting' && pingDiff <= 15000;
+      const isLost = s.status === 'broadcasting' && pingDiff > 15000;
+      const isEnded = s.status === 'ended' || s.status === 'ended_remotely';
+
+      const div = document.createElement("div");
+      div.className = "p-3.5 bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:border-blue-200 transition";
+
+      let statusBadge = "";
+      if (isLive) {
+        statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 animate-pulse">● AO VIVO</span>`;
+      } else if (isLost) {
+        statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">⚠️ SINAL PERDIDO</span>`;
+      } else {
+        statusBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">⚪ ENCERRADA</span>`;
+      }
+
+      const pingSeconds = Math.round(pingDiff / 1000);
+      const pingText = isLive ? `Ping há ${pingSeconds}s` : (isLost ? `Sem sinal há ${pingSeconds}s` : `Encerrada`);
+      const createdStr = s.createdAt?.toDate ? s.createdAt.toDate().toLocaleTimeString("pt-BR") : "";
+
+      div.innerHTML = `
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-bold text-sm text-gray-800">${escapeHtml(s.deviceName || 'Aparelho')}</span>
+            ${statusBadge}
+          </div>
+          <div class="text-xs text-gray-500 mt-1 flex items-center gap-3 flex-wrap">
+            <span>👤 Por: <b>${escapeHtml(s.createdBy || '-')}</b></span>
+            <span>🕒 Início: ${createdStr || '-'}</span>
+            <span>📡 ${pingText}</span>
+            <span>📷 ${s.facingMode === 'user' ? 'Frontal' : 'Traseira'}</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          ${isLive ? `
+            <button class="btn-watch-stream bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 transition shadow-sm" data-id="${s.id}">
+              👁️ Assistir Ao Vivo
+            </button>
+            <button class="btn-remote-end-item bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition" data-id="${s.id}" title="Encerrar remotamente">
+              ⏹️ Encerrar
+            </button>
+          ` : `
+            <button class="btn-del-stream-item bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs px-2.5 py-1.5 rounded-lg transition" data-id="${s.id}" title="Excluir histórico">
+              🗑️ Excluir
+            </button>
+          `}
+        </div>
+      `;
+
+      div.querySelector(".btn-watch-stream")?.addEventListener("click", () => openViewer(s.id));
+      div.querySelector(".btn-remote-end-item")?.addEventListener("click", () => remoteEndSession(s.id));
+      div.querySelector(".btn-del-stream-item")?.addEventListener("click", () => deleteStreamSession(s.id));
+
+      listWrap.appendChild(div);
+    });
+  }
+
+  async function openViewer(sessionId) {
+    closeViewer();
+    rxActiveSessionId = sessionId;
+
+    const stream = activeStreamsAll.find(s => s.id === sessionId);
+    if (!stream) {
+      toast("Sessão não encontrada.");
+      return;
+    }
+
+    const container = $("rxPlayerContainer");
+    if (container) container.classList.remove("hidden");
+
+    if ($("rxPlayerDeviceName")) {
+      $("rxPlayerDeviceName").innerText = stream.deviceName || "Aparelho";
+    }
+
+    $("rxLoadingOverlay")?.classList.remove("hidden");
+    $("rxDisconnectedOverlay")?.classList.add("hidden");
+    if ($("rxLoadingText")) $("rxLoadingText").innerText = "Obtendo oferta de sinal WebRTC...";
+
+    try {
+      // 1. Fetch offer from Firestore
+      const offerSnap = await getDoc(streamOfferRef(sessionId));
+      if (!offerSnap.exists()) {
+        toast("Oferta de transmissão ainda não disponível. Tente novamente.");
+        closeViewer();
+        return;
+      }
+      const offerData = offerSnap.data();
+
+      // 2. Initialize RTCPeerConnection
+      rxPeerConnection = new RTCPeerConnection({ iceServers: getIceServers() });
+
+      // Handle incoming media stream
+      const remoteVideo = $("rxRemoteVideo");
+      if (remoteVideo) {
+        remoteVideo.muted = true; // start muted for autoplay compliance
+        updateAudioButtonUI(false);
+      }
+
+      rxPeerConnection.ontrack = (event) => {
+        console.log("[Viewer] Track recebido:", event.track.kind);
+        if (remoteVideo) {
+          remoteVideo.srcObject = event.streams[0];
+          remoteVideo.play().catch(e => console.warn("Remote play warn:", e));
+        }
+        $("rxLoadingOverlay")?.classList.add("hidden");
+      };
+
+      // Handle viewer ICE candidates
+      rxPeerConnection.onicecandidate = async (event) => {
+        if (event.candidate && rxActiveSessionId) {
+          try {
+            await addDoc(streamViewerCandidatesCol(rxActiveSessionId), event.candidate.toJSON());
+          } catch(e) {
+            console.warn("Erro ao enviar candidate do viewer:", e);
+          }
+        }
+      };
+
+      // 3. Set remote description (Offer)
+      await rxPeerConnection.setRemoteDescription(new RTCSessionDescription(offerData));
+
+      // 4. Create and set Answer
+      const answer = await rxPeerConnection.createAnswer();
+      await rxPeerConnection.setLocalDescription(answer);
+
+      await setDoc(streamAnswerRef(sessionId), {
+        sdp: answer.sdp,
+        type: answer.type,
+        createdAt: Date.now()
+      });
+
+      console.log("[Viewer] Answer salvo no Firestore.");
+
+      // 5. Listen to broadcaster ICE candidates
+      rxUnsubBroadcasterCandidates = onSnapshot(streamBroadcasterCandidatesCol(sessionId), (snap) => {
+        snap.docChanges().forEach(async (change) => {
+          if (change.type === 'added' && rxPeerConnection) {
+            try {
+              const candidate = new RTCIceCandidate(change.doc.data());
+              await rxPeerConnection.addIceCandidate(candidate);
+            } catch(e) {
+              console.warn("[Viewer] Erro ao addIceCandidate broadcaster:", e);
+            }
+          }
+        });
+      });
+
+      // 6. Heartbeat monitor to avoid frozen frames appearing live
+      rxHeartbeatCheckInterval = setInterval(async () => {
+        if (!rxActiveSessionId) return;
+        const cur = activeStreamsAll.find(s => s.id === rxActiveSessionId);
+        if (cur) {
+          const diff = Date.now() - (cur.lastPing || 0);
+          const diffSec = Math.round(diff / 1000);
+          if ($("rxPlayerPingText")) {
+            $("rxPlayerPingText").innerText = `• Último ping: há ${diffSec}s`;
+          }
+
+          if (diff > 14000 || cur.status === 'ended' || cur.status === 'ended_remotely') {
+            $("rxDisconnectedOverlay")?.classList.remove("hidden");
+          } else {
+            $("rxDisconnectedOverlay")?.classList.add("hidden");
+          }
+        }
+      }, 2000);
+
+      container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch(err) {
+      console.error("[Viewer] Erro ao conectar:", err);
+      toast("Erro ao assistir transmissão: " + err.message);
+      closeViewer();
+    }
+  }
+
+  function closeViewer() {
+    if (rxHeartbeatCheckInterval) {
+      clearInterval(rxHeartbeatCheckInterval);
+      rxHeartbeatCheckInterval = null;
+    }
+    if (rxUnsubBroadcasterCandidates) {
+      rxUnsubBroadcasterCandidates();
+      rxUnsubBroadcasterCandidates = null;
+    }
+    if (rxPeerConnection) {
+      try { rxPeerConnection.close(); } catch(e){}
+      rxPeerConnection = null;
+    }
+    rxActiveSessionId = null;
+
+    const remoteVideo = $("rxRemoteVideo");
+    if (remoteVideo) {
+      remoteVideo.srcObject = null;
+    }
+
+    $("rxPlayerContainer")?.classList.add("hidden");
+  }
+
+  function updateAudioButtonUI(unmuted) {
+    const btn = $("btnRxAudioToggle");
+    if (!btn) return;
+    if (unmuted) {
+      btn.innerText = "🔇 Mutar Áudio";
+      btn.className = "bg-gray-700 hover:bg-gray-600 text-white font-medium px-2.5 py-1 rounded text-xs flex items-center gap-1 transition";
+    } else {
+      btn.innerText = "🔊 Ouvir Áudio";
+      btn.className = "bg-blue-600 hover:bg-blue-700 text-white font-medium px-2.5 py-1 rounded text-xs flex items-center gap-1 transition";
+    }
+  }
+
+  function toggleViewerAudio() {
+    const remoteVideo = $("rxRemoteVideo");
+    if (!remoteVideo) return;
+    remoteVideo.muted = !remoteVideo.muted;
+    updateAudioButtonUI(!remoteVideo.muted);
+    toast(remoteVideo.muted ? "Áudio mutado." : "Áudio ativado.");
+  }
+
+  function toggleViewerFullscreen() {
+    const container = $("rxPlayerContainer");
+    if (!container) return;
+    if (!document.fullscreenElement) {
+      container.requestFullscreen().catch(e => console.warn("Fullscreen error:", e));
+    } else {
+      document.exitFullscreen().catch(e => console.warn("Exit fullscreen error:", e));
+    }
+  }
+
+  async function remoteEndSession(sessionId) {
+    if (!confirm("Tem certeza que deseja encerrar remotamente a transmissão deste aparelho?")) return;
+    try {
+      await updateDoc(streamDocRef(sessionId), {
+        status: 'ended_remotely',
+        endedAt: Date.now()
+      });
+      if (rxActiveSessionId === sessionId) {
+        closeViewer();
+      }
+      toast("Transmissão encerrada remotamente.");
+    } catch(err) {
+      console.error("Erro ao encerrar remotamente:", err);
+      toast("Erro ao encerrar sessão.");
+    }
+  }
+
+  async function deleteStreamSession(sessionId) {
+    if (!confirm("Excluir este registro de transmissão do histórico?")) return;
+    try {
+      await deleteDoc(streamDocRef(sessionId));
+      toast("Registro excluído.");
+    } catch(err) {
+      console.error("Erro ao excluir sessão:", err);
+      toast("Erro ao excluir.");
+    }
+  }
+
+  // --- STUN/TURN Config ---
+  function populateWebRtcConfigInputs() {
+    if ($("cfgWebrtcStun")) $("cfgWebrtcStun").value = webrtcConfig.stun || "stun:stun.l.google.com:19302";
+    if ($("cfgWebrtcTurnUrl")) $("cfgWebrtcTurnUrl").value = webrtcConfig.turnUrl || "";
+    if ($("cfgWebrtcTurnUser")) $("cfgWebrtcTurnUser").value = webrtcConfig.turnUser || "";
+    if ($("cfgWebrtcTurnPass")) $("cfgWebrtcTurnPass").value = webrtcConfig.turnPass || "";
+  }
+
+  async function saveWebRtcConfig() {
+    if (!isManager()) return toast("Apenas o gerente.");
+    const stun = $("cfgWebrtcStun")?.value.trim() || "stun:stun.l.google.com:19302";
+    const turnUrl = $("cfgWebrtcTurnUrl")?.value.trim() || "";
+    const turnUser = $("cfgWebrtcTurnUser")?.value.trim() || "";
+    const turnPass = $("cfgWebrtcTurnPass")?.value.trim() || "";
+
+    const payload = { stun, turnUrl, turnUser, turnPass, updatedAt: serverTimestamp() };
+    try {
+      await setDoc(cfgWebRtcRef(), payload, { merge: true });
+      webrtcConfig = { ...webrtcConfig, ...payload };
+      toast("Configurações WebRTC salvas com sucesso!");
+    } catch(e) {
+      console.error("Erro ao salvar config WebRTC:", e);
+      toast("Erro ao salvar configurações.");
+    }
+  }
+
+  // --- Setup Transmission Listeners ---
+  function setupTransmissaoListeners() {
+    $("btnStartTx")?.addEventListener("click", startBroadcasting);
+    $("btnStopTx")?.addEventListener("click", () => stopBroadcasting(false));
+    $("btnSwitchCamera")?.addEventListener("click", switchCamera);
+    
+    $("btnBackFromTx")?.addEventListener("click", () => {
+      if (txIsBroadcasting) {
+        if (!confirm("Deseja realmente voltar? A transmissão ativa será encerrada.")) return;
+        stopBroadcasting(false);
+      }
+      if (isManager()) show("gerente");
+      else show("funcionario");
+    });
+
+    $("btnOpenTransmissao")?.addEventListener("click", () => {
+      initDeviceNameInput();
+      show("transmissao");
+    });
+
+    $("btnFuncStartTx")?.addEventListener("click", () => {
+      initDeviceNameInput();
+      show("transmissao");
+    });
+
+    $("btnManagerOpenBroadcaster")?.addEventListener("click", () => {
+      initDeviceNameInput();
+      show("transmissao");
+    });
+
+    $("btnRefreshStreams")?.addEventListener("click", () => {
+      renderStreamsList();
+      toast("Lista atualizada.");
+    });
+
+    $("btnRxAudioToggle")?.addEventListener("click", toggleViewerAudio);
+    $("btnRxFullscreen")?.addEventListener("click", toggleViewerFullscreen);
+    $("btnRxClosePlayer")?.addEventListener("click", closeViewer);
+    $("btnRxRemoteEnd")?.addEventListener("click", () => {
+      if (rxActiveSessionId) remoteEndSession(rxActiveSessionId);
+    });
+
+    $("btnSaveWebrtcCfg")?.addEventListener("click", saveWebRtcConfig);
+  }
+
+  setupTransmissaoListeners();
 
   $("btnPrintPrices")?.addEventListener("click", printProductLabels);
   
