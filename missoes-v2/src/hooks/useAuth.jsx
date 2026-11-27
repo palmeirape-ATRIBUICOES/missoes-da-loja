@@ -5,10 +5,25 @@ import { STORE_MAP, getSession, saveSession, clearSession } from '../utils/const
 
 const AuthContext = createContext(null)
 
+function getValidatedInitialSession() {
+  const ses = getSession()
+  if (!ses?.user || !ses?.storeKey || !STORE_MAP[ses.storeKey]) {
+    return { user: '', storeKey: 'loja_principal' }
+  }
+  // Ensure a manager user from Store A is never restored under Store B
+  const allManagerUsers = Object.values(STORE_MAP).map(s => s.managerUser)
+  if (allManagerUsers.includes(ses.user) && ses.user !== STORE_MAP[ses.storeKey].managerUser) {
+    clearSession()
+    return { user: '', storeKey: ses.storeKey }
+  }
+  return { user: ses.user, storeKey: ses.storeKey }
+}
+
 export function AuthProvider({ children }) {
+  const initial = getValidatedInitialSession()
   const [firebaseUser, setFirebaseUser] = useState(null)
-  const [currentUser, setCurrentUser] = useState('')
-  const [storeKey, setStoreKey] = useState('loja_principal')
+  const [currentUser, setCurrentUser] = useState(initial.user)
+  const [storeKey, setStoreKey] = useState(initial.storeKey)
   const [loading, setLoading] = useState(true)
 
   // Firebase anonymous auth
@@ -23,23 +38,15 @@ export function AuthProvider({ children }) {
     return unsub
   }, [])
 
-  // Restore session
-  useEffect(() => {
-    const ses = getSession()
-    if (ses?.user && ses?.storeKey && STORE_MAP[ses.storeKey]) {
-      setCurrentUser(ses.user)
-      setStoreKey(ses.storeKey)
-    }
-  }, [])
-
   const store = STORE_MAP[storeKey] || STORE_MAP.loja_principal
   const storeId = store.id
   const isManager = currentUser === store.managerUser
 
   function login(user, sk) {
+    const validKey = STORE_MAP[sk] ? sk : 'loja_principal'
+    setStoreKey(validKey)
     setCurrentUser(user)
-    setStoreKey(sk)
-    saveSession(user, sk)
+    saveSession(user, validKey)
   }
 
   function logout() {
@@ -49,8 +56,9 @@ export function AuthProvider({ children }) {
 
   function switchStore(sk) {
     if (STORE_MAP[sk]) {
+      setCurrentUser('')
       setStoreKey(sk)
-      logout()
+      clearSession()
     }
   }
 

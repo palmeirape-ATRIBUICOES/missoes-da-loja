@@ -1,11 +1,11 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 import { db } from '../config/firebase'
 import {
   doc, getDoc, setDoc, deleteDoc, collection, onSnapshot,
   query, orderBy, limit, serverTimestamp, runTransaction, getDocs
 } from 'firebase/firestore'
 import { useAuth } from './useAuth'
-import { weekKey, monthKey, normalizeWeekKeyLoose, nowHuman } from '../utils/constants'
+import { weekKey, monthKey, normalizeWeekKeyLoose, nowHuman, STORE_MAP, normalizePersonKey, digitsOnly } from '../utils/constants'
 
 const StoreContext = createContext(null)
 
@@ -24,7 +24,7 @@ export function StoreProvider({ children }) {
   }
 
   const [currentWeekKey, setCurrentWeekKey] = useState(weekKey())
-  const [employees, setEmployees] = useState([])
+  const [rawEmployees, setEmployees] = useState([])
   const [products, setProducts] = useState([])
   const [globalsAll, setGlobalsAll] = useState([])
   const [globalTemplates, setGlobalTemplates] = useState([])
@@ -34,8 +34,8 @@ export function StoreProvider({ children }) {
   const [feedbackAll, setFeedbackAll] = useState([])
   const [pdvSales, setPdvSales] = useState([])
   const [labelConfig, setLabelConfig] = useState({})
-  const [contrachequesAll, setContrachequesAll] = useState([])
-  const [contrachequeEmployees, setContrachequeEmployees] = useState([])
+  const [rawContrachequesAll, setContrachequesAll] = useState([])
+  const [rawContrachequeEmployees, setContrachequeEmployees] = useState([])
   const [customersAll, setCustomersAll] = useState([])
   const [deliverySlotsAll, setDeliverySlotsAll] = useState([])
   const [customerOrdersAll, setCustomerOrdersAll] = useState([])
@@ -43,7 +43,8 @@ export function StoreProvider({ children }) {
   const [shoppingListsAll, setShoppingListsAll] = useState([])
   const [financeMonthsAll, setFinanceMonthsAll] = useState([])
   const [financeDaysAll, setFinanceDaysAll] = useState([])
-  const [financePayrollAll, setFinancePayrollAll] = useState([])
+  const [rawFinancePayrollAll, setFinancePayrollAll] = useState([])
+  const [otherStoreRegistry, setOtherStoreRegistry] = useState({ names: [], cpfs: [] })
   const [loading, setLoading] = useState(true)
   // Refs
   const cfgRef = (name) => doc(db, 'stores', storeId, 'config', name)
@@ -108,10 +109,66 @@ export function StoreProvider({ children }) {
   // Subscribe to all collections
   useEffect(() => {
     if (!storeId) return
+    let cancelled = false
     const unsubs = []
+
+    // Immediately clear store-scoped state on store change to prevent any cross-store flash
+    setEmployees([])
+    setContrachequesAll([])
+    setContrachequeEmployees([])
+    setFinanceMonthsAll([])
+    setFinanceDaysAll([])
+    setFinancePayrollAll([])
+
+    // Cross-store employee isolation between Bogados and other stores
+    const conflictingStoreIds = storeId === 'loja_bogados'
+      ? Object.values(STORE_MAP).map(s => s.id).filter(id => id !== 'loja_bogados')
+      : ['loja_bogados']
+
+    const crossSources = {}
+    const recomputeCrossRegistry = () => {
+      if (cancelled) return
+      const names = new Set()
+      const cpfs = new Set()
+      conflictingStoreIds.forEach(otherId => {
+        ;(STORE_MAP[otherId]?.employeesLegacy || []).forEach(n => {
+          const nk = normalizePersonKey(n)
+          if (nk && nk !== 'BOGADOS') names.add(nk)
+        })
+      })
+      Object.values(crossSources).forEach(arr => {
+        ;(arr || []).forEach(item => {
+          const nk = normalizePersonKey(item.name)
+          if (nk) names.add(nk)
+          const ck = digitsOnly(item.cpf)
+          if (ck.length >= 11) cpfs.add(ck)
+        })
+      })
+      setOtherStoreRegistry({
+        names: Array.from(names),
+        cpfs: Array.from(cpfs)
+      })
+    }
+    recomputeCrossRegistry()
+
+    conflictingStoreIds.forEach(otherId => {
+      unsubs.push(onSnapshot(doc(db, 'stores', otherId, 'config', 'employees'), (snap) => {
+        if (cancelled) return
+        const raw = snap.exists() ? snap.data().list : []
+        crossSources[`${otherId}_emp`] = Array.isArray(raw) ? raw : []
+        recomputeCrossRegistry()
+      }, () => {}))
+
+      unsubs.push(onSnapshot(collection(db, 'stores', otherId, 'state/contracheque_employees/items'), (qs) => {
+        if (cancelled) return
+        crossSources[`${otherId}_ccemp`] = qs.docs.map(d => d.data() || {})
+        recomputeCrossRegistry()
+      }, () => {}))
+    })
 
     // Employees
     unsubs.push(onSnapshot(cfgRef('employees'), (snap) => {
+      if (cancelled) return
       const raw = snap.exists() ? snap.data().list : []
       setEmployees(Array.isArray(raw) ? raw.filter(e => e?.name) : [])
     }))
@@ -260,8 +317,39 @@ export function StoreProvider({ children }) {
     }
 
     setLoading(false)
-    return () => unsubs.forEach(u => u())
+    return () => {
+      cancelled = true
+      unsubs.forEach(u => u())
+    }
   }, [storeId, isManager])
+
+  const forbiddenNamesSet = useMemo(() => new Set(otherStoreRegistry.names || []), [otherStoreRegistry])
+  const forbiddenCpfsSet = useMemo(() => new Set(otherStoreRegistry.cpfs || []), [otherStoreRegistry])
+
+  const isForbiddenCrossStoreEmployee = useCallback((name, cpf = '') => {
+    const nk = normalizePersonKey(name)
+    const ck = digitsOnly(cpf)
+    if (ck.length >= 11 && forbiddenCpfsSet.has(ck)) return true
+    if (nk && forbiddenNamesSet.has(nk)) return true
+    return false
+  }, [forbiddenNamesSet, forbiddenCpfsSet])
+
+  const employees = useMemo(
+    () => rawEmployees.filter(e => (!e.storeId || e.storeId === storeId) && !isForbiddenCrossStoreEmployee(e.name, e.cpf)),
+    [rawEmployees, storeId, isForbiddenCrossStoreEmployee]
+  )
+  const contrachequeEmployees = useMemo(
+    () => rawContrachequeEmployees.filter(e => (!e.storeId || e.storeId === storeId) && !isForbiddenCrossStoreEmployee(e.name, e.cpf)),
+    [rawContrachequeEmployees, storeId, isForbiddenCrossStoreEmployee]
+  )
+  const contrachequesAll = useMemo(
+    () => rawContrachequesAll.filter(cc => (!cc.storeId || cc.storeId === storeId) && !isForbiddenCrossStoreEmployee(cc.employee, cc.cpf)),
+    [rawContrachequesAll, storeId, isForbiddenCrossStoreEmployee]
+  )
+  const financePayrollAll = useMemo(
+    () => rawFinancePayrollAll.filter(p => (!p.storeId || p.storeId === storeId) && !isForbiddenCrossStoreEmployee(p.employeeName)),
+    [rawFinancePayrollAll, storeId, isForbiddenCrossStoreEmployee]
+  )
 
   // Computed
   const wk = normalizeWeekKeyLoose(currentWeekKey)
@@ -349,7 +437,12 @@ export function StoreProvider({ children }) {
   }
 
   async function saveEmployees(list) {
-    await setDoc(cfgRef('employees'), { list, updatedAt: serverTimestamp() }, { merge: false })
+    const blocked = (list || []).find(e => isForbiddenCrossStoreEmployee(e?.name, e?.cpf))
+    if (blocked) {
+      throw new Error(`O funcionário "${blocked.name}" pertence a outra loja e não pode ser vinculado a esta unidade.`)
+    }
+    const cleanList = (list || []).map(e => ({ ...e, storeId }))
+    await setDoc(cfgRef('employees'), { list: cleanList, storeId, updatedAt: serverTimestamp() }, { merge: false })
   }
 
   async function saveLabelConfig(config) {
@@ -357,9 +450,13 @@ export function StoreProvider({ children }) {
   }
 
   async function saveContrachequeDoc(cc) {
+    if (isForbiddenCrossStoreEmployee(cc?.employee, cc?.cpf)) {
+      throw new Error(`O funcionário "${cc.employee}" pertence a outra loja e não pode ter contracheque gerado nesta unidade.`)
+    }
     const ref = cc.id ? doc(db, 'stores', storeId, 'state/contracheques/items', cc.id) : doc(colRef('state/contracheques/items'))
     await setDoc(ref, {
       ...cc,
+      storeId,
       updatedAt: serverTimestamp()
     }, { merge: true })
   }
@@ -369,9 +466,13 @@ export function StoreProvider({ children }) {
   }
 
   async function saveContrachequeEmployee(emp) {
+    if (isForbiddenCrossStoreEmployee(emp?.name, emp?.cpf)) {
+      throw new Error(`O funcionário "${emp.name}" pertence a outra loja e não pode ser cadastrado nesta unidade.`)
+    }
     const ref = emp.id ? doc(db, 'stores', storeId, 'state/contracheque_employees/items', emp.id) : doc(colRef('state/contracheque_employees/items'))
     await setDoc(ref, {
       ...emp,
+      storeId,
       updatedAt: serverTimestamp()
     }, { merge: true })
   }
@@ -593,6 +694,9 @@ export function StoreProvider({ children }) {
   }
 
   async function saveFinancePayroll(payData) {
+    if (isForbiddenCrossStoreEmployee(payData?.employeeName)) {
+      throw new Error(`O funcionário "${payData.employeeName}" pertence a outra loja e não pode ser lançado no caixa desta unidade.`)
+    }
     const payId = payData.id || ('pay_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6))
     const dateStr = String(payData.date || '').trim()
     if (!dateStr) throw new Error('Data do pagamento obrigatória')
@@ -601,6 +705,7 @@ export function StoreProvider({ children }) {
 
     const clean = JSON.parse(JSON.stringify({
       id: payId,
+      storeId,
       date: dateStr,
       monthKey: mk,
       referenceMonth: String(payData.referenceMonth || mk).trim(),
@@ -663,6 +768,7 @@ export function StoreProvider({ children }) {
       financeMonthsAll, saveFinanceMonth, deleteFinanceMonth,
       financeDaysAll, saveFinanceDay, deleteFinanceDay,
       financePayrollAll, saveFinancePayroll, deleteFinancePayroll,
+      isForbiddenCrossStoreEmployee,
       cfgRef, stateRef, colRef
     }}>
       {children}

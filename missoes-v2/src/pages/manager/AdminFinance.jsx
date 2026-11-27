@@ -36,7 +36,8 @@ export default function AdminFinance({ onBack }) {
     deleteFinanceDay,
     financePayrollAll = [],
     saveFinancePayroll,
-    deleteFinancePayroll
+    deleteFinancePayroll,
+    isForbiddenCrossStoreEmployee
   } = useStore()
 
   // Main workspace navigation
@@ -369,6 +370,10 @@ export default function AdminFinance({ onBack }) {
     const empName = (isManualPayEmp ? payEmpManual : payEmpSelect).trim()
     if (!empName) {
       toast.error('Selecione ou digite o nome do funcionário.')
+      return
+    }
+    if (isForbiddenCrossStoreEmployee?.(empName)) {
+      toast.error(`Bloqueado: "${empName}" pertence a outra loja e não pode aparecer ou ser lançado em ${store?.shortName || 'outra unidade'}.`)
       return
     }
     const amt = parseMoneyInput(payAmount)
@@ -1383,7 +1388,8 @@ export default function AdminFinance({ onBack }) {
                     {isManualPayEmp ? (
                       <input
                         type="text"
-                        placeholder="Nome completo ou apelido do funcionário"
+                        autoComplete="off"
+                        placeholder={`Funcionário exclusivo de ${store?.shortName || 'desta loja'}`}
                         value={payEmpManual}
                         onChange={e => setPayEmpManual(e.target.value)}
                         className="input text-sm font-semibold"

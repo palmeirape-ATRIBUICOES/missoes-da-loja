@@ -33,6 +33,20 @@ export const STORE_MAP = {
 }
 
 export const SESSION_KEY = 'mdl_v2_session'
+export const TAB_SESSION_KEY = 'mdl_v2_tab_session'
+
+export function normalizePersonKey(str) {
+  return String(str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, ' ')
+}
+
+export function digitsOnly(str) {
+  return String(str || '').replace(/\D/g, '')
+}
 
 // ===== Date Utilities =====
 export function weekKey(date = new Date()) {
@@ -75,20 +89,35 @@ export function parseCurrency(str) {
   return Number(String(str).replace(/[^\d,.-]/g, '').replace(',', '.')) || 0
 }
 
-// ===== Session =====
+// ===== Session (Tab-isolated + PWA persistent fallback) =====
 export function saveSession(user, storeKey) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ user, storeKey, at: Date.now() }))
+  const payload = JSON.stringify({ user, storeKey, at: Date.now() })
+  try { sessionStorage.setItem(TAB_SESSION_KEY, payload) } catch {}
+  try { localStorage.setItem(SESSION_KEY, payload) } catch {}
 }
 
 export function getSession() {
   try {
+    const tabRaw = sessionStorage.getItem(TAB_SESSION_KEY)
+    if (tabRaw) {
+      const tabObj = JSON.parse(tabRaw)
+      if (tabObj?.user && tabObj?.storeKey && STORE_MAP[tabObj.storeKey]) return tabObj
+    }
+  } catch {}
+  try {
     const raw = localStorage.getItem(SESSION_KEY)
     if (!raw) return null
     const obj = JSON.parse(raw)
-    return obj?.user && obj?.storeKey ? obj : null
+    if (obj?.user && obj?.storeKey && STORE_MAP[obj.storeKey]) {
+      // Pin into sessionStorage for this tab so other tabs won't overwrite it
+      try { sessionStorage.setItem(TAB_SESSION_KEY, JSON.stringify(obj)) } catch {}
+      return obj
+    }
+    return null
   } catch { return null }
 }
 
 export function clearSession() {
-  localStorage.removeItem(SESSION_KEY)
+  try { sessionStorage.removeItem(TAB_SESSION_KEY) } catch {}
+  try { localStorage.removeItem(SESSION_KEY) } catch {}
 }

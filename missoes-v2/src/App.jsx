@@ -81,12 +81,13 @@ function PaystubsPage() { const n = useNavigate(); return <Paystubs onBack={() =
 function AdminFinancePage() { const n = useNavigate(); return <AdminFinance onBack={() => n('/gerente')} /> }
 
 function AppRoutes() {
-  const { currentUser, isManager, loading, firebaseUser } = useAuth()
+  const { currentUser, isManager, loading, firebaseUser, storeId } = useAuth()
   const location = useLocation()
 
   if (location.pathname.startsWith('/cliente/')) {
+    const clientStoreKey = location.pathname.split('/')[2] || 'public'
     return (
-      <StoreProvider>
+      <StoreProvider key={`client_${clientStoreKey}`}>
         <Routes>
           <Route path="/cliente/:storeId" element={<PublicStore />} />
           <Route path="/cliente/:storeId/cadastro" element={<CustomerRegister />} />
@@ -119,7 +120,7 @@ function AppRoutes() {
   }
 
   return (
-    <StoreProvider>
+    <StoreProvider key={`store_${storeId}`}>
       <PermissionsRequest />
       <Routes>
         <Route path="/pdv" element={<PDVRoute />} />
@@ -150,7 +151,7 @@ function AppRoutes() {
 
 export default function App() {
   useEffect(() => {
-    const CURRENT_VERSION = 'v4.4'
+    const CURRENT_VERSION = 'v4.5'
     const storedVersion = localStorage.getItem('mdl_app_version')
     if (storedVersion !== CURRENT_VERSION) {
       const clearCaches = async () => {

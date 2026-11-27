@@ -11,7 +11,7 @@ async function sha256(str) {
 }
 
 export default function Team({ onBack }) {
-  const { employees, activeEmployees, saveEmployees, getMonthPoints } = useStore()
+  const { employees, activeEmployees, saveEmployees, getMonthPoints, isForbiddenCrossStoreEmployee } = useStore()
   const { storeId, store } = useAuth()
   const [newName, setNewName] = useState('')
   const [newPin, setNewPin] = useState('')
@@ -21,10 +21,21 @@ export default function Team({ onBack }) {
   async function addEmployee() {
     if (!newName.trim()) return
     const name = newName.trim()
-    if (employees.some(e => e.name === name)) return
-    const next = [...employees, { name, active: true, canEditPrices: false, canAccessPdv: false }]
-    await saveEmployees(next)
-    setNewName('')
+    if (employees.some(e => e.name.toLowerCase() === name.toLowerCase())) {
+      alert('Este funcionário já está cadastrado nesta loja.')
+      return
+    }
+    if (isForbiddenCrossStoreEmployee?.(name)) {
+      alert(`⚠️ Bloqueado: "${name}" já pertence à equipe de outra loja e não pode aparecer ou ser cadastrado em ${store?.shortName || 'outra unidade'}.`)
+      return
+    }
+    try {
+      const next = [...employees, { name, active: true, canEditPrices: false, canAccessPdv: false, storeId }]
+      await saveEmployees(next)
+      setNewName('')
+    } catch (err) {
+      alert(err.message || 'Erro ao adicionar funcionário.')
+    }
   }
 
   async function toggleActive(name) {
@@ -78,9 +89,10 @@ export default function Team({ onBack }) {
       <main className="max-w-3xl mx-auto p-4 space-y-4">
         {/* Add Employee */}
         <div className="card p-4">
-          <h3 className="font-semibold text-gray-900 mb-3">Adicionar Funcionário</h3>
+          <h3 className="font-semibold text-gray-900 mb-1">Adicionar Funcionário — {store?.shortName}</h3>
+          <p className="text-xs text-gray-500 mb-3">Equipe exclusiva desta unidade (isolada das demais lojas).</p>
           <div className="flex gap-2">
-            <input className="input flex-1" placeholder="Nome do funcionário" value={newName}
+            <input className="input flex-1" autoComplete="off" placeholder="Nome do funcionário" value={newName}
               onChange={e => setNewName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addEmployee()} />
             <button onClick={addEmployee} className="btn btn-success shrink-0">Adicionar</button>

@@ -11,7 +11,8 @@ export default function Paystubs({ onBack }) {
     deleteContrachequeDoc, 
     contrachequeEmployees = [],
     saveContrachequeEmployee,
-    deleteContrachequeEmployee 
+    deleteContrachequeEmployee,
+    isForbiddenCrossStoreEmployee
   } = useStore()
 
   // Tab state
@@ -67,6 +68,10 @@ export default function Paystubs({ onBack }) {
       alert('Por favor, informe o nome do funcionário.')
       return
     }
+    if (isForbiddenCrossStoreEmployee?.(newEmpName.trim(), newEmpCpf.trim())) {
+      alert(`⚠️ Bloqueado: "${newEmpName.trim()}" já pertence a outra loja e não pode ser cadastrado em ${store?.shortName || 'outra unidade'}.`)
+      return
+    }
     const exists = contrachequeEmployees.some(emp => emp.name.toLowerCase() === newEmpName.trim().toLowerCase())
     if (exists) {
       alert('Um funcionário com este nome já existe.')
@@ -85,7 +90,7 @@ export default function Paystubs({ onBack }) {
       setNewEmpRole('')
     } catch (e) {
       console.error(e)
-      alert('Erro ao cadastrar funcionário.')
+      alert(e.message || 'Erro ao cadastrar funcionário.')
     }
   }
 
@@ -262,6 +267,10 @@ export default function Paystubs({ onBack }) {
     const finalName = isManualEmployee ? employeeManual.trim() : employee
     if (!finalName) {
       alert('Por favor, selecione ou digite o nome do funcionário.')
+      return
+    }
+    if (isForbiddenCrossStoreEmployee?.(finalName, cpf)) {
+      alert(`⚠️ Bloqueado: "${finalName}" pertence a outra loja e não pode ter contracheque gerado em ${store?.shortName || 'outra unidade'}.`)
       return
     }
     if (!refMonth) {
@@ -1411,7 +1420,7 @@ export default function Paystubs({ onBack }) {
                       </div>
                     ) : (
                       <div className="flex gap-1.5">
-                        <input className="input flex-1" placeholder="Nome completo" value={employeeManual} onChange={e => setEmployeeManual(e.target.value)} />
+                        <input className="input flex-1" autoComplete="off" placeholder="Nome completo" value={employeeManual} onChange={e => setEmployeeManual(e.target.value)} />
                         <button type="button" onClick={() => { setIsManualEmployee(false); setEmployeeManual('') }} className="btn btn-ghost text-xs whitespace-nowrap">❌ Lista</button>
                       </div>
                     )}
@@ -1778,7 +1787,7 @@ export default function Paystubs({ onBack }) {
                 
                 <div>
                   <label className="text-xs font-bold text-gray-600 block mb-1">Nome Completo *</label>
-                  <input className="input bg-white text-xs" placeholder="Nome do funcionário" value={newEmpName} onChange={e => setNewEmpName(e.target.value)} />
+                  <input className="input bg-white text-xs" autoComplete="off" placeholder="Nome do funcionário" value={newEmpName} onChange={e => setNewEmpName(e.target.value)} />
                 </div>
                 
                 <div>

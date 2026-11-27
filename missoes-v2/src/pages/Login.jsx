@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { STORE_MAP } from '../utils/constants'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { STORE_MAP, normalizePersonKey } from '../utils/constants'
+import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
 async function sha256(str) {
@@ -54,13 +54,50 @@ export default function Login({ mode = 'app' }) {
 
   async function handleStoreSelect(sk) {
     setStoreKey(sk)
+    setSelectedUser('')
+    setPin('')
+    setUsers([])
     setLoading(true)
     setError('')
     try {
-      const snap = await getDoc(doc(db, 'stores', STORE_MAP[sk].id, 'config', 'employees'))
+      const targetId = STORE_MAP[sk].id
+      const conflictingIds = targetId === 'loja_bogados'
+        ? Object.values(STORE_MAP).map(s => s.id).filter(id => id !== 'loja_bogados')
+        : ['loja_bogados']
+
+      const forbidden = new Set()
+      for (const otherId of conflictingIds) {
+        ;(STORE_MAP[otherId]?.employeesLegacy || []).forEach(n => {
+          const nk = normalizePersonKey(n)
+          if (nk && nk !== 'BOGADOS') forbidden.add(nk)
+        })
+        try {
+          const oSnap = await getDoc(doc(db, 'stores', otherId, 'config', 'employees'))
+          const oList = oSnap.exists() ? oSnap.data().list : []
+          ;(Array.isArray(oList) ? oList : []).forEach(e => {
+            const nk = normalizePersonKey(e?.name)
+            if (nk) forbidden.add(nk)
+          })
+          const ccSnap = await getDocs(collection(db, 'stores', otherId, 'state/contracheque_employees/items'))
+          ccSnap.docs.forEach(d => {
+            const nk = normalizePersonKey(d.data()?.name)
+            if (nk) forbidden.add(nk)
+          })
+        } catch {}
+      }
+
+      const snap = await getDoc(doc(db, 'stores', targetId, 'config', 'employees'))
       const raw = snap.exists() ? snap.data().list : []
       const emps = Array.isArray(raw)
-        ? raw.filter(e => e?.name && e?.active && (mode !== 'pdv' || e?.canAccessPdv)).map(e => e.name)
+        ? raw
+            .filter(e =>
+              e?.name &&
+              e?.active &&
+              (!e.storeId || e.storeId === targetId) &&
+              !forbidden.has(normalizePersonKey(e.name)) &&
+              (mode !== 'pdv' || e?.canAccessPdv)
+            )
+            .map(e => e.name)
         : []
       const manager = STORE_MAP[sk].managerUser
       setUsers([manager, ...emps.filter(n => n !== manager)])
