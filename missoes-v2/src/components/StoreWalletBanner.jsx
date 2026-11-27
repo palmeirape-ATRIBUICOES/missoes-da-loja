@@ -117,14 +117,37 @@ export default function StoreWalletBanner({
 
   const isNegative = summary.walletBalance < 0
 
+  // Distinct visual theme per store so cashboxes are never visually confused
+  const walletThemes = {
+    loja_principal: {
+      gradient: 'linear-gradient(135deg, #0f172a 0%, #312e81 55%, #0f172a 100%)',
+      pillBg: 'bg-indigo-950 border-indigo-700/80',
+      iconBg: 'from-violet-500 to-indigo-600',
+      unitBadge: 'bg-indigo-500/25 text-indigo-200 border-indigo-400/30'
+    },
+    loja_bogados: {
+      gradient: 'linear-gradient(135deg, #042f2e 0%, #0e7490 55%, #083344 100%)',
+      pillBg: 'bg-cyan-950 border-cyan-700/80',
+      iconBg: 'from-cyan-400 to-teal-600',
+      unitBadge: 'bg-cyan-500/25 text-cyan-100 border-cyan-400/30'
+    },
+    loja_bar: {
+      gradient: 'linear-gradient(135deg, #1c1917 0%, #9a3412 55%, #292524 100%)',
+      pillBg: 'bg-stone-900 border-orange-700/80',
+      iconBg: 'from-orange-500 to-amber-600',
+      unitBadge: 'bg-orange-500/25 text-orange-100 border-orange-400/30'
+    }
+  }
+  const wTheme = walletThemes[storeId] || walletThemes.loja_principal
+
   // Minimized / Hidden pill state ("opção de esconder ela também")
   if (walletHidden) {
     return (
-      <div className="flex items-center justify-between gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-md border border-slate-700/80">
+      <div className={`flex items-center justify-between gap-2 text-white px-4 py-2.5 rounded-2xl shadow-md border ${wTheme.pillBg}`}>
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="text-base">💼</span>
+          <span className="text-base">🏦</span>
           <span className="text-xs sm:text-sm font-bold truncate">
-            Carteira {store?.shortName || 'da Loja'} ({formatMonthLabel(activeMonth, true)})
+            Caixa Individual — {store?.shortName || 'Loja'} ({formatMonthLabel(activeMonth, true)})
           </span>
           <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${isNegative ? 'bg-rose-500/20 text-rose-300' : 'bg-emerald-500/20 text-emerald-300'}`}>
             {valuesHidden ? 'R$ ••••••' : formatCurrency(summary.walletBalance)}
@@ -135,16 +158,16 @@ export default function StoreWalletBanner({
             type="button"
             onClick={toggleMaskValues}
             title={valuesHidden ? 'Mostrar valores' : 'Ocultar valores'}
-            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer transition"
+            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-semibold cursor-pointer transition"
           >
             {valuesHidden ? '🙈' : '👁️'}
           </button>
           <button
             type="button"
             onClick={toggleHideWallet}
-            className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold cursor-pointer transition"
+            className="px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-bold cursor-pointer transition"
           >
-            Mostrar Carteira ▾
+            Mostrar Caixa ▾
           </button>
         </div>
       </div>
@@ -154,21 +177,24 @@ export default function StoreWalletBanner({
   return (
     <>
       <div
-        className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 text-white shadow-xl border border-slate-700/60 transition-all"
+        className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 text-white shadow-xl border border-white/15 transition-all"
         style={{
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 55%, #0f172a 100%)'
+          background: wTheme.gradient
         }}
       >
         {/* Top Row: Title + Month Selector + Visibility Controls */}
         <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/10">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-lg shadow-md shrink-0">
-              💼
+            <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${wTheme.iconBg} flex items-center justify-center text-lg shadow-md shrink-0`}>
+              🏦
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                  Carteira da Empresa
+                <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white">
+                  Caixa Individual — {store?.shortName || 'Unidade'}
+                </span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${wTheme.unitBadge}`}>
+                  🔒 Exclusivo desta Loja
                 </span>
                 {summary.isOpened ? (
                   summary.status === 'closed' ? (
@@ -186,8 +212,8 @@ export default function StoreWalletBanner({
                   </span>
                 )}
               </div>
-              <div className="text-xs text-slate-400">
-                {store?.name || 'Loja'} • Saldo em tempo real
+              <div className="text-xs text-slate-300">
+                {store?.name || 'Loja'} • Saldo isolado (não mistura com outras unidades)
               </div>
             </div>
           </div>
@@ -353,10 +379,10 @@ export default function StoreWalletBanner({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="font-extrabold text-slate-900 text-lg">
-                  💼 Caixa de {formatMonthLabel(activeMonth)}
+                  🏦 Caixa Individual — {store?.shortName} ({formatMonthLabel(activeMonth)})
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Defina o saldo inicial da empresa ao iniciar o mês.
+                  Saldo inicial exclusivo da unidade <strong>{store?.name}</strong> (não mistura com outras lojas).
                 </p>
               </div>
               <button

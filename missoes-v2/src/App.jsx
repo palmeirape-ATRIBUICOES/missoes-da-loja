@@ -78,7 +78,7 @@ function TasksPage() { const n = useNavigate(); return <Tasks onBack={() => n('/
 function ConfigPage() { const n = useNavigate(); return <Config onBack={() => n('/gerente')} /> }
 function FeedbackPage() { const n = useNavigate(); return <Feedback onBack={() => n('/gerente')} /> }
 function PaystubsPage() { const n = useNavigate(); return <Paystubs onBack={() => n('/gerente')} /> }
-function AdminFinancePage() { const n = useNavigate(); return <AdminFinance onBack={() => n('/gerente')} /> }
+function AdminFinancePage() { const n = useNavigate(); const { storeId } = useAuth(); return <AdminFinance key={storeId} onBack={() => n('/gerente')} /> }
 
 function AppRoutes() {
   const { currentUser, isManager, loading, firebaseUser, storeId } = useAuth()
@@ -151,7 +151,7 @@ function AppRoutes() {
 
 export default function App() {
   useEffect(() => {
-    const CURRENT_VERSION = 'v4.5'
+    const CURRENT_VERSION = 'v4.6'
     const storedVersion = localStorage.getItem('mdl_app_version')
     if (storedVersion !== CURRENT_VERSION) {
       const clearCaches = async () => {

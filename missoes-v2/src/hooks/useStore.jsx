@@ -112,10 +112,24 @@ export function StoreProvider({ children }) {
     let cancelled = false
     const unsubs = []
 
-    // Immediately clear store-scoped state on store change to prevent any cross-store flash
+    // Immediately clear ALL store-scoped state on store change to prevent any cross-store mix
     setEmployees([])
+    setProducts([])
+    setGlobalsAll([])
+    setGlobalTemplates([])
+    setTasksAll([])
+    setScoresDoc({})
+    setListsAll([])
+    setFeedbackAll([])
+    setPdvSales([])
+    setLabelConfig({})
     setContrachequesAll([])
     setContrachequeEmployees([])
+    setCustomersAll([])
+    setDeliverySlotsAll([])
+    setCustomerOrdersAll([])
+    setBakeryOrdersAll([])
+    setShoppingListsAll([])
     setFinanceMonthsAll([])
     setFinanceDaysAll([])
     setFinancePayrollAll([])
@@ -222,21 +236,27 @@ export function StoreProvider({ children }) {
       setFeedbackAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
     }))
 
-    // PDV Sales
+    // PDV Sales (strictly isolated per storeId)
     const salesQ = query(colRef('pdv_sales'), orderBy('createdAt', 'desc'), limit(500))
     unsubs.push(onSnapshot(salesQ, (qs) => {
-      setPdvSales(qs.docs.map(d => ({ id: d.id, ...d.data() })))
+      if (cancelled) return
+      const docs = qs.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(d => !d.storeId || d.storeId === storeId)
+      setPdvSales(docs)
     }))
 
     // Contracheques
     const ccQ = query(colRef('state/contracheques/items'), orderBy('createdAt', 'desc'))
     unsubs.push(onSnapshot(ccQ, (qs) => {
+      if (cancelled) return
       setContrachequesAll(qs.docs.map(d => ({ id: d.id, ...d.data() })))
     }))
 
     // Contracheque Employees
     const ccEmpQ = query(colRef('state/contracheque_employees/items'), orderBy('name', 'asc'))
     unsubs.push(onSnapshot(ccEmpQ, (qs) => {
+      if (cancelled) return
       setContrachequeEmployees(qs.docs.map(d => ({ id: d.id, ...d.data() })))
     }))
 
@@ -288,25 +308,34 @@ export function StoreProvider({ children }) {
       console.warn('shopping_lists snapshot error:', err)
     }))
 
-    // Admin Finance (Manager only)
+    // Admin Finance (Manager only — strictly isolated per individual storeId)
     if (isManager) {
       const finMonthsQ = query(colRef('state/finance_months/items'))
       unsubs.push(onSnapshot(finMonthsQ, (qs) => {
-        const docs = qs.docs.map(d => ({ id: d.id, ...d.data() }))
+        if (cancelled) return
+        const docs = qs.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(d => !d.storeId || d.storeId === storeId)
         docs.sort((a, b) => String(b.monthKey || b.id).localeCompare(String(a.monthKey || a.id)))
         setFinanceMonthsAll(docs)
       }, (err) => console.warn('finance_months snapshot error:', err)))
 
       const finDaysQ = query(colRef('state/finance_days/items'))
       unsubs.push(onSnapshot(finDaysQ, (qs) => {
-        const docs = qs.docs.map(d => ({ id: d.id, ...d.data() }))
+        if (cancelled) return
+        const docs = qs.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(d => !d.storeId || d.storeId === storeId)
         docs.sort((a, b) => String(b.date || b.id).localeCompare(String(a.date || a.id)))
         setFinanceDaysAll(docs)
       }, (err) => console.warn('finance_days snapshot error:', err)))
 
       const finPayrollQ = query(colRef('state/finance_payroll/items'))
       unsubs.push(onSnapshot(finPayrollQ, (qs) => {
-        const docs = qs.docs.map(d => ({ id: d.id, ...d.data() }))
+        if (cancelled) return
+        const docs = qs.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter(d => !d.storeId || d.storeId === storeId)
         docs.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || ((b.updatedAtMs || 0) - (a.updatedAtMs || 0)))
         setFinancePayrollAll(docs)
       }, (err) => console.warn('finance_payroll snapshot error:', err)))
@@ -601,13 +630,15 @@ export function StoreProvider({ children }) {
     await deleteDoc(doc(db, 'stores', storeId, 'shopping_lists', id))
   }
 
-  // ===== Admin Finance CRUD =====
+  // ===== Admin Finance CRUD (100% isolated per storeId) =====
   async function saveFinanceMonth(monthData) {
+    if (!storeId) throw new Error('Loja não identificada')
     const mk = String(monthData.monthKey || monthData.id || '').trim()
     if (!mk) throw new Error('Mês inválido')
     const ref = doc(db, 'stores', storeId, 'state/finance_months/items', mk)
     const clean = JSON.parse(JSON.stringify({
       id: mk,
+      storeId,
       monthKey: mk,
       openingBalance: Number(monthData.openingBalance) || 0,
       revenueGoal: Number(monthData.revenueGoal) || 0,
@@ -630,6 +661,7 @@ export function StoreProvider({ children }) {
   }
 
   async function saveFinanceDay(dayData) {
+    if (!storeId) throw new Error('Loja não identificada')
     const dateStr = String(dayData.date || dayData.id || '').trim()
     if (!dateStr) throw new Error('Data inválida')
     const mk = dateStr.slice(0, 7)
@@ -668,6 +700,7 @@ export function StoreProvider({ children }) {
 
     const clean = JSON.parse(JSON.stringify({
       id: dateStr,
+      storeId,
       date: dateStr,
       monthKey: mk,
       inflows,

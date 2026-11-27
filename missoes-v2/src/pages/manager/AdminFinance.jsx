@@ -24,7 +24,7 @@ import {
 } from '../../utils/financeUtils'
 
 export default function AdminFinance({ onBack }) {
-  const { store, isManager } = useAuth()
+  const { store, storeId, isManager, logout } = useAuth()
   const {
     employees = [],
     contrachequeEmployees = [],
@@ -542,7 +542,8 @@ export default function AdminFinance({ onBack }) {
   // Export: WhatsApp Executive Summary
   function handleShareWhatsApp() {
     const m = reportMetrics
-    let txt = `💼 *RELATÓRIO GERENCIAL — ${(store?.name || 'LOJA').toUpperCase()}*\n`
+    let txt = `🏦 *CAIXA INDIVIDUAL — ${(store?.name || 'LOJA').toUpperCase()}*\n`
+    txt += `🔒 *Unidade Independente:* ${store?.shortName || storeId}\n`
     txt += `📅 *Período:* ${reportPeriodTitle}\n\n`
     txt += `💰 *RESUMO DO CAIXA / CARTEIRA*\n`
     txt += `• Abertura do Caixa: ${formatCurrency(m.openingBalance)}\n`
@@ -681,8 +682,8 @@ export default function AdminFinance({ onBack }) {
       <body>
         <div class="header">
           <div>
-            <h1 class="title">${store?.name || 'Empresa'} — Relatório Financeiro & Caixa</h1>
-            <div class="sub">Período: <strong>${reportPeriodTitle}</strong></div>
+            <h1 class="title">${store?.name || 'Unidade'} — Caixa Individual (${store?.shortName || storeId})</h1>
+            <div class="sub">Período: <strong>${reportPeriodTitle}</strong> • Caixa exclusivo desta loja (sem mistura entre filiais)</div>
           </div>
           <div style="text-align:right">
             <div class="sub">Emitido em: ${new Date().toLocaleString('pt-BR')}</div>
@@ -785,13 +786,16 @@ export default function AdminFinance({ onBack }) {
             </button>
             <div className="min-w-0">
               <h1 className="font-extrabold text-slate-900 text-base sm:text-lg truncate flex items-center gap-2">
-                <span>🏛️ Administração & Gestão Financeira</span>
-                <span className="hidden md:inline-flex text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
-                  Exclusivo Admin
+                <span>🏛️ Administração & Caixa — {store?.shortName}</span>
+                <span
+                  className="hidden md:inline-flex text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full text-white"
+                  style={{ backgroundColor: store?.theme?.accent || '#4f46e5' }}
+                >
+                  🔒 Caixa Individual: {store?.shortName}
                 </span>
               </h1>
               <p className="text-xs text-slate-500 truncate">
-                {store?.name} • Controle diário de vendas, despesas, folha e saldo de caixa
+                {store?.name} • Caixa 100% individual e isolado desta loja
               </p>
             </div>
           </div>
@@ -800,20 +804,32 @@ export default function AdminFinance({ onBack }) {
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              title="Topo / Carteira da Loja"
+              title={`Caixa Individual de ${store?.shortName}`}
               className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
-              <span>💼</span>
-              <span className="hidden xs:inline text-slate-300 font-semibold">Caixa:</span>
+              <span>🏦</span>
+              <span className="hidden sm:inline text-slate-300 font-semibold">{store?.shortName}:</span>
               <span className={monthSummary.walletBalance < 0 ? 'text-rose-400' : 'text-emerald-400'}>
                 {(() => {
                   try {
-                    if (localStorage.getItem(`mdl_wallet_collapse_${store?.id}`) === '1') return 'Oculta'
-                    if (localStorage.getItem(`mdl_wallet_mask_${store?.id}`) === '1') return 'R$ •••••'
+                    if (localStorage.getItem(`mdl_wallet_collapse_${storeId}`) === '1') return 'Oculta'
+                    if (localStorage.getItem(`mdl_wallet_mask_${storeId}`) === '1') return 'R$ •••••'
                   } catch {}
                   return formatCurrency(monthSummary.walletBalance)
                 })()}
               </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm(`Deseja sair de ${store?.shortName} para acessar o caixa individual de outra loja?`)) {
+                  logout()
+                }
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition"
+              title="Trocar de loja"
+            >
+              ⇄ Loja
             </button>
             <button
               type="button"

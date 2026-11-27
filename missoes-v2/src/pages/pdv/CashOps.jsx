@@ -22,6 +22,7 @@ export default function CashOps({ onBack }) {
     try {
       const id = `cashop_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`
       await setDoc(doc(db, 'stores', storeId, 'pdv_cash_ops', id), {
+        storeId,
         type,
         amount: numAmount,
         reason: reason.trim() || (type === 'suprimento' ? 'Suprimento' : 'Sangria'),
