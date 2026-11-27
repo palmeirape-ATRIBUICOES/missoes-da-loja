@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useStore } from '../../hooks/useStore'
 import { useAuth } from '../../hooks/useAuth'
 import { formatCurrency, parseCurrency } from '../../utils/constants'
+import { searchProductImages } from '../../utils/productImageSearch'
 import { printLabels } from '../../services/printer'
 import { Html5QrcodeScanner, Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 
@@ -95,49 +96,17 @@ export default function Products({ onBack }) {
   }
 
   async function searchGoogleImages(queryText) {
-    const fullQuery = encodeURIComponent(queryText + " png fundo branco")
-    const searchUrl = `https://duckduckgo.com/?q=${fullQuery}`
-    
-    const proxies = [
-      url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
-    ]
-
+    if (!queryText || !queryText.trim()) return
     setSearchingImages(true)
     setImageResults([])
-
-    for (let proxyFn of proxies) {
-      try {
-        const htmlRes = await fetch(proxyFn(searchUrl))
-        if (!htmlRes.ok) continue
-        const html = await htmlRes.text()
-
-        const vqdRegex = /vqd=['"]([^'"]+)['"]/
-        const match = html.match(vqdRegex)
-        if (!match) continue
-        const vqd = match[1]
-
-        const apiUrl = `https://duckduckgo.com/i.js?q=${fullQuery}&vqd=${vqd}&o=json`
-        const apiRes = await fetch(proxyFn(apiUrl))
-        if (!apiRes.ok) continue
-        const data = await apiRes.json()
-
-        if (data.results && data.results.length > 0) {
-          const results = data.results.slice(0, 15).map(item => ({
-            url: item.image,
-            thumbnail: item.thumbnail,
-            title: item.title
-          }))
-          setImageResults(results)
-          setSearchingImages(false)
-          return
-        }
-      } catch (e) {
-        console.error("Proxy query failed, trying next fallback...", e)
-      }
+    try {
+      const results = await searchProductImages(queryText.trim(), 24)
+      setImageResults(results)
+    } catch (e) {
+      console.error('Product image search error:', e)
+    } finally {
+      setSearchingImages(false)
     }
-
-    setSearchingImages(false)
   }
 
   const filtered = useMemo(() => {
@@ -870,46 +839,23 @@ export default function Products({ onBack }) {
   }
 
   async function fetchNfeImageSuggestions(queryText, itemIndex) {
-    const fullQuery = encodeURIComponent(queryText + " png fundo branco")
-    const searchUrl = `https://duckduckgo.com/?q=${fullQuery}`
-    
-    const proxies = [
-      url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
-    ]
-    
-    for (let proxyFn of proxies) {
-      try {
-        const htmlRes = await fetch(proxyFn(searchUrl))
-        if (!htmlRes.ok) continue
-        const html = await htmlRes.text()
-        const vqdRegex = /vqd=['"]([^'"]+)['"]/
-        const match = html.match(vqdRegex)
-        if (!match) continue
-        const vqd = match[1]
-        
-        const apiUrl = `https://duckduckgo.com/i.js?q=${fullQuery}&vqd=${vqd}&o=json`
-        const apiRes = await fetch(proxyFn(apiUrl))
-        if (!apiRes.ok) continue
-        const data = await apiRes.json()
-        
-        if (data.results && data.results.length > 0) {
-          const list = data.results.slice(0, 4).map(item => item.image)
-          setNfeItems(prev => prev.map((item, idx) => {
-            if (idx === itemIndex) {
-              return {
-                ...item,
-                photoSuggestions: list,
-                photo: item.photo || list[0] || ''
-              }
+    try {
+      const results = await searchProductImages(queryText, 4)
+      if (results.length > 0) {
+        const list = results.map(r => r.url)
+        setNfeItems(prev => prev.map((item, idx) => {
+          if (idx === itemIndex) {
+            return {
+              ...item,
+              photoSuggestions: list,
+              photo: item.photo || list[0] || ''
             }
-            return item
-          }))
-          return
-        }
-      } catch (e) {
-        console.error('NFE proxy search failed, trying fallback...', e)
+          }
+          return item
+        }))
       }
+    } catch (e) {
+      console.error('NFE image suggestions failed:', e)
     }
   }
 
@@ -1012,9 +958,17 @@ export default function Products({ onBack }) {
     if (!code) return
     setLoadingBarcode(true)
     try {
-      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`)
-      const data = await res.json()
-      if (data.status === 1 && data.product) {
+      let data = null
+      for (const base of ['https://br.openfoodfacts.org/api/v2/product', 'https://world.openfoodfacts.org/api/v0/product']) {
+        try {
+          const res = await fetch(`${base}/${code}.json`)
+          if (res.ok) {
+            const parsed = await res.json()
+            if (parsed?.product) { data = parsed; break }
+          }
+        } catch {}
+      }
+      if (data && data.product) {
         let rawName = data.product.product_name_pt || data.product.product_name || ''
         rawName = rawName.toUpperCase().substring(0, 30) // Nome simplificado
         
@@ -1433,9 +1387,18 @@ export default function Products({ onBack }) {
                       >
                         <img
                           src={item.thumbnail || item.url}
-                          alt=""
+                          alt={item.title || ''}
+                          title={item.title || ''}
+                          loading="lazy"
                           className="max-h-full max-w-full object-contain bg-white rounded-lg p-0.5"
-                          onError={(e) => { e.target.src = 'https://placehold.co/100?text=Indispon%C3%ADvel' }}
+                          onError={(e) => {
+                            if (e.target.src !== item.url && item.url) {
+                              e.target.src = item.url
+                            } else {
+                              const btn = e.target.closest('button')
+                              if (btn) btn.style.display = 'none'
+                            }
+                          }}
                         />
                         <div className="absolute inset-0 bg-brand-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <span className="bg-brand-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-md">✓ Selecionar</span>
