@@ -41,6 +41,9 @@ export function StoreProvider({ children }) {
   const [customerOrdersAll, setCustomerOrdersAll] = useState([])
   const [bakeryOrdersAll, setBakeryOrdersAll] = useState([])
   const [shoppingListsAll, setShoppingListsAll] = useState([])
+  const [financeMonthsAll, setFinanceMonthsAll] = useState([])
+  const [financeDaysAll, setFinanceDaysAll] = useState([])
+  const [financePayrollAll, setFinancePayrollAll] = useState([])
   const [loading, setLoading] = useState(true)
   // Refs
   const cfgRef = (name) => doc(db, 'stores', storeId, 'config', name)
@@ -228,9 +231,37 @@ export function StoreProvider({ children }) {
       console.warn('shopping_lists snapshot error:', err)
     }))
 
+    // Admin Finance (Manager only)
+    if (isManager) {
+      const finMonthsQ = query(colRef('state/finance_months/items'))
+      unsubs.push(onSnapshot(finMonthsQ, (qs) => {
+        const docs = qs.docs.map(d => ({ id: d.id, ...d.data() }))
+        docs.sort((a, b) => String(b.monthKey || b.id).localeCompare(String(a.monthKey || a.id)))
+        setFinanceMonthsAll(docs)
+      }, (err) => console.warn('finance_months snapshot error:', err)))
+
+      const finDaysQ = query(colRef('state/finance_days/items'))
+      unsubs.push(onSnapshot(finDaysQ, (qs) => {
+        const docs = qs.docs.map(d => ({ id: d.id, ...d.data() }))
+        docs.sort((a, b) => String(b.date || b.id).localeCompare(String(a.date || a.id)))
+        setFinanceDaysAll(docs)
+      }, (err) => console.warn('finance_days snapshot error:', err)))
+
+      const finPayrollQ = query(colRef('state/finance_payroll/items'))
+      unsubs.push(onSnapshot(finPayrollQ, (qs) => {
+        const docs = qs.docs.map(d => ({ id: d.id, ...d.data() }))
+        docs.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || ((b.updatedAtMs || 0) - (a.updatedAtMs || 0)))
+        setFinancePayrollAll(docs)
+      }, (err) => console.warn('finance_payroll snapshot error:', err)))
+    } else {
+      setFinanceMonthsAll([])
+      setFinanceDaysAll([])
+      setFinancePayrollAll([])
+    }
+
     setLoading(false)
     return () => unsubs.forEach(u => u())
-  }, [storeId])
+  }, [storeId, isManager])
 
   // Computed
   const wk = normalizeWeekKeyLoose(currentWeekKey)
@@ -469,6 +500,133 @@ export function StoreProvider({ children }) {
     await deleteDoc(doc(db, 'stores', storeId, 'shopping_lists', id))
   }
 
+  // ===== Admin Finance CRUD =====
+  async function saveFinanceMonth(monthData) {
+    const mk = String(monthData.monthKey || monthData.id || '').trim()
+    if (!mk) throw new Error('Mês inválido')
+    const ref = doc(db, 'stores', storeId, 'state/finance_months/items', mk)
+    const clean = JSON.parse(JSON.stringify({
+      id: mk,
+      monthKey: mk,
+      openingBalance: Number(monthData.openingBalance) || 0,
+      revenueGoal: Number(monthData.revenueGoal) || 0,
+      status: monthData.status || 'open',
+      notes: String(monthData.notes || '').trim(),
+      openedBy: monthData.openedBy || currentUser || 'GERENTE',
+      openedAtHuman: monthData.openedAtHuman || nowHuman(),
+      updatedBy: currentUser || 'GERENTE',
+      updatedAtMs: Date.now()
+    }))
+    await setDoc(ref, {
+      ...clean,
+      updatedAt: serverTimestamp()
+    }, { merge: true })
+    return mk
+  }
+
+  async function deleteFinanceMonth(mk) {
+    await deleteDoc(doc(db, 'stores', storeId, 'state/finance_months/items', mk))
+  }
+
+  async function saveFinanceDay(dayData) {
+    const dateStr = String(dayData.date || dayData.id || '').trim()
+    if (!dateStr) throw new Error('Data inválida')
+    const mk = dateStr.slice(0, 7)
+    const ref = doc(db, 'stores', storeId, 'state/finance_days/items', dateStr)
+
+    const inf = dayData.inflows || {}
+    const inflows = {
+      credito: Math.max(0, Number(inf.credito) || 0),
+      debito: Math.max(0, Number(inf.debito) || 0),
+      voucher: Math.max(0, Number(inf.voucher) || 0),
+      pix: Math.max(0, Number(inf.pix) || 0),
+      dinheiro: Math.max(0, Number(inf.dinheiro) || 0)
+    }
+
+    const extraInflows = (dayData.extraInflows || []).map(item => ({
+      id: item.id || ('in_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6)),
+      name: String(item.name || 'Entrada Avulsa').trim(),
+      amount: Math.max(0, Number(item.amount) || 0),
+      notes: String(item.notes || '').trim()
+    })).filter(i => i.amount > 0)
+
+    const outflows = (dayData.outflows || []).map(item => ({
+      id: item.id || ('out_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6)),
+      category: item.category || 'outros',
+      name: String(item.name || 'Despesa').trim(),
+      amount: Math.max(0, Number(item.amount) || 0),
+      paymentMethod: item.paymentMethod || 'dinheiro',
+      notes: String(item.notes || '').trim()
+    })).filter(o => o.amount > 0)
+
+    const baseInflowSum = inflows.credito + inflows.debito + inflows.voucher + inflows.pix + inflows.dinheiro
+    const extraInflowSum = extraInflows.reduce((acc, x) => acc + x.amount, 0)
+    const totalInflows = Math.round((baseInflowSum + extraInflowSum) * 100) / 100
+    const totalOutflows = Math.round(outflows.reduce((acc, x) => acc + x.amount, 0) * 100) / 100
+    const netDay = Math.round((totalInflows - totalOutflows) * 100) / 100
+
+    const clean = JSON.parse(JSON.stringify({
+      id: dateStr,
+      date: dateStr,
+      monthKey: mk,
+      inflows,
+      extraInflows,
+      outflows,
+      totalInflows,
+      totalOutflows,
+      netDay,
+      notes: String(dayData.notes || '').trim(),
+      updatedBy: currentUser || 'GERENTE',
+      updatedAtHuman: nowHuman(),
+      updatedAtMs: Date.now()
+    }))
+
+    await setDoc(ref, {
+      ...clean,
+      updatedAt: serverTimestamp()
+    }, { merge: false })
+    return dateStr
+  }
+
+  async function deleteFinanceDay(dateStr) {
+    await deleteDoc(doc(db, 'stores', storeId, 'state/finance_days/items', dateStr))
+  }
+
+  async function saveFinancePayroll(payData) {
+    const payId = payData.id || ('pay_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6))
+    const dateStr = String(payData.date || '').trim()
+    if (!dateStr) throw new Error('Data do pagamento obrigatória')
+    const mk = dateStr.slice(0, 7)
+    const ref = doc(db, 'stores', storeId, 'state/finance_payroll/items', payId)
+
+    const clean = JSON.parse(JSON.stringify({
+      id: payId,
+      date: dateStr,
+      monthKey: mk,
+      referenceMonth: String(payData.referenceMonth || mk).trim(),
+      employeeName: String(payData.employeeName || '').trim(),
+      paymentType: payData.paymentType || 'salario',
+      amount: Math.max(0, Number(payData.amount) || 0),
+      paymentMethod: payData.paymentMethod || 'dinheiro',
+      notes: String(payData.notes || '').trim(),
+      contrachequeId: String(payData.contrachequeId || '').trim(),
+      updatedBy: currentUser || 'GERENTE',
+      createdAtHuman: payData.createdAtHuman || nowHuman(),
+      updatedAtMs: Date.now()
+    }))
+
+    await setDoc(ref, {
+      ...clean,
+      updatedAt: serverTimestamp(),
+      ...(payData.id ? {} : { createdAt: serverTimestamp() })
+    }, { merge: true })
+    return payId
+  }
+
+  async function deleteFinancePayroll(id) {
+    await deleteDoc(doc(db, 'stores', storeId, 'state/finance_payroll/items', id))
+  }
+
   async function incrementEmployeePoints(user, amount) {
     const ref = stateRef('scores')
     const snap = await getDoc(ref)
@@ -502,6 +660,9 @@ export function StoreProvider({ children }) {
       saveMultipleProducts, updateProductsStock,
       bakeryOrdersAll, saveBakeryOrder, deleteBakeryOrder, incrementEmployeePoints,
       shoppingListsAll, saveShoppingList, deleteShoppingList,
+      financeMonthsAll, saveFinanceMonth, deleteFinanceMonth,
+      financeDaysAll, saveFinanceDay, deleteFinanceDay,
+      financePayrollAll, saveFinancePayroll, deleteFinancePayroll,
       cfgRef, stateRef, colRef
     }}>
       {children}

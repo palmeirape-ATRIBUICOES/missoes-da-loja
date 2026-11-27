@@ -2,6 +2,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useStore } from '../../hooks/useStore'
 import { formatCurrency, normalizeWeekKeyLoose } from '../../utils/constants'
 import { useNavigate } from 'react-router-dom'
+import StoreWalletBanner from '../../components/StoreWalletBanner'
 
 export default function ManagerDashboard() {
   const { currentUser, store, logout } = useAuth()
@@ -15,6 +16,7 @@ export default function ManagerDashboard() {
   const todayRevenue = todaySales.reduce((s, v) => s + (v.total || 0), 0)
 
   const tabs = [
+    { key: 'administracao', icon: '🏛️', label: 'Administração & Caixa', color: 'from-slate-800 to-indigo-900', action: () => navigate('/gerente/administracao') },
     { key: 'pdv', icon: '🖥️', label: 'Abrir PDV', color: 'from-emerald-500 to-emerald-600', action: () => navigate('/pdv') },
     { key: 'compras', icon: '🛒', label: 'Lista de Compras', color: 'from-emerald-600 to-teal-700', badge: (shoppingListsAll || []).filter(l => l.status !== 'completed').length, action: () => navigate('/gerente/compras') },
     { key: 'pedidos-clientes', icon: '🛍️', label: 'Pedidos Clientes', color: 'from-fuchsia-600 to-pink-700', badge: (customerOrdersAll || []).filter(o => o.status === 'pending' || o.status === 'preparing').length, action: () => navigate('/gerente/pedidos-clientes') },
@@ -57,6 +59,12 @@ export default function ManagerDashboard() {
       </header>
 
       <main className="max-w-6xl mx-auto p-4 space-y-6">
+        {/* Always-Visible Store Wallet on Admin Home (with hide/mask options) */}
+        <StoreWalletBanner
+          compactDashboard
+          onOpenAdmin={() => navigate('/gerente/administracao')}
+        />
+
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="card p-4">

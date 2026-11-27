@@ -25,6 +25,7 @@ import DeliverySlots from './pages/manager/DeliverySlots'
 import CustomerOrders from './pages/manager/CustomerOrders'
 import Bakery from './pages/manager/Bakery'
 import ShoppingLists from './pages/manager/ShoppingLists'
+import AdminFinance from './pages/manager/AdminFinance'
 
 import { useStore } from './hooks/useStore'
 
@@ -77,6 +78,7 @@ function TasksPage() { const n = useNavigate(); return <Tasks onBack={() => n('/
 function ConfigPage() { const n = useNavigate(); return <Config onBack={() => n('/gerente')} /> }
 function FeedbackPage() { const n = useNavigate(); return <Feedback onBack={() => n('/gerente')} /> }
 function PaystubsPage() { const n = useNavigate(); return <Paystubs onBack={() => n('/gerente')} /> }
+function AdminFinancePage() { const n = useNavigate(); return <AdminFinance onBack={() => n('/gerente')} /> }
 
 function AppRoutes() {
   const { currentUser, isManager, loading, firebaseUser } = useAuth()
@@ -135,6 +137,7 @@ function AppRoutes() {
         <Route path="/gerente/pedidos-clientes" element={isManager ? <CustomerOrdersPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/padaria" element={isManager ? <BakeryPage /> : <Navigate to="/funcionario" />} />
         <Route path="/gerente/compras" element={isManager ? <ShoppingListsPage /> : <Navigate to="/funcionario" />} />
+        <Route path="/gerente/administracao" element={isManager ? <AdminFinancePage /> : <Navigate to="/funcionario" />} />
         <Route path="/funcionario" element={!isManager ? <EmployeeDashboard /> : <Navigate to="/gerente" />} />
         <Route path="/funcionario/produtos" element={!isManager ? <ProductsPageFunc /> : <Navigate to="/gerente" />} />
         <Route path="/funcionario/padaria" element={!isManager ? <BakeryPageFunc /> : <Navigate to="/gerente" />} />
@@ -147,7 +150,7 @@ function AppRoutes() {
 
 export default function App() {
   useEffect(() => {
-    const CURRENT_VERSION = 'v4.3'
+    const CURRENT_VERSION = 'v4.4'
     const storedVersion = localStorage.getItem('mdl_app_version')
     if (storedVersion !== CURRENT_VERSION) {
       const clearCaches = async () => {
